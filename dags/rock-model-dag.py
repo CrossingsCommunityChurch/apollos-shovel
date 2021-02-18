@@ -1,6 +1,6 @@
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python import PythonOperator
 from airflow.version import version
 from airflow.models import Variable
 from datetime import datetime, timedelta
@@ -8,20 +8,34 @@ from airflow.hooks.postgres_hook import PostgresHook
 
 import requests
 
-def fetch_rock_model(ds, **kwargs):
-    headers = {"Authorization-Token": kwargs['rock_token']}
-
-
-    # rock_now = datetime.datetime.strptime(ts, '%a %b %d %Y').strftime('%Y-%m-%d%z')
+def fetch_rock_model(ds, *args, **kwargs):
+    pg_hook = PostgresHook(postgres_conn_id='apollos_postgres')
+    headers = {"Authorization-Token": Variable.get("rock_token")}
 
     r = requests.get(
-            f"{kwargs['rock_api']}/ContentChannelItems",
+            f"{Variable.get('rock_api')}/{kwargs['rock_model']}",
             params={
                 "$top": 100,
                 "$filter": f"ModifiedDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}'"
             },
             headers=headers)
-    print(r.json())
+
+    rock_objects = r.json()
+
+    for obj in rock_objects:
+
+        dts_insert = """
+        INSERT into people (external_id, external_source, first_name, last_name)
+        values (%(id)s, 'rock', %(first_name)s, %(last_name)s)
+        ON CONFLICT (external_source, external_id)
+        DO UPDATE SET (first_name, last_name) = (%(first_name)s, %(last_name)s)
+        """
+
+        pg_hook.run(dts_insert, parameters=({
+            'id': obj['Id'],
+            'first_name': obj['FirstName'],
+            'last_name': obj['LastName']
+        }))
 
 
 # Default settings applied to all tasks
@@ -32,8 +46,6 @@ default_args = {
     'email_on_retry': False,
     'retries': 1,
     'retry_delay': timedelta(minutes=5),
-    'rock_token': Variable.get("rock_token"),
-    'rock_api': Variable.get("rock_api")
 }
 
 # Using a DAG context manager, you don't have to specify the dag property of each task
@@ -54,7 +66,6 @@ with DAG('rock_model_dag',
         task_id='fetch_rock_model',
         python_callable=fetch_rock_model,  # make sure you don't include the () of the function
         op_kwargs={'rock_model': "People"},
-        provide_context=True
     )
 
     t0 >> t1
