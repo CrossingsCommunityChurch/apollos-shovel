@@ -6,7 +6,14 @@ from airflow.models import Variable
 from datetime import datetime, timedelta
 from airflow.hooks.postgres_hook import PostgresHook
 
+from aes import AESCrypto
+
 import requests
+
+def apollos_id(type, id):
+    cipher = AESCrypto(Variable.get("apollos_id_secret"))
+    encrypted = cipher.encrypt(str(id))
+    return type + ":" + encrypted.decode("base64")
 
 def fetch_rock_model(ds, *args, **kwargs):
     pg_hook = PostgresHook(postgres_conn_id='apollos_postgres')
@@ -36,6 +43,14 @@ def fetch_rock_model(ds, *args, **kwargs):
             'first_name': obj['FirstName'],
             'last_name': obj['LastName']
         }))
+
+        dts_update = """
+        UPDATE people
+        SET apollos_id = %s
+        WHERE external_id = %s and external_type = 'rock'
+        """
+
+        pg_hook.run(dts_insert, parameters=((apollos_id('Person', obj['Id']), obj['Id'])))
 
 
 # Default settings applied to all tasks
