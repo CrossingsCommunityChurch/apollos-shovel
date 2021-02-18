@@ -2,13 +2,14 @@ from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.version import version
+from airflow.models import Variable
 from datetime import datetime, timedelta
+from airflow.hooks.postgres_hook import PostgresHook
 
 import requests
 
-def fetch_rock_model(execution_date,**kwargs):
+def fetch_rock_model(ds, **kwargs):
     headers = {"Authorization-Token": kwargs['rock_token']}
-    print(execution_date)
 
 
     # rock_now = datetime.datetime.strptime(ts, '%a %b %d %Y').strftime('%Y-%m-%d%z')
@@ -17,10 +18,9 @@ def fetch_rock_model(execution_date,**kwargs):
             f"{kwargs['rock_api']}/ContentChannelItems",
             params={
                 "$top": 100,
-                "$filter": f"ModifiedDateTime gte datetime'{execution_date.strftime('%Y-%m-%dT00:00')}'"
+                "$filter": f"ModifiedDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}'"
             },
             headers=headers)
-    print(f"ModifiedDateTime gte datetime'{execution_date.strftime('%Y-%m-%dT00:00')}'")
     print(r.json())
 
 
@@ -31,7 +31,9 @@ default_args = {
     'email_on_failure': False,
     'email_on_retry': False,
     'retries': 1,
-    'retry_delay': timedelta(minutes=5)
+    'retry_delay': timedelta(minutes=5),
+    'rock_token': Variable.get("rock_token"),
+    'rock_api': Variable.get("rock_api")
 }
 
 # Using a DAG context manager, you don't have to specify the dag property of each task
@@ -51,7 +53,7 @@ with DAG('rock_model_dag',
     t1 = PythonOperator(
         task_id='fetch_rock_model',
         python_callable=fetch_rock_model,  # make sure you don't include the () of the function
-        op_kwargs={'rock_model': "People", 'rock_token': "ASZjZWdf3IqrbZX9sedtB4wb", 'rock_api': "https://rock.apollos.app/api"},
+        op_kwargs={'rock_model': "People"},
         provide_context=True
     )
 
