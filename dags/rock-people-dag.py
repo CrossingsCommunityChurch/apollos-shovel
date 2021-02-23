@@ -12,9 +12,7 @@ import base64
 import requests
 
 def apollos_id(type, id):
-    cipher = AESCrypto(Variable.get("apollos_id_secret"))
-    encrypted = cipher.encrypt(str(id))
-    return type + ":" + base64.b64encode(encrypted).decode('utf-8')
+    return type + ":" + id
 
 def fetch_rock_model(ds, *args, **kwargs):
     pg_hook = PostgresHook(postgres_conn_id='apollos_postgres')
@@ -35,28 +33,37 @@ def fetch_rock_model(ds, *args, **kwargs):
     for obj in rock_objects:
 
         dts_insert = """
-        INSERT into people (createdAt, updatedAt, originId, originType, apollosType, first_name, last_name, gender, birthDate)
-        values (%(current_date)s, %(id)s, 'rock', 'Person', %(first_name)s, %(last_name)s, %(gender)s, %(birth_date)s)
-        ON CONFLICT (originId, originType)
-        DO UPDATE SET (first_name, last_name) = (%(first_name)s, %(last_name)s)
+        INSERT into people ("createdAt", "updatedAt", "originId", "originType", "apollosType", "firstName", "lastName", gender, "birthDate")
+        values (%(current_date)s, %(current_date)s, %(id)s, 'rock', 'Person', %(first_name)s, %(last_name)s, %(gender)s, %(birth_date)s)
+        ON CONFLICT ("originId", "originType")
+        DO UPDATE SET ("firstName", "lastName") = (%(first_name)s, %(last_name)s)
         """
 
         pg_hook.run(dts_insert, parameters=({
             'id': obj['Id'],
             'first_name': obj['FirstName'],
             'last_name': obj['LastName'],
-            'current_date': execution_date,
+            'current_date': kwargs['execution_date'],
             'gender': gender_map[obj['Gender']],
-            'birthDate': obj['BirthDate']
+            'birth_date': obj['BirthDate']
         }))
 
-        dts_update = """
-        UPDATE people
-        SET apollos_id = %s
-        WHERE external_id = %s and external_source = 'rock' and apollos_id IS NULL
+        users_without_apollos_id_select = """
+        SELECT id from people
+        WHERE "originType" = 'rock' and "apollosId" IS NULL
         """
 
-        pg_hook.run(dts_update, parameters=((apollos_id('Person', obj['Id']), str(obj['Id']))))
+        for new_id in pg_hook.get_records(users_without_apollos_id_select):
+            apollos_id_update = """
+            UPDATE people
+            SET "apollosId" = %s
+            WHERE id = %s::uuid
+            """
+
+            pg_hook.run(
+                apollos_id_update,
+                parameters=((apollos_id('Person', new_id[0]), new_id[0]))
+            )
 
 
 # Default settings applied to all tasks
@@ -70,7 +77,7 @@ default_args = {
 }
 
 # Using a DAG context manager, you don't have to specify the dag property of each task
-with DAG('rock_model_dag',
+with DAG('rock_people_dag',
          start_date=datetime(2019, 1, 1),
          max_active_runs=3,
          schedule_interval=timedelta(minutes=30),  # https://airflow.apache.org/docs/stable/scheduler.html#dag-runs

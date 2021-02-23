@@ -8,9 +8,9 @@ class AESCrypto:
 
     def __init__(self, key):
         self.key = key
-        self.iv = bytes(key[0:16], 'utf-8')
+        self.iv = bytes(key[0:24], 'utf-8')
         print(self.key)
-        print(key[0:16])
+        print(key[0:24])
 
     def __pad(self, text):
         text_length = len(text)
@@ -26,10 +26,10 @@ class AESCrypto:
 
     def encrypt( self, raw ):
         raw = self.__pad(raw)
-        cipher = AES.new(self.key, AES.MODE_CBC, self.iv)
+        cipher = AES.new(self.key, AES.MODE_ECB, self.iv)
         return base64.b64encode(cipher.encrypt(raw)) 
 
     def decrypt( self, enc ):
         enc = base64.b64decode(enc)
-        cipher = AES.new(self.key, AES.MODE_CBC, self.iv )
+        cipher = AES.new(self.key, AES.MODE_ECB, self.iv )
         return self.__unpad(cipher.decrypt(enc).decode("utf-8"))
