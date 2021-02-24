@@ -4,6 +4,7 @@ from airflow.hooks.postgres_hook import PostgresHook
 from apollos_type import apollos_id
 
 import requests
+from pypika import Query, Table
 
 def fetch_and_save_people(ds, *args, **kwargs):
     pg_hook = PostgresHook(postgres_conn_id='apollos_postgres')
@@ -12,6 +13,8 @@ def fetch_and_save_people(ds, *args, **kwargs):
     fetched_all = False
     skip = 0
     top = 100
+
+    people = Table('people')
 
     while fetched_all == False:
         # Fetch people records from Rock.
@@ -46,18 +49,8 @@ def fetch_and_save_people(ds, *args, **kwargs):
         campus_map = dict(campuses)
         campus_map['None'] = None;
 
-
-        for obj in rock_objects:
-
-            # Insert or update each user.
-            dts_insert = """
-            INSERT into people ("createdAt", "updatedAt", "originId", "originType", "apollosType", "firstName", "lastName", gender, "birthDate", "campusId", "email")
-            values (%(current_date)s, %(current_date)s, %(id)s, 'rock', 'Person', %(first_name)s, %(last_name)s, %(gender)s, %(birth_date)s, %(campus_id)s, %(email)s)
-            ON CONFLICT ("originId", "originType")
-            DO UPDATE SET ("updatedAt", "firstName", "lastName", gender, "birthDate", "campusId", "email") = (%(current_date)s, %(first_name)s, %(last_name)s, %(gender)s, %(birth_date)s, %(campus_id)s, %(email)s)
-            """
-
-            pg_hook.run(dts_insert, parameters=({
+        def update_people(obj):
+            return "('{current_date}', '{current_date}', '{id}', 'rock', 'Person', '{first_name}', '{last_name}', '{gender}', '{birth_date}', {campus_id}, '{email}')".format(**{
                 'id': obj['Id'],
                 'first_name': obj['FirstName'],
                 'last_name': obj['LastName'],
@@ -66,23 +59,51 @@ def fetch_and_save_people(ds, *args, **kwargs):
                 'birth_date': obj['BirthDate'],
                 'email': obj['Email'],
                 'campus_id': campus_map[str(obj["PrimaryCampusId"])]
-            }))
+            })
 
-            # For all our "new" users (users we have pulled in who don't yet have an apollos id)
-            users_without_apollos_id_select = """
-            SELECT id from people
-            WHERE "originType" = 'rock' and "apollosId" IS NULL
-            """
+        all_people = " , ".join(map(update_people, rock_objects))
+        print(all_people)
 
-            for new_id in pg_hook.get_records(users_without_apollos_id_select):
-                apollos_id_update = """
-                UPDATE people
-                SET "apollosId" = %s
-                WHERE id = %s::uuid
-                """
 
-                # Set their ID using the apollos_id method.
-                pg_hook.run(
-                    apollos_id_update,
-                    parameters=((apollos_id('Person', new_id[0]), new_id[0]))
-                )
+        insert_all = """
+        INSERT into people ("createdAt", "updatedAt", "originId", "originType", "apollosType", "firstName", "lastName", gender, "birthDate", "campusId", "email")
+        VALUES {}
+        ON CONFLICT ("originId", "originType")
+        DO UPDATE SET ("updatedAt", "firstName", "lastName", gender, "birthDate", "campusId", "email") = (EXCLUDED."updatedAat", EXCLUDED."firstName", EXCLUDED."lastName", EXCLUDED."gender", EXCLUDED."birthDate", EXCLUDED."campusId", EXCLUDED."email")
+        """.format(all_people)
+
+        pg_hook.run(insert_all, parameters=({
+            'current_date': kwargs['execution_date'],
+            'people_updates': all_people
+        }))
+
+
+        add_apollos_ids = """
+        UPDATE people
+        SET "apollosId" = 'Person:' || id::varchar
+        WHERE "originType" = 'rock' and "apollosId" IS NULL
+        """
+
+        pg_hook.run(add_apollos_ids)
+        # for obj in rock_objects:
+
+        #     # Insert or update each user.
+        #     dts_insert = """
+        #     INSERT into people ("createdAt", "updatedAt", "originId", "originType", "apollosType", "firstName", "lastName", gender, "birthDate", "campusId", "email")
+        #     values (%(current_date)s, %(current_date)s, %(id)s, 'rock', 'Person', %(first_name)s, %(last_name)s, %(gender)s, %(birth_date)s, %(campus_id)s, %(email)s)
+        #     ON CONFLICT ("originId", "originType")
+        #     DO UPDATE SET ("updatedAt", "firstName", "lastName", gender, "birthDate", "campusId", "email") = (%(current_date)s, %(first_name)s, %(last_name)s, %(gender)s, %(birth_date)s, %(campus_id)s, %(email)s)
+        #     """
+
+        #     pg_hook.run(dts_insert, parameters=({
+        #         'id': obj['Id'],
+        #         'first_name': obj['FirstName'],
+        #         'last_name': obj['LastName'],
+        #         'current_date': kwargs['execution_date'],
+        #         'gender': gender_map[obj['Gender']],
+        #         'birth_date': obj['BirthDate'],
+        #         'email': obj['Email'],
+        #         'campus_id': campus_map[str(obj["PrimaryCampusId"])]
+        #     }))
+
+            # Adds apollos ids to all of our new users
