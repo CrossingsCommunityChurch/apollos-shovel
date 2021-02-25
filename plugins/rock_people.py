@@ -23,12 +23,18 @@ def fetch_and_save_people(ds, *args, **kwargs):
                 params={
                     "$top": top,
                     "$skip": skip,
-                    "$orderby": "ModifiedDateTime asc",
+                    "$orderby": "ModifiedDateTime desc",
                     "$filter": f"ModifiedDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null"
 
                 },
                 headers=headers)
         rock_objects = r.json()
+
+        if not isinstance(rock_objects, list):
+            print(rock_objects)
+            print("oh uh, we might have made a bad request")
+
+
         skip += top
         fetched_all = len(rock_objects) < top
 
@@ -45,37 +51,42 @@ def fetch_and_save_people(ds, *args, **kwargs):
         """
         )
 
-        # Turn the campuses into a dictonary, key is rock id, value is our internal id
         campus_map = dict(campuses)
-        campus_map['None'] = None;
+        campus_map['None'] = None
 
         def update_people(obj):
-            return "('{current_date}', '{current_date}', '{id}', 'rock', 'Person', '{first_name}', '{last_name}', '{gender}', '{birth_date}', {campus_id}, '{email}')".format(**{
-                'id': obj['Id'],
-                'first_name': obj['FirstName'],
-                'last_name': obj['LastName'],
-                'current_date': kwargs['execution_date'],
-                'gender': gender_map[obj['Gender']],
-                'birth_date': obj['BirthDate'],
-                'email': obj['Email'],
-                'campus_id': campus_map[str(obj["PrimaryCampusId"])]
-            })
+            return (
+                kwargs['execution_date'],
+                kwargs['execution_date'],
+                obj['Id'],
+                'rock',
+                'Person',
+                obj['FirstName'],
+                obj['LastName'],
+                gender_map[obj['Gender']],
+                obj['BirthDate'],
+                campus_map[str(obj["PrimaryCampusId"])],
+                obj['Email']
+            )
 
-        all_people = " , ".join(map(update_people, rock_objects))
-        print(all_people)
+        def fix_casing(col):
+            return "\"{}\"".format(col)
+
+        print("Rock objects here")
+        print(rock_objects)
+        print("Rock objects here")
+        people_to_insert = list(map(update_people, rock_objects))
+        columns = list(map(fix_casing, ("createdAt", "updatedAt", "originId", "originType", "apollosType", "firstName", "lastName", "gender", "birthDate", "campusId", "email")))
 
 
-        insert_all = """
-        INSERT into people ("createdAt", "updatedAt", "originId", "originType", "apollosType", "firstName", "lastName", gender, "birthDate", "campusId", "email")
-        VALUES {}
-        ON CONFLICT ("originId", "originType")
-        DO UPDATE SET ("updatedAt", "firstName", "lastName", gender, "birthDate", "campusId", "email") = (EXCLUDED."updatedAat", EXCLUDED."firstName", EXCLUDED."lastName", EXCLUDED."gender", EXCLUDED."birthDate", EXCLUDED."campusId", EXCLUDED."email")
-        """.format(all_people)
-
-        pg_hook.run(insert_all, parameters=({
-            'current_date': kwargs['execution_date'],
-            'people_updates': all_people
-        }))
+        pg_hook.insert_rows(
+            'people',
+            people_to_insert,
+            columns,
+            0,
+            True,
+            replace_index = ('"originId"', '"originType"')
+        )
 
 
         add_apollos_ids = """
@@ -85,25 +96,4 @@ def fetch_and_save_people(ds, *args, **kwargs):
         """
 
         pg_hook.run(add_apollos_ids)
-        # for obj in rock_objects:
 
-        #     # Insert or update each user.
-        #     dts_insert = """
-        #     INSERT into people ("createdAt", "updatedAt", "originId", "originType", "apollosType", "firstName", "lastName", gender, "birthDate", "campusId", "email")
-        #     values (%(current_date)s, %(current_date)s, %(id)s, 'rock', 'Person', %(first_name)s, %(last_name)s, %(gender)s, %(birth_date)s, %(campus_id)s, %(email)s)
-        #     ON CONFLICT ("originId", "originType")
-        #     DO UPDATE SET ("updatedAt", "firstName", "lastName", gender, "birthDate", "campusId", "email") = (%(current_date)s, %(first_name)s, %(last_name)s, %(gender)s, %(birth_date)s, %(campus_id)s, %(email)s)
-        #     """
-
-        #     pg_hook.run(dts_insert, parameters=({
-        #         'id': obj['Id'],
-        #         'first_name': obj['FirstName'],
-        #         'last_name': obj['LastName'],
-        #         'current_date': kwargs['execution_date'],
-        #         'gender': gender_map[obj['Gender']],
-        #         'birth_date': obj['BirthDate'],
-        #         'email': obj['Email'],
-        #         'campus_id': campus_map[str(obj["PrimaryCampusId"])]
-        #     }))
-
-            # Adds apollos ids to all of our new users
