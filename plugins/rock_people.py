@@ -4,7 +4,6 @@ from airflow.hooks.postgres_hook import PostgresHook
 from apollos_type import apollos_id
 
 import requests
-from pypika import Query, Table
 
 def fetch_and_save_people(ds, *args, **kwargs):
     pg_hook = PostgresHook(postgres_conn_id='apollos_postgres')
@@ -13,8 +12,6 @@ def fetch_and_save_people(ds, *args, **kwargs):
     fetched_all = False
     skip = 0
     top = 100
-
-    people = Table('people')
 
     while fetched_all == False:
         # Fetch people records from Rock.
@@ -72,9 +69,6 @@ def fetch_and_save_people(ds, *args, **kwargs):
         def fix_casing(col):
             return "\"{}\"".format(col)
 
-        print("Rock objects here")
-        print(rock_objects)
-        print("Rock objects here")
         people_to_insert = list(map(update_people, rock_objects))
         columns = list(map(fix_casing, ("createdAt", "updatedAt", "originId", "originType", "apollosType", "firstName", "lastName", "gender", "birthDate", "campusId", "email")))
 
