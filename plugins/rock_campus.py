@@ -13,7 +13,7 @@ def fetch_and_save_campuses(ds, *args, **kwargs):
             f"{Variable.get('rock_api')}/Campuses",
             params={
                 "$top": 100,
-                "$filter": f"ModifiedDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null",
+                # "$filter": f"ModifiedDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null",
                 "$expand": "CampusTypeValue, Location"
             },
             headers=headers)
