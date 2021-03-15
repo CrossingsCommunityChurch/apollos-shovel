@@ -34,6 +34,10 @@ def fetch_and_save_people(ds, *args, **kwargs):
         if not isinstance(rock_objects, list):
             print(rock_objects)
             print("oh uh, we might have made a bad request")
+            print("top: {top}")
+            print("skip: {skip}")
+            skip += top
+            continue
 
 
         skip += top
