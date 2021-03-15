@@ -13,7 +13,12 @@ def fetch_and_save_people(ds, *args, **kwargs):
     top = 100
 
     while fetched_all == False:
-        pg_hook = PostgresHook(postgres_conn_id='apollos_postgres')
+        pg_hook = PostgresHook(postgres_conn_id='apollos_postgres',
+            keepalives=1,
+            keepalives_idle=30,
+            keepalives_interval=10,
+            keepalives_count=5
+        )
         # Fetch people records from Rock.
         r = requests.get(
                 f"{Variable.get('rock_api')}/People",
