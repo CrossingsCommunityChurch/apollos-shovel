@@ -6,7 +6,6 @@ from apollos_type import apollos_id
 import requests
 
 def fetch_and_save_people(ds, *args, **kwargs):
-    pg_hook = PostgresHook(postgres_conn_id='apollos_postgres')
     headers = {"Authorization-Token": Variable.get("rock_token")}
 
     fetched_all = False
@@ -14,6 +13,7 @@ def fetch_and_save_people(ds, *args, **kwargs):
     top = 100
 
     while fetched_all == False:
+        pg_hook = PostgresHook(postgres_conn_id='apollos_postgres')
         # Fetch people records from Rock.
         r = requests.get(
                 f"{Variable.get('rock_api')}/People",
