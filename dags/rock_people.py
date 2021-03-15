@@ -21,8 +21,7 @@ def fetch_and_save_people(ds, *args, **kwargs):
                     "$top": top,
                     "$skip": skip,
                     "$orderby": "ModifiedDateTime desc",
-                    "$filter": f"ModifiedDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null"
-
+                    "$filter": f"ModifiedDateTime {'lt' if kwargs['do_backfill'] else 'gt'} datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null"
                 },
                 headers=headers)
         rock_objects = r.json()
