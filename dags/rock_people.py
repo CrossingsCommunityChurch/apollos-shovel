@@ -35,15 +35,22 @@ def fetch_and_save_people(ds, *args, **kwargs):
 
     while fetched_all == False:
         # Fetch people records from Rock.
+
+        params = {
+            "$top": top,
+            "$skip": skip,
+            "$expand": "Photo",
+            "$orderby": "ModifiedDateTime desc",
+        }
+
+        if not kwargs['do_backfill']:
+            params['$filter'] = f"ModifiedDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null"
+
+        print(params)
+
         r = requests.get(
                 f"{Variable.get('rock_api')}/People",
-                params={
-                    "$top": top,
-                    "$skip": skip,
-                    "$expand": "Photo",
-                    "$orderby": "ModifiedDateTime desc",
-                    "$filter": f"ModifiedDateTime {'lt' if kwargs['do_backfill'] else 'gt'} datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null"
-                },
+                params=params,
                 headers=headers)
         rock_objects = r.json()
 
