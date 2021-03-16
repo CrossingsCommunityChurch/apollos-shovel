@@ -10,21 +10,37 @@ def fetch_and_save_people(ds, *args, **kwargs):
 
     fetched_all = False
     skip = 0
-    top = 100
+    top = 500
+
+    pg_hook = PostgresHook(postgres_conn_id='apollos_postgres',
+        keepalives=1,
+        keepalives_idle=30,
+        keepalives_interval=10,
+        keepalives_count=5
+    )
+
+    # Rock stores gender as an integer
+    gender_map = ('UNKNOWN', 'MALE', 'FEMALE')
+
+    # Fetch the available campuses.
+    campuses = pg_hook.get_records("""
+        SELECT "originId", id
+        FROM campuses
+        WHERE "originType" = 'rock'
+    """
+    )
+
+    campus_map = dict(campuses)
+    campus_map['None'] = None
 
     while fetched_all == False:
-        pg_hook = PostgresHook(postgres_conn_id='apollos_postgres',
-            keepalives=1,
-            keepalives_idle=30,
-            keepalives_interval=10,
-            keepalives_count=5
-        )
         # Fetch people records from Rock.
         r = requests.get(
                 f"{Variable.get('rock_api')}/People",
                 params={
                     "$top": top,
                     "$skip": skip,
+                    "$expand": "Photo",
                     "$orderby": "ModifiedDateTime desc",
                     "$filter": f"ModifiedDateTime {'lt' if kwargs['do_backfill'] else 'gt'} datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null"
                 },
@@ -43,22 +59,6 @@ def fetch_and_save_people(ds, *args, **kwargs):
         skip += top
         fetched_all = len(rock_objects) < top
 
-        # Rock stores gender as an integer
-        gender_map = ('UNKNOWN', 'MALE', 'FEMALE')
-
-
-
-        # Fetch the available campuses.
-        campuses = pg_hook.get_records("""
-            SELECT "originId", id
-            FROM campuses
-            WHERE "originType" = 'rock'
-        """
-        )
-
-        campus_map = dict(campuses)
-        campus_map['None'] = None
-
         def update_people(obj):
             return (
                 kwargs['execution_date'],
@@ -71,14 +71,15 @@ def fetch_and_save_people(ds, *args, **kwargs):
                 gender_map[obj['Gender']],
                 obj['BirthDate'],
                 campus_map[str(obj["PrimaryCampusId"])],
-                obj['Email']
+                obj['Email'],
+                obj['Photo']['Path'] # may need to be a different attribute, depending on the church.
             )
 
         def fix_casing(col):
             return "\"{}\"".format(col)
 
         people_to_insert = list(map(update_people, rock_objects))
-        columns = list(map(fix_casing, ("createdAt", "updatedAt", "originId", "originType", "apollosType", "firstName", "lastName", "gender", "birthDate", "campusId", "email")))
+        columns = list(map(fix_casing, ("createdAt", "updatedAt", "originId", "originType", "apollosType", "firstName", "lastName", "gender", "birthDate", "campusId", "email", "profileImageUrl")))
 
 
         pg_hook.insert_rows(
