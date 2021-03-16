@@ -34,6 +34,7 @@ with DAG('rock_people_dag',
     t1 = PythonOperator(
         task_id='fetch_and_save_people',
         python_callable=fetch_and_save_people,  # make sure you don't include the () of the function
+        op_kwargs={'do_backfill': False}
     )
 
     t0 >> t1
