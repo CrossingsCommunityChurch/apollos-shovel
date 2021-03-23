@@ -5,7 +5,7 @@ from apollos_type import apollos_id
 
 import requests
 
-def (ds, *args, **kwargs):
+def fetch_and_save_personal_devices_to_apollos_user(ds, *args, **kwargs):
     headers = {"Authorization-Token": Variable.get("rock_token")}
 
     fetched_all = False
