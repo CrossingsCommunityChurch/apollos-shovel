@@ -40,7 +40,7 @@ def fetch_and_save_people(ds, *args, **kwargs):
             "$top": top,
             "$skip": skip,
             "$expand": "Photo",
-            "$select": "Id,NickName,LastName,Gender,BirthDate,PrimaryCampusId,Email,Photo/Path"
+            "$select": "Id,NickName,LastName,Gender,BirthDate,PrimaryCampusId,Email,Photo/Path",
             "$orderby": "ModifiedDateTime desc",
         }
 
