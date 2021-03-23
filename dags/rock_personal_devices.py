@@ -60,7 +60,8 @@ def fetch_and_save_personal_devices_to_apollos_user(ds, *args, **kwargs):
         def fix_casing(col):
             return "\"{}\"".format(col)
 
-        people_to_insert = list(map(people_attribute, rock_objects))
+        devices_with_people = filter(lambda p: "PersonId" in p["PersonAlias"], rock_objects)
+        people_to_insert = list(map(people_attribute, devices_with_people))
         columns = list(map(fix_casing, ("apollosUser", "originId", "originType")))
 
 
