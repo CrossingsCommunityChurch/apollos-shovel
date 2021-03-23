@@ -17,7 +17,7 @@ default_args = {
 }
 
 
-with DAG('backfill_rock_people_dag',
+with DAG('backfill_apollos_user_from_personal_devices',
          start_date=datetime(2021, 3, 22),
          max_active_runs=1,
          schedule_interval='@once',  # https://airflow.apache.org/docs/stable/scheduler.html#dag-runs
