@@ -63,5 +63,7 @@ def fetch_and_save_personal_devices_to_apollos_user(ds, *args, **kwargs):
         {update_statements_joined}
         """
 
+        print(dts_insert)
+
         pg_hook.run(dts_insert)
 
