@@ -80,7 +80,7 @@ def fetch_and_save_people(ds, *args, **kwargs):
                 obj['BirthDate'],
                 campus_map[str(obj["PrimaryCampusId"])],
                 obj['Email'],
-                obj['Photo'].get('Path') # may need to be a different attribute, depending on the church.
+                get(obj, 'Photo', {}).get('Path') # may need to be a different attribute, depending on the church.
             )
 
         def fix_casing(col):
