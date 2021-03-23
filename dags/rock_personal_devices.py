@@ -51,16 +51,16 @@ def fetch_and_save_personal_devices_to_apollos_user(ds, *args, **kwargs):
         fetched_all = len(rock_objects) < top
 
         def update_statement(obj):
-            return f"\"apollosUser\" = True where \"originId\" = {obj['PersonAlias']['PersonId']} and \"originType\" = 'rock'"
+            return f"'{obj['PersonAlias']['PersonId']}'"
 
         devices_with_people = filter(lambda p: "PersonId" in p["PersonAlias"], rock_objects)
         people_update_statements = list(map(update_statement, devices_with_people))
-        update_statements_joined = ",\n".join(people_update_statements)
+        update_statements_joined = ",".join(people_update_statements)
 
         dts_insert = f"""
         UPDATE people
-        SET
-        {update_statements_joined}
+        SET \"apollosUser\" = True
+        WHERE \"originType\" = 'rock' AND \"originId\" IN({update_statements_joined})
         """
 
         print(dts_insert)
