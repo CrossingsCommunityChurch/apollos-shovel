@@ -50,27 +50,18 @@ def fetch_and_save_personal_devices_to_apollos_user(ds, *args, **kwargs):
         skip += top
         fetched_all = len(rock_objects) < top
 
-        def people_attribute(obj):
-            return (
-                True,
-                obj["PersonAlias"]["PersonId"],
-                "rock"
-            )
-
-        def fix_casing(col):
-            return "\"{}\"".format(col)
+        def update_statement(obj):
+            return f"\"apollosUser\" = True where \"originId\" = {obj['PersonAlias']['PersonId']} and \"originType\" = 'rock'"
 
         devices_with_people = filter(lambda p: "PersonId" in p["PersonAlias"], rock_objects)
-        people_to_insert = list(map(people_attribute, devices_with_people))
-        columns = list(map(fix_casing, ("apollosUser", "originId", "originType")))
+        people_update_statements = list(map(update_statement, devices_with_people))
+        update_statements_joined = ",\n".join(people_update_statements)
 
+        dts_insert = f"""
+        UPDATE people
+        SET
+        {update_statements_joined}
+        """
 
-        pg_hook.insert_rows(
-            'people',
-            people_to_insert,
-            columns,
-            0,
-            True,
-            replace_index = ('"originId"', '"originType"')
-        )
+        pg_hook.run(dts_insert)
 
