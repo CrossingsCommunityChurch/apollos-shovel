@@ -10,7 +10,7 @@ def fetch_and_save_people(ds, *args, **kwargs):
 
     fetched_all = False
     skip = 0
-    top = 500
+    top = 10000
 
     pg_hook = PostgresHook(postgres_conn_id='apollos_postgres',
         keepalives=1,
@@ -40,6 +40,7 @@ def fetch_and_save_people(ds, *args, **kwargs):
             "$top": top,
             "$skip": skip,
             "$expand": "Photo",
+            "$select": "Id,NickName,LastName,Gender,BirthDate,PrimaryCampusId,Email,Photo/Path"
             "$orderby": "ModifiedDateTime desc",
         }
 
@@ -73,7 +74,7 @@ def fetch_and_save_people(ds, *args, **kwargs):
                 obj['Id'],
                 'rock',
                 'Person',
-                obj['FirstName'],
+                obj['NickName'],
                 obj['LastName'],
                 gender_map[obj['Gender']],
                 obj['BirthDate'],
