@@ -26,10 +26,8 @@ with DAG('backfill_rock_people_dag',
          ) as dag:
 
     # generate tasks with a loop. task_id must be unique
-    t1 = PythonOperator(
+    PythonOperator(
         task_id='backfill_apollos_user_from_personal_devices',
         python_callable=fetch_and_save_personal_devices_to_apollos_user,  # make sure you don't include the () of the function
         op_kwargs={'do_backfill': True, rock_mobile_device_type_id: 919}
     )
-
-    t0 >> t1
