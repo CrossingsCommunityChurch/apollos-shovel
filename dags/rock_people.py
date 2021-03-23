@@ -5,6 +5,16 @@ from apollos_type import apollos_id
 
 import requests
 
+def safeget(dct, *keys):
+    for key in keys:
+        try:
+            dct = dct[key]
+        except KeyError:
+            return None
+        except TypeError:
+            return None
+    return dct
+
 def fetch_and_save_people(ds, *args, **kwargs):
     headers = {"Authorization-Token": Variable.get("rock_token")}
 
@@ -80,7 +90,7 @@ def fetch_and_save_people(ds, *args, **kwargs):
                 obj['BirthDate'],
                 campus_map[str(obj["PrimaryCampusId"])],
                 obj['Email'],
-                obj.get('Photo', {}).get('Path') # may need to be a different attribute, depending on the church.
+                safeget(obj, 'Photo', 'Path') # may need to be a different attribute, depending on the church.
             )
 
         def fix_casing(col):
