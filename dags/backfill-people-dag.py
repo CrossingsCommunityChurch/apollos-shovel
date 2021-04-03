@@ -19,7 +19,7 @@ default_args = {
 
 
 with DAG('backfill_rock_people_dag',
-         start_date=datetime(2021, 2, 25),
+         start_date=datetime(2021, 4, 2),
          max_active_runs=1,
          schedule_interval='@once',  # https://airflow.apache.org/docs/stable/scheduler.html#dag-runs
          default_args=default_args,
