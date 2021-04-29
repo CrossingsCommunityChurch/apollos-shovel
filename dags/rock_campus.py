@@ -6,11 +6,15 @@ from apollos_type import apollos_id
 import requests
 
 def fetch_and_save_campuses(ds, *args, **kwargs):
-    pg_hook = PostgresHook(postgres_conn_id='apollos_postgres')
-    headers = {"Authorization-Token": Variable.get("rock_token")}
+    if not kwargs.has_key('client') or kwargs['client'] is None:
+        raise Exception("You must configure a client for this operator")
+
+    pg_connection = kwargs['client'] + '_apollos_postgres'
+    pg_hook = PostgresHook(postgres_conn_id=pg_connection)
+    headers = {"Authorization-Token": Variable.get(kwargs['client'] + "_rock_token")}
 
     r = requests.get(
-            f"{Variable.get('rock_api')}/Campuses",
+            f"{Variable.get(kwargs['client'] + '_rock_api')}/Campuses",
             params={
                 "$top": 100,
                 # "$filter": f"ModifiedDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null",

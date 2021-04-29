@@ -16,13 +16,17 @@ def safeget(dct, *keys):
     return dct
 
 def fetch_and_save_people(ds, *args, **kwargs):
-    headers = {"Authorization-Token": Variable.get("rock_token")}
+    if not kwargs.has_key('client') or kwargs['client'] is None:
+        raise Exception("You must configure a client for this operator")
+
+    headers = {"Authorization-Token": Variable.get(kwargs['client'] + "_rock_token")}
 
     fetched_all = False
     skip = 0
     top = 10000
 
-    pg_hook = PostgresHook(postgres_conn_id='apollos_postgres',
+    pg_connection = kwargs['client'] + '_apollos_postgres'
+    pg_hook = PostgresHook(postgres_conn_id=pg_connection,
         keepalives=1,
         keepalives_idle=30,
         keepalives_interval=10,
@@ -60,7 +64,7 @@ def fetch_and_save_people(ds, *args, **kwargs):
         print(params)
 
         r = requests.get(
-                f"{Variable.get('rock_api')}/People",
+                f"{Variable.get(kwargs['client'] + '_rock_api')}/People",
                 params=params,
                 headers=headers)
         rock_objects = r.json()

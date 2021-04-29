@@ -18,7 +18,7 @@ default_args = {
 
 # Using a DAG context manager, you don't have to specify the dag property of each task
 with DAG('rock_people_dag',
-         start_date=datetime(2021, 2, 25),
+         start_date=datetime(2021, 40, 29),
          max_active_runs=1,
          schedule_interval=timedelta(minutes=30),  # https://airflow.apache.org/docs/stable/scheduler.html#dag-runs
          default_args=default_args,
@@ -28,13 +28,14 @@ with DAG('rock_people_dag',
     t0 = PythonOperator(
         task_id='fetch_and_save_campuses',
         python_callable=fetch_and_save_campuses,  # make sure you don't include the () of the function
+        op_kwargs={'client': 'newspring'}
     )
 
     # generate tasks with a loop. task_id must be unique
     t1 = PythonOperator(
         task_id='fetch_and_save_people',
         python_callable=fetch_and_save_people,  # make sure you don't include the () of the function
-        op_kwargs={'do_backfill': False}
+        op_kwargs={'do_backfill': False, 'client': 'newspring'}
     )
 
     t0 >> t1

@@ -6,13 +6,16 @@ from apollos_type import apollos_id
 import requests
 
 def fetch_and_save_personal_devices_to_apollos_user(ds, *args, **kwargs):
-    headers = {"Authorization-Token": Variable.get("rock_token")}
+    if not kwargs.has_key('client') or kwargs['client'] is None:
+        raise Exception("You must configure a client for this operator")
+    headers = {"Authorization-Token": Variable.get(kwargs['client'] + '_rock_token')}
 
     fetched_all = False
     skip = 0
     top = 1000
 
-    pg_hook = PostgresHook(postgres_conn_id='apollos_postgres',
+    pg_connection = kwargs['client'] + '_apollos_postgres'
+    pg_hook = PostgresHook(postgres_conn_id=pg_connection,
         keepalives=1,
         keepalives_idle=30,
         keepalives_interval=10,
@@ -33,7 +36,7 @@ def fetch_and_save_personal_devices_to_apollos_user(ds, *args, **kwargs):
         print(params)
 
         r = requests.get(
-                f"{Variable.get('rock_api')}/PersonalDevices",
+                f"{Variable.get(kwargs['client'] + '_rock_api')}/PersonalDevices",
                 params=params,
                 headers=headers)
         rock_objects = r.json()

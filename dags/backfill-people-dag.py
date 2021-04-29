@@ -29,13 +29,14 @@ with DAG('backfill_rock_people_dag',
     t0 = PythonOperator(
         task_id='fetch_and_save_campuses',
         python_callable=fetch_and_save_campuses,  # make sure you don't include the () of the function
+        op_kwargs={'client': None}
     )
 
     # generate tasks with a loop. task_id must be unique
     t1 = PythonOperator(
         task_id='fetch_and_save_people',
         python_callable=fetch_and_save_people,  # make sure you don't include the () of the function
-        op_kwargs={'do_backfill': True}
+        op_kwargs={'do_backfill': True, 'client': None}
     )
 
     t0 >> t1
