@@ -6,7 +6,7 @@ from apollos_type import apollos_id
 import requests
 
 def fetch_and_save_campuses(ds, *args, **kwargs):
-    if not kwargs.has_key('client') or kwargs['client'] is None:
+    if 'client' not in kwargs or kwargs['client'] is None:
         raise Exception("You must configure a client for this operator")
 
     pg_connection = kwargs['client'] + '_apollos_postgres'

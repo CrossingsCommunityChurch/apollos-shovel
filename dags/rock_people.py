@@ -16,7 +16,7 @@ def safeget(dct, *keys):
     return dct
 
 def fetch_and_save_people(ds, *args, **kwargs):
-    if not kwargs.has_key('client') or kwargs['client'] is None:
+    if 'client' not in kwargs or kwargs['client'] is None:
         raise Exception("You must configure a client for this operator")
 
     headers = {"Authorization-Token": Variable.get(kwargs['client'] + "_rock_token")}
