@@ -81,6 +81,18 @@ def fetch_and_save_people(ds, *args, **kwargs):
         skip += top
         fetched_all = len(rock_objects) < top
 
+        def photo_url(path):
+            if path is None:
+                return None
+            elif path.startswith("~"):
+                rock_host = (Variable.get(kwargs['client'] + '_rock_api')).split("/api")[0]
+                return path.replace("~", rock_host)
+            else:
+                return path
+
+
+
+        # "createdAt", "updatedAt", "originId", "originType", "apollosType", "firstName", "lastName", "gender", "birthDate", "campusId", "email", "profileImageUrl"
         def update_people(obj):
             return (
                 kwargs['execution_date'],
@@ -94,7 +106,7 @@ def fetch_and_save_people(ds, *args, **kwargs):
                 obj['BirthDate'],
                 campus_map[str(obj["PrimaryCampusId"])],
                 obj['Email'],
-                safeget(obj, 'Photo', 'Path') # may need to be a different attribute, depending on the church.
+                photo_url(safeget(obj, 'Photo', 'Path'))
             )
 
         def fix_casing(col):
