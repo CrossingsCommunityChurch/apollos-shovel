@@ -11,7 +11,7 @@ jobs:
       uses: elgohr/Publish-Docker-Github-Action@2.6
       if: github.ref == 'refs/heads/master'
       with:
-          name: apollos-shovel/airflow:ci-${{ github.sha }}
+          name: energetic-wavelength-4450/airflow:ci-${{ github.sha }}
           username: _
           password: ${{ secrets.SERVICE_ACCOUNT_KEY }}
           registry: registry.gcp0001.us-east4.astronomer.io
