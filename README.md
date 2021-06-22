@@ -18,9 +18,11 @@ Adding another client is accomplished by creating the appropriate DAG files in t
 2.  Also within the Airflow UI, adding the following Connection
   - `${client_name}_apollos_postgres`
   - Make sure you include the following extra setting if using a Postgres DB 
-  ```{
+  ```
+  {
     "sslmode": "require"
-  }```
+  }
+  ```
 3. Create the appropriate DAGs.
   - Copy `rock-people-example-dag.py` and replace the `client: None` variables with `client: ${client_name}`
   - Copy `backfill-rock-people-example-dag.py` and replace the `client: None` variables with `client: ${client_name}`  
