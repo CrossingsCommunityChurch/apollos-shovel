@@ -3,7 +3,12 @@ from datetime import datetime, timedelta
 from airflow.hooks.postgres_hook import PostgresHook
 from apollos_type import apollos_id
 
+from html_sanitizer import Sanitizer
+import nltk
+
 import requests
+
+nltk.download('punkt')
 
 def safeget(dct, *keys):
     for key in keys:
@@ -14,6 +19,67 @@ def safeget(dct, *keys):
         except TypeError:
             return None
     return dct
+
+
+summary_sanitizer = Sanitizer({
+    'tags': {'h1', 'h2', 'h3', 'h4', 'h5', 'h6'},
+    'empty': {},
+    'separate': {},
+    'attributes': {},
+})
+
+html_allowed_tags = {
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'blockquote',
+    'p',
+    'a',
+    'ul',
+    'ol',
+    'li',
+    'b',
+    'i',
+    'strong',
+    'em',
+    'br',
+    'caption',
+    'img',
+    'div',
+}
+
+
+html_sanitizer = Sanitizer({
+    'tags': html_allowed_tags,
+    'empty': {},
+    'seperate': {},
+    'attributes': {
+        **{
+            'a': {'href', 'target', 'rel'},
+            'img': {'src'},
+        },
+        **dict.fromkeys(html_allowed_tags, {'class', 'style'})
+    }
+})
+
+def create_summary(item):
+    summary_value = safeget(item, 'AttributeValues', 'Attribute', 'Value')
+    if summary_value and summary_value is not '':
+        return summary_value
+
+    if not item['Content']:
+        return ''
+
+    cleaned = summary_sanitizer.sanitize(item['Content'])
+    sentences = nltk.sent_tokenize(cleaned)
+    return sentences[0]
+
+def create_html_content(item):
+    return html_sanitizer.sanitize(item['Content'])
+
 
 def fetch_and_save_content_items(ds, *args, **kwargs):
     if 'client' not in kwargs or kwargs['client'] is None:
@@ -40,7 +106,9 @@ def fetch_and_save_content_items(ds, *args, **kwargs):
             "$top": top,
             "$skip": skip,
             # "$expand": "Photo",
-            # "$select": "Id,NickName,LastName,Gender,BirthDate,PrimaryCampusId,Email,Photo/Path",
+            # "$select": "Id,Content",
+            "loadAttributes": "simple",
+            "attributeKeys": "Summary",
             "$orderby": "ModifiedDateTime desc",
         }
 
@@ -78,7 +146,7 @@ def fetch_and_save_content_items(ds, *args, **kwargs):
 
 
 
-        # "createdAt", "updatedAt", "originId", "originType", "apollosType"
+        # "createdAt","updatedAt", "originId", "originType", "apollosType", "summary", "htmlContent", "title", "publishAt"
         def update_content(obj):
             return (
                 kwargs['execution_date'],
@@ -86,17 +154,21 @@ def fetch_and_save_content_items(ds, *args, **kwargs):
                 obj['Id'],
                 'rock',
                 'UniversalContentItem',
+                create_summary(obj),
+                create_html_content(obj),
+                obj['Title'],
+                obj['StartDateTime'],
             )
 
         def fix_casing(col):
             return "\"{}\"".format(col)
 
         content_to_insert = list(map(update_content, rock_objects))
-        columns = list(map(fix_casing, ("createdAt", "updatedAt", "originId", "originType", "apollosType")))
+        columns = list(map(fix_casing, ("createdAt", "updatedAt", "originId", "originType", "apollosType", "summary", "htmlContent", "title", 'publishAt')))
 
 
         pg_hook.insert_rows(
-            'contentItems',
+            '"contentItems"',
             content_to_insert,
             columns,
             0,
