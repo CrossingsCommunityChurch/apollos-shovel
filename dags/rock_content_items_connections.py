@@ -3,12 +3,9 @@ from datetime import datetime, timedelta
 from airflow.hooks.postgres_hook import PostgresHook
 from apollos_type import apollos_id
 
-from html_sanitizer import Sanitizer
-import nltk
 
 import requests
 
-nltk.download('punkt')
 
 def safeget(dct, *keys):
     for key in keys:
@@ -55,8 +52,6 @@ def fetch_and_save_content_items_connections(ds, *args, **kwargs):
             "$skip": skip,
             # "$expand": "Photo",
             "$select": "Id,ChildContentChannelItemId,ContentChannelItemId",
-            "loadAttributes": "simple",
-            "attributeKeys": "Summary",
             "$orderby": "ModifiedDateTime desc",
         }
 
@@ -119,4 +114,3 @@ def fetch_and_save_content_items_connections(ds, *args, **kwargs):
         """
 
         pg_hook.run(add_apollos_ids)
-

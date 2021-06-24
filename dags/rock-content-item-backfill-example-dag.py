@@ -34,7 +34,7 @@ with DAG('rock_content_item_backfill_example_dag',
     t1 = PythonOperator(
         task_id='fetch_and_save_content_items_connections',
         python_callable=fetch_and_save_content_items_connections,  # make sure you don't include the () of the function
-        op_kwargs={'client': 'core', 'do_backfill': True}
+        op_kwargs={'client': None, 'do_backfill': True}
     )
 
     t0 >> t1
