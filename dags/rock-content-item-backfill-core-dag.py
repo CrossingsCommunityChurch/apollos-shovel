@@ -3,6 +3,7 @@ from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 
 from rock_content_items import fetch_and_save_content_items
+from rock_media import fetch_and_save_media
 
 # Default settings applied to all tasks
 default_args = {
@@ -27,5 +28,11 @@ with DAG('rock_content_item_backfill_core_dag',
     PythonOperator(
         task_id='fetch_and_save_content_items',
         python_callable=fetch_and_save_content_items,  # make sure you don't include the () of the function
+        op_kwargs={'client': 'core', 'do_backfill': True}
+    )
+
+    PythonOperator(
+        task_id='fetch_and_save_media',
+        python_callable=fetch_and_save_media,  # make sure you don't include the () of the function
         op_kwargs={'client': 'core', 'do_backfill': True}
     )
