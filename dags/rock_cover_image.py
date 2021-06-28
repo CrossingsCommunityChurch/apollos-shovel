@@ -80,7 +80,10 @@ def fetch_and_save_cover_image(ds, *args, **kwargs):
         if(args):
             contentItemId = args['ContentItemId']
             coverImageId = args['CoverImageId']
-            return pg_hook.run('UPDATE "contentItems" SET "coverImageId" = %s WHERE "originId"::Integer = %s', True, (coverImageId, contentItemId))
+            return pg_hook.run(
+                'UPDATE "contentItems" SET "coverImageId" = (SELECT id FROM "media" WHERE "originId" = %s) WHERE "originId"::Integer = %s', 
+                True, 
+                (coverImageId, contentItemId))
 
     while fetched_all == False:
         # Fetch people records from Rock.
