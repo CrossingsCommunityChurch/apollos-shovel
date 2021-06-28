@@ -126,7 +126,7 @@ def fetch_and_save_media(ds, *args, **kwargs):
         )
 
         add_apollos_ids = """
-        UPDATE "contentItems"
+        UPDATE "media"
         SET "apollosId" = "apollosType" || ':' || id::varchar
         WHERE "originType" = 'rock' and "apollosId" IS NULL
         """
