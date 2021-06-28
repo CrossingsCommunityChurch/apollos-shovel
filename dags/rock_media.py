@@ -73,6 +73,7 @@ def fetch_and_save_media(ds, *args, **kwargs):
             attributeValue = contentItem['AttributeValues'][attributeKey]['Value']
 
             return (
+                'Media'
                 nodeId,
                 'ContentItem',
                 get_media_type( attribute ),
@@ -108,7 +109,7 @@ def fetch_and_save_media(ds, *args, **kwargs):
             return "\"{}\"".format(col)
         mediaAttributeLists = list(map(mapContentItems, r.json()))
         mediaAttributes = [mediaAttribute for sublist in mediaAttributeLists for mediaAttribute in sublist]
-        columns = list(map(fix_casing, ('nodeId', 'nodeType', 'type', 'url', 'originId', 'originType')))
+        columns = list(map(fix_casing, ('apollosType', 'nodeId', 'nodeType', 'type', 'url', 'originId', 'originType')))
 
         print('Media Items Aded: ')
         print(len(list(mediaAttributes)))
@@ -121,6 +122,14 @@ def fetch_and_save_media(ds, *args, **kwargs):
             True,
             replace_index = ('"originId"', '"originType"')
         )
+
+        add_apollos_ids = """
+        UPDATE "contentItems"
+        SET "apollosId" = "apollosType" || ':' || id::varchar
+        WHERE "originType" = 'rock' and "apollosId" IS NULL
+        """
+
+        pg_hook.run(add_apollos_ids)
 
         skip += top
         fetched_all = len(r.json()) < top

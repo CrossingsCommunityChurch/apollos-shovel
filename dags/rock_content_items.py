@@ -179,7 +179,7 @@ def fetch_and_save_content_items(ds, *args, **kwargs):
 
         add_apollos_ids = """
         UPDATE "contentItems"
-        SET "apollosId" = "apollosType" || id::varchar
+        SET "apollosId" = "apollosType" || ':' || id::varchar
         WHERE "originType" = 'rock' and "apollosId" IS NULL
         """
 
