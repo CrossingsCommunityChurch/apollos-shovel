@@ -74,6 +74,8 @@ def fetch_and_save_media(ds, *args, **kwargs):
 
             return (
                 'Media'
+                kwargs['execution_date'],
+                kwargs['execution_date'],
                 nodeId,
                 'ContentItem',
                 get_media_type( attribute ),
@@ -109,7 +111,7 @@ def fetch_and_save_media(ds, *args, **kwargs):
             return "\"{}\"".format(col)
         mediaAttributeLists = list(map(mapContentItems, r.json()))
         mediaAttributes = [mediaAttribute for sublist in mediaAttributeLists for mediaAttribute in sublist]
-        columns = list(map(fix_casing, ('apollosType', 'nodeId', 'nodeType', 'type', 'url', 'originId', 'originType')))
+        columns = list(map(fix_casing, ('apollosType', 'createdAt', 'updatedAt', 'nodeId', 'nodeType', 'type', 'url', 'originId', 'originType')))
 
         print('Media Items Aded: ')
         print(len(list(mediaAttributes)))
