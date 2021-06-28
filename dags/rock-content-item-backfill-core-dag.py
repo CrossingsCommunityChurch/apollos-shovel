@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from rock_content_items import fetch_and_save_content_items
 from rock_media import fetch_and_save_media
 from rock_content_items_connections import fetch_and_save_content_items_connections
+from rock_cover_image import fetch_and_save_cover_image
 
 # Default settings applied to all tasks
 default_args = {
@@ -44,4 +45,10 @@ with DAG('rock_content_item_backfill_core_dag',
         op_kwargs={'client': 'core', 'do_backfill': True}
     )
 
-    t0 >> [t1, t2]
+    t3 = PythonOperator(
+        task_id='fetch_and_save_cover_image',
+        python_callable=fetch_and_save_cover_image,  # make sure you don't include the () of the function
+        op_kwargs={'client': 'core', 'do_backfill': True}
+    )
+
+    t0 >> [t1, t2, t3]
