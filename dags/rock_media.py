@@ -73,7 +73,7 @@ def fetch_and_save_media(ds, *args, **kwargs):
             attributeValue = contentItem['AttributeValues'][attributeKey]['Value']
 
             return (
-                'Media'
+                'Media',
                 kwargs['execution_date'],
                 kwargs['execution_date'],
                 nodeId,
