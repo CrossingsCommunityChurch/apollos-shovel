@@ -48,12 +48,12 @@ def fetch_and_save_campuses(ds, *args, **kwargs):
             'id': obj['Id'],
             'name': obj['Name'],
             'street1': safeget(obj, ['Location', 'Street1']),
-            'street2': safeget(obj, ['Location' 'Street2']),
-            'city': safeget(obj, ['Location' 'City']),
-            'state': safeget(obj, ['Location' 'State']),
-            'postalCode': safeget(obj, ['Location' 'PostalCode']),
-            'latitude': safeget(obj, ['Location' 'Latitude']),
-            'longitude': safeget(obj, ['Location' 'Longitude']),
+            'street2': safeget(obj, ['Location', 'Street2']),
+            'city': safeget(obj, ['Location', 'City']),
+            'state': safeget(obj, ['Location', 'State']),
+            'postalCode': safeget(obj, ['Location', 'PostalCode']),
+            'latitude': safeget(obj, ['Location', 'Latitude']),
+            'longitude': safeget(obj, ['Location', 'Longitude']),
             'digital': safeget(obj, ['CampusTypeValue', 'Value']) == "Online",
         }))
 
