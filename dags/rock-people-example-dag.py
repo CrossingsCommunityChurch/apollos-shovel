@@ -15,7 +15,6 @@ default_args = {
     'retry_delay': timedelta(minutes=5),
 }
 
-
 # Using a DAG context manager, you don't have to specify the dag property of each task
 with DAG('rock_people_example_dag',
          start_date=datetime(2021, 4, 29),
