@@ -15,6 +15,11 @@ def safeget(dct, *keys):
             return None
     return dct
 
+def clean_string(string):
+    if isinstance(string, str):
+        return string.replace('\x00', '')
+    return string
+
 def fetch_and_save_people(ds, *args, **kwargs):
     if 'client' not in kwargs or kwargs['client'] is None:
         raise Exception("You must configure a client for this operator")
@@ -100,12 +105,12 @@ def fetch_and_save_people(ds, *args, **kwargs):
                 obj['Id'],
                 'rock',
                 'Person',
-                obj['NickName'],
-                obj['LastName'],
+                clean_string(obj['NickName']),
+                clean_string(obj['LastName']),
                 gender_map[obj['Gender']],
                 obj['BirthDate'],
                 campus_map[str(obj["PrimaryCampusId"])],
-                obj['Email'],
+                clean_string(obj['Email']),
                 photo_url(safeget(obj, 'Photo', 'Path'))
             )
 
@@ -115,7 +120,6 @@ def fetch_and_save_people(ds, *args, **kwargs):
         people_to_insert = list(map(update_people, rock_objects))
         columns = list(map(fix_casing, ("createdAt", "updatedAt", "originId", "originType", "apollosType", "firstName", "lastName", "gender", "birthDate", "campusId", "email", "profileImageUrl")))
 
-
         pg_hook.insert_rows(
             'people',
             people_to_insert,
@@ -124,6 +128,7 @@ def fetch_and_save_people(ds, *args, **kwargs):
             True,
             replace_index = ('"originId"', '"originType"')
         )
+
 
 
         add_apollos_ids = """
