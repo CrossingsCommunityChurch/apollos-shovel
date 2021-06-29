@@ -52,6 +52,7 @@ def fetch_and_save_cover_image(ds, *args, **kwargs):
                 "ContentItemId": content_item['Id'],
                 "CoverImageId": coverImageId
             }
+        '''         
         else:
             contentItemId = content_item['Id']
 
@@ -73,7 +74,7 @@ def fetch_and_save_cover_image(ds, *args, **kwargs):
                 return {
                     "ContentItemId": content_item['Id'],
                     "CoverImageId": coverImageId
-                }
+                } '''
 
 
     def update_content_item_cover_image(args):
