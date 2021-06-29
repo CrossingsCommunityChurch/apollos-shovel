@@ -7,7 +7,7 @@ def get_images (content_item):
             attributeKey = attribute['Key']
             attributeValue = content_item['AttributeValues'][attributeKey]['Value']
 
-            return attribute['FieldTypeId'] == 10 or ('image' in attributeKey.lower() and isinstance(attributeValue, str) and attributeValue.startswith('http'))
+            return (attribute['FieldTypeId'] == 10 and attributeValue is not "") or ('image' in attributeKey.lower() and isinstance(attributeValue, str) and attributeValue.startswith('http'))
 
     return list(filter(filter_images, content_item['Attributes'].values()))
 
