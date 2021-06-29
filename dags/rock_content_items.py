@@ -1,25 +1,13 @@
 from airflow.models import Variable
-from datetime import datetime, timedelta
 from airflow.hooks.postgres_hook import PostgresHook
-from apollos_type import apollos_id
 
 from html_sanitizer import Sanitizer
 import nltk
+from utilities import safeget
 
 import requests
 
 nltk.download('punkt')
-
-def safeget(dct, *keys):
-    for key in keys:
-        try:
-            dct = dct[key]
-        except KeyError:
-            return None
-        except TypeError:
-            return None
-    return dct
-
 
 summary_sanitizer = Sanitizer({
     'tags': {'h1', 'h2', 'h3', 'h4', 'h5', 'h6'},
