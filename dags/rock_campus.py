@@ -5,6 +5,16 @@ from apollos_type import apollos_id
 
 import requests
 
+def safeget(dct, *keys):
+    for key in keys:
+        try:
+            dct = dct[key]
+        except KeyError:
+            return None
+        except TypeError:
+            return None
+    return dct
+
 def fetch_and_save_campuses(ds, *args, **kwargs):
     if 'client' not in kwargs or kwargs['client'] is None:
         raise Exception("You must configure a client for this operator")
@@ -37,14 +47,14 @@ def fetch_and_save_campuses(ds, *args, **kwargs):
             'current_date': kwargs['execution_date'],
             'id': obj['Id'],
             'name': obj['Name'],
-            'street1': obj['Location']['Street1'],
-            'street2': obj['Location']['Street2'],
-            'city': obj['Location']['City'],
-            'state': obj['Location']['State'],
-            'postalCode': obj['Location']['PostalCode'],
-            'latitude': obj['Location']['Latitude'],
-            'longitude': obj['Location']['Longitude'],
-            'digital': obj['CampusTypeValue']['Value'] == "Online",
+            'street1': safeget(obj, 'Location', 'Street1'),
+            'street2': safeget(obj, 'Location', 'Street2'),
+            'city': safeget(obj, 'Location', 'City'),
+            'state': safeget(obj, 'Location', 'State'),
+            'postalCode': safeget(obj, 'Location', 'PostalCode'),
+            'latitude': safeget(obj, 'Location', 'Latitude'),
+            'longitude': safeget(obj, 'Location', 'Longitude'),
+            'digital': safeget(obj, 'CampusTypeValue', 'Value') == "Online",
         }))
 
         users_without_apollos_id_select = """
