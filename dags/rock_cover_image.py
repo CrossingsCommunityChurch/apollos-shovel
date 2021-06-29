@@ -7,7 +7,7 @@ def get_images (content_item):
             attributeKey = attribute['Key']
             attributeValue = content_item['AttributeValues'][attributeKey]['Value']
 
-            return (attribute['FieldTypeId'] == 10 and attributeValue is not "") or ('image' in attributeKey.lower() and isinstance(attributeValue, str) and attributeValue.startswith('http'))
+            return (attribute['FieldTypeId'] == 10 and attributeValue) or ('image' in attributeKey.lower() and isinstance(attributeValue, str) and attributeValue.startswith('http'))
 
     return list(filter(filter_images, content_item['Attributes'].values()))
 
@@ -15,11 +15,11 @@ def get_best_image_id (images):
     if(len(images) > 1):
         squareImages = list(filter(lambda attribute: 'square' in attribute['Key'].lower(), images ))
         if(len(squareImages) > 0):
-            return squareImages[0]['Guid']
+            return squareImages[0]['Id']
         else:
-            return images[0]['Guid']
+            return images[0]['Id']
     elif(len(images) == 1):
-        return images[0]['Guid']
+        return images[0]['Id']
     else:
         return None
 
@@ -27,7 +27,7 @@ def get_best_image_id (images):
 def fetch_and_save_cover_image(ds, *args, **kwargs):
     if 'client' not in kwargs or kwargs['client'] is None:
         raise Exception("You must configure a client for this operator")
-    
+
     headers = {"Authorization-Token": Variable.get(kwargs['client'] + "_rock_token")}
 
     pg_connection = kwargs['client'] + '_apollos_postgres'
@@ -50,9 +50,11 @@ def fetch_and_save_cover_image(ds, *args, **kwargs):
         if(coverImageId):
             return {
                 "ContentItemId": content_item['Id'],
-                "CoverImageId": coverImageId
+                # origin ID is a composite of the attribute ID and the content item id.
+                # We do this since attribute ID is not unique
+                "CoverImageId": str(content_item['Id']) + "/" + str(coverImageId)
             }
-        '''         
+        '''
         else:
             contentItemId = content_item['Id']
 
@@ -70,7 +72,7 @@ def fetch_and_save_cover_image(ds, *args, **kwargs):
                     params={"loadAttributes": "expanded"},
                     headers=headers).json()
                 coverImageId = get_best_image_id(get_images(parentContentItem))
-                
+
                 return {
                     "ContentItemId": content_item['Id'],
                     "CoverImageId": coverImageId
@@ -101,7 +103,7 @@ def fetch_and_save_cover_image(ds, *args, **kwargs):
                 f"{Variable.get(kwargs['client'] + '_rock_api')}/ContentChannelItems",
                 params=params,
                 headers=headers)
-                
+
         contentItems = list(map(map_content_items, r.json()))
         updatedItems = list(map(update_content_item_cover_image, contentItems))
 
