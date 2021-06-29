@@ -2,18 +2,10 @@ from airflow.models import Variable
 from datetime import datetime, timedelta
 from airflow.hooks.postgres_hook import PostgresHook
 from apollos_type import apollos_id
+from utilities import safeget
 
 import requests
 
-def safeget(dct, *keys):
-    for key in keys:
-        try:
-            dct = dct[key]
-        except KeyError:
-            return None
-        except TypeError:
-            return None
-    return dct
 
 def fetch_and_save_people(ds, *args, **kwargs):
     if 'client' not in kwargs or kwargs['client'] is None:

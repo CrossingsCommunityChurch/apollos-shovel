@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from rock_content_items import fetch_and_save_content_items
 from rock_media import fetch_and_save_media
 from rock_content_items_connections import fetch_and_save_content_items_connections
+from rock_content_item_categories import fetch_and_save_content_item_categories, attach_content_item_categories
 
 # Default settings applied to all tasks
 default_args = {
@@ -31,7 +32,7 @@ with DAG('rock_content_item_backfill_core_dag',
         python_callable=fetch_and_save_content_items,  # make sure you don't include the () of the function
         op_kwargs={'client': 'core', 'do_backfill': True}
     )
-    
+
     t1 = PythonOperator(
         task_id='fetch_and_save_content_items_connections',
         python_callable=fetch_and_save_content_items_connections,  # make sure you don't include the () of the function
@@ -43,5 +44,20 @@ with DAG('rock_content_item_backfill_core_dag',
         python_callable=fetch_and_save_media,  # make sure you don't include the () of the function
         op_kwargs={'client': 'core', 'do_backfill': True}
     )
+
+    t3 = PythonOperator(
+        task_id='fetch_and_save_content_item_categories',
+        python_callable=fetch_and_save_content_item_categories,  # make sure you don't include the () of the function
+        op_kwargs={'client': 'core', 'do_backfill': True}
+    )
+
+    t4 = PythonOperator(
+        task_id='attach_content_item_categories',
+        python_callable=attach_content_item_categories,  # make sure you don't include the () of the function
+        op_kwargs={'client': 'core', 'do_backfill': True}
+    )
+
+    # Adding and syncing categories depends on having content items
+    t0 >> t3 >> t4
 
     t0 >> [t1, t2]
