@@ -16,7 +16,7 @@ default_args = {
 }
 
 # Using a DAG context manager, you don't have to specify the dag property of each task
-with DAG('rock_people_example_dag',
+with DAG('rock_people_chaseoaks_dag',
          start_date=datetime(2021, 6, 30),
          max_active_runs=1,
          schedule_interval=timedelta(minutes=30),  # https://airflow.apache.org/docs/stable/scheduler.html#dag-runs
