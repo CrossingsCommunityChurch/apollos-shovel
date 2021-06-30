@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 from rock_content_items import fetch_and_save_content_items
 from rock_media import fetch_and_save_media
-from rock_content_items_connections import fetch_and_save_content_items_connections
+from rock_content_items_connections import fetch_and_save_content_items_connections, set_parent_id
 from rock_cover_image import fetch_and_save_cover_image
 from rock_content_item_categories import fetch_and_save_content_item_categories, attach_content_item_categories
 
@@ -58,6 +58,12 @@ with DAG('rock_content_item_backfill_core_dag',
         op_kwargs={'client': 'core', 'do_backfill': True}
     )
 
+    t6 = PythonOperator(
+        task_id='set_parent_id',
+        python_callable=set_parent_id,  # make sure you don't include the () of the function
+        op_kwargs={'client': 'core', 'do_backfill': True}
+    )
+
     t5 = PythonOperator(
         task_id='fetch_and_save_cover_image',
         python_callable=fetch_and_save_cover_image,  # make sure you don't include the () of the function
@@ -68,5 +74,7 @@ with DAG('rock_content_item_backfill_core_dag',
     t0 >> t3 >> t4
 
     t2 >> t5
+
+    t1 >> t6
 
     t0 >> [t1, t2]
