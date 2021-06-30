@@ -1,8 +1,6 @@
 from airflow.models import Variable
-from datetime import datetime, timedelta
 from airflow.hooks.postgres_hook import PostgresHook
-from apollos_type import apollos_id
-
+from utilities import safeget
 
 import requests
 

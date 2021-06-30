@@ -1,14 +1,13 @@
 from airflow.models import Variable
-from datetime import datetime, timedelta
 from airflow.hooks.postgres_hook import PostgresHook
-from apollos_type import apollos_id
+from utilities import safeget
 
 import requests
 
 def fetch_and_save_media(ds, *args, **kwargs):
     if 'client' not in kwargs or kwargs['client'] is None:
         raise Exception("You must configure a client for this operator")
-    
+
     headers = {"Authorization-Token": Variable.get(kwargs['client'] + "_rock_token")}
 
     pg_connection = kwargs['client'] + '_apollos_postgres'
@@ -23,14 +22,14 @@ def fetch_and_save_media(ds, *args, **kwargs):
         return pg_hook.get_first(f'SELECT id FROM "contentItems" WHERE "originId"::Integer = {rockOriginId}')[0]
 
     def mapContentItems(contentItem):
-    
+
         nodeId = get_content_item_id(contentItem['Id'])
 
         def is_media_image( attribute ):
             attributeKey = attribute['Key']
             attributeValue = contentItem['AttributeValues'][attributeKey]['Value']
             return attribute['FieldTypeId'] == 10 or ('image' in attributeKey.lower() and isinstance(attributeValue, str) and attributeValue.startswith('http'))
-            
+
         def is_media_video ( attribute ):
             attributeKey = attribute['Key']
             attributeValue = contentItem['AttributeValues'][attributeKey]['Value']
@@ -64,13 +63,11 @@ def fetch_and_save_media(ds, *args, **kwargs):
             else:
                 return attributeValue
 
-
-    
-
         def map_attributes( attribute ):
             attributeKey = attribute['Key']
             attributeFieldType = attribute['FieldTypeId']
             attributeValue = contentItem['AttributeValues'][attributeKey]['Value']
+            attributeValueId = str(contentItem['Id']) + "/" + str(attribute['Id'])
 
             return (
                 'Media',
@@ -80,7 +77,7 @@ def fetch_and_save_media(ds, *args, **kwargs):
                 'ContentItem',
                 get_media_type( attribute ),
                 get_media_value( attribute ),
-                attribute['Guid'],
+                attributeValueId,
                 'rock'
             )
 
