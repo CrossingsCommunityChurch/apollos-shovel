@@ -67,22 +67,6 @@ def fetch_and_save_media(ds, *args, **kwargs):
             attributeKey = attribute['Key']
             attributeFieldType = attribute['FieldTypeId']
             attributeValue = contentItem['AttributeValues'][attributeKey]['Value']
-<<<<<<< Updated upstream
-            attributeValueId = str(contentItem['Id']) + "/" + str(attribute['Id'])
-
-            return (
-                'Media',
-                kwargs['execution_date'],
-                kwargs['execution_date'],
-                nodeId,
-                'ContentItem',
-                get_media_type( attribute ),
-                get_media_value( attribute ),
-                attributeValueId,
-                'rock'
-            )
-
-=======
             mediaType = get_media_type( attribute )
             mediaValue = get_media_value( attribute )
             
@@ -102,7 +86,6 @@ def fetch_and_save_media(ds, *args, **kwargs):
             return None
 
             
->>>>>>> Stashed changes
         filteredAttributes = filter(filter_media_attributes, contentItem['Attributes'].values())
         mappedAttributes = map(map_attributes, filteredAttributes)
 
