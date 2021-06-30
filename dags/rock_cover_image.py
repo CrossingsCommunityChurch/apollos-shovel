@@ -7,29 +7,9 @@ def get_images (content_item):
             attributeKey = attribute['Key']
             attributeValue = content_item['AttributeValues'][attributeKey]['Value']
           
-            return attribute['FieldTypeId'] == 10 or ('image' in attributeKey.lower() and isinstance(attributeValue, str) and attributeValue.startswith('http'))
+            return (attribute['FieldTypeId'] == 10 and attributeValue) or ('image' in attributeKey.lower() and isinstance(attributeValue, str) and attributeValue.startswith('http'))
 
     return list(filter(filter_images, content_item['Attributes'].values()))
-
-
-
-def get_best_image_id (images, pg_hook):
-    imageId = None;
-    if(len(images) > 1):
-        squareImages = list(filter(lambda attribute: 'square' in attribute['Key'].lower(), images ))
-        if(len(squareImages) > 0):
-            imageId = squareImages[0]['Guid']
-        else:
-            return images[0]['Guid']
-    elif(len(images) == 1):
-        imageId = images[0]['Guid']
-
-    if(imageId):
-        print(str(imageId))
-        return pg_hook.get_first('SELECT id FROM "media" WHERE "originId" = %s', (imageId,))[0]
-    
-    return None
-
 
 def fetch_and_save_cover_image(ds, *args, **kwargs):
     if 'client' not in kwargs or kwargs['client'] is None:
@@ -45,9 +25,22 @@ def fetch_and_save_cover_image(ds, *args, **kwargs):
         keepalives_count=5
     )
 
-    fetched_all = False
-    skip = 0
-    top = 10000
+    def get_best_image_id (images):
+        imageId = None;
+        if(len(images) > 1):
+            squareImages = list(filter(lambda attribute: 'square' in attribute['Key'].lower(), images ))
+            if(len(squareImages) > 0):
+                imageId = squareImages[0]['Guid']
+            else:
+                return images[0]['Guid']
+        elif(len(images) == 1):
+            imageId = images[0]['Guid']
+
+        if(imageId):
+            print(str(imageId))
+            return pg_hook.get_first('SELECT id FROM "media" WHERE "originId" = %s', (imageId,))[0]
+        
+        return None
 
     def update_content_item_cover_image(args):
         contentItemId = args['ContentItemId']
@@ -58,15 +51,18 @@ def fetch_and_save_cover_image(ds, *args, **kwargs):
             (coverImageId, contentItemId))
 
     def map_content_items(content_item):
-
         imageAttributes = get_images(content_item)
-        coverImageId = get_best_image_id(imageAttributes, pg_hook)
+        coverImageId = get_best_image_id(imageAttributes)
 
         if(coverImageId):
             update_content_item_cover_image({
                 "ContentItemId": content_item['Id'],
                 "CoverImageId": coverImageId
             })
+
+    fetched_all = False
+    skip = 0
+    top = 10000
 
     while fetched_all == False:
         # Fetch people records from Rock.
