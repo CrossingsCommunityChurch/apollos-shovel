@@ -112,3 +112,40 @@ def fetch_and_save_content_items_connections(ds, *args, **kwargs):
         """
 
         pg_hook.run(add_apollos_ids)
+
+def set_parent_id(ds, *args, **kwargs):
+    if 'client' not in kwargs or kwargs['client'] is None:
+        raise Exception("You must configure a client for this operator")
+
+    headers = {"Authorization-Token": Variable.get(kwargs['client'] + "_rock_token")}
+
+    pg_connection = kwargs['client'] + '_apollos_postgres'
+    pg_hook = PostgresHook(postgres_conn_id=pg_connection,
+        keepalives=1,
+        keepalives_idle=30,
+        keepalives_interval=10,
+        keepalives_count=5
+    )
+
+
+    add_apollos_parents = """
+    WITH rows_to_update AS
+      (SELECT "contentItemsConnections"."parentId",
+              "contentItemsConnections"."childId" AS id
+       FROM
+         (SELECT c.id,
+                 count(cc."childId") AS parents_count
+          FROM "contentItems" c
+          LEFT JOIN "contentItemsConnections" cc ON c.id = cc."childId"
+          WHERE c."parentId" IS NULL
+          GROUP BY c.id
+          ORDER BY c.id) AS items_and_parents
+       INNER JOIN "contentItemsConnections" ON "childId" = items_and_parents.id
+       WHERE parents_count = 1)
+    UPDATE "contentItems"
+    SET "parentId" = rows_to_update."parentId"
+    FROM rows_to_update
+    WHERE "contentItems".id = rows_to_update.id;
+    """
+
+    pg_hook.run(add_apollos_parents)
