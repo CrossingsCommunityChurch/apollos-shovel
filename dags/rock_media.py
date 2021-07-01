@@ -67,24 +67,29 @@ def fetch_and_save_media(ds, *args, **kwargs):
             attributeKey = attribute['Key']
             attributeFieldType = attribute['FieldTypeId']
             attributeValue = contentItem['AttributeValues'][attributeKey]['Value']
-            attributeValueId = str(contentItem['Id']) + "/" + str(attribute['Id'])
+            mediaType = get_media_type( attribute )
+            mediaValue = get_media_value( attribute )
+            
+            if(mediaValue):
+                return (
+                    'Media',
+                    kwargs['execution_date'],
+                    kwargs['execution_date'],
+                    nodeId,
+                    'ContentItem',
+                    mediaType,
+                    mediaValue,
+                    attribute['Guid'],
+                    'rock'
+                )
+            
+            return None
 
-            return (
-                'Media',
-                kwargs['execution_date'],
-                kwargs['execution_date'],
-                nodeId,
-                'ContentItem',
-                get_media_type( attribute ),
-                get_media_value( attribute ),
-                attributeValueId,
-                'rock'
-            )
-
+            
         filteredAttributes = filter(filter_media_attributes, contentItem['Attributes'].values())
         mappedAttributes = map(map_attributes, filteredAttributes)
 
-        return list(mappedAttributes)
+        return list(filter(lambda media: bool(media), mappedAttributes))
 
     fetched_all = False
     skip = 0
@@ -104,6 +109,7 @@ def fetch_and_save_media(ds, *args, **kwargs):
                 f"{Variable.get(kwargs['client'] + '_rock_api')}/ContentChannelItems",
                 params=params,
                 headers=headers)
+
         def fix_casing(col):
             return "\"{}\"".format(col)
         mediaAttributeLists = list(map(mapContentItems, r.json()))
