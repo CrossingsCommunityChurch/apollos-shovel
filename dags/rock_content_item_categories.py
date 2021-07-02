@@ -4,22 +4,24 @@ from utilities import safeget
 
 import requests
 
+
 def fetch_and_save_content_item_categories(ds, *args, **kwargs):
-    if 'client' not in kwargs or kwargs['client'] is None:
+    if "client" not in kwargs or kwargs["client"] is None:
         raise Exception("You must configure a client for this operator")
 
-    headers = {"Authorization-Token": Variable.get(kwargs['client'] + "_rock_token")}
+    headers = {"Authorization-Token": Variable.get(kwargs["client"] + "_rock_token")}
 
     fetched_all = False
     skip = 0
     top = 10000
 
-    pg_connection = kwargs['client'] + '_apollos_postgres'
-    pg_hook = PostgresHook(postgres_conn_id=pg_connection,
+    pg_connection = kwargs["client"] + "_apollos_postgres"
+    pg_hook = PostgresHook(
+        postgres_conn_id=pg_connection,
         keepalives=1,
         keepalives_idle=30,
         keepalives_interval=10,
-        keepalives_count=5
+        keepalives_count=5,
     )
 
     while fetched_all == False:
@@ -33,15 +35,18 @@ def fetch_and_save_content_item_categories(ds, *args, **kwargs):
             "$orderby": "ModifiedDateTime desc",
         }
 
-        if not kwargs['do_backfill']:
-            params['$filter'] = f"ModifiedDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null"
+        if not kwargs["do_backfill"]:
+            params[
+                "$filter"
+            ] = f"ModifiedDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null"
 
         print(params)
 
         r = requests.get(
-                f"{Variable.get(kwargs['client'] + '_rock_api')}/ContentChannels",
-                params=params,
-                headers=headers)
+            f"{Variable.get(kwargs['client'] + '_rock_api')}/ContentChannels",
+            params=params,
+            headers=headers,
+        )
         rock_objects = r.json()
 
         if not isinstance(rock_objects, list):
@@ -52,27 +57,37 @@ def fetch_and_save_content_item_categories(ds, *args, **kwargs):
             skip += top
             continue
 
-
         skip += top
         fetched_all = len(rock_objects) < top
 
         # "createdAt","updatedAt", "originId", "originType", "apollosType", "title"
         def update_content(obj):
             return (
-                kwargs['execution_date'],
-                kwargs['execution_date'],
-                obj['Id'],
-                'rock',
-                'ContentChannel',
-                obj['Name']
+                kwargs["execution_date"],
+                kwargs["execution_date"],
+                obj["Id"],
+                "rock",
+                "ContentChannel",
+                obj["Name"],
             )
 
         def fix_casing(col):
-            return "\"{}\"".format(col)
+            return '"{}"'.format(col)
 
         content_to_insert = list(map(update_content, rock_objects))
-        columns = list(map(fix_casing, ("createdAt","updatedAt", "originId", "originType", "apollosType", "title")))
-
+        columns = list(
+            map(
+                fix_casing,
+                (
+                    "createdAt",
+                    "updatedAt",
+                    "originId",
+                    "originType",
+                    "apollosType",
+                    "title",
+                ),
+            )
+        )
 
         pg_hook.insert_rows(
             '"contentItemCategories"',
@@ -80,9 +95,8 @@ def fetch_and_save_content_item_categories(ds, *args, **kwargs):
             columns,
             0,
             True,
-            replace_index = ('"originId"', '"originType"')
+            replace_index=('"originId"', '"originType"'),
         )
-
 
         add_apollos_ids = """
         UPDATE "contentItemCategories"
@@ -92,22 +106,24 @@ def fetch_and_save_content_item_categories(ds, *args, **kwargs):
 
         pg_hook.run(add_apollos_ids)
 
+
 def attach_content_item_categories(ds, *args, **kwargs):
-    if 'client' not in kwargs or kwargs['client'] is None:
+    if "client" not in kwargs or kwargs["client"] is None:
         raise Exception("You must configure a client for this operator")
 
-    headers = {"Authorization-Token": Variable.get(kwargs['client'] + "_rock_token")}
+    headers = {"Authorization-Token": Variable.get(kwargs["client"] + "_rock_token")}
 
     fetched_all = False
     skip = 0
     top = 10000
 
-    pg_connection = kwargs['client'] + '_apollos_postgres'
-    pg_hook = PostgresHook(postgres_conn_id=pg_connection,
+    pg_connection = kwargs["client"] + "_apollos_postgres"
+    pg_hook = PostgresHook(
+        postgres_conn_id=pg_connection,
         keepalives=1,
         keepalives_idle=30,
         keepalives_interval=10,
-        keepalives_count=5
+        keepalives_count=5,
     )
 
     while fetched_all == False:
@@ -121,18 +137,21 @@ def attach_content_item_categories(ds, *args, **kwargs):
             "$orderby": "ModifiedDateTime desc",
         }
 
-        if not kwargs['do_backfill']:
-            params['$filter'] = f"ModifiedDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null"
+        if not kwargs["do_backfill"]:
+            params[
+                "$filter"
+            ] = f"ModifiedDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null"
 
         print(params)
 
         r = requests.get(
-                f"{Variable.get(kwargs['client'] + '_rock_api')}/ContentChannelItems",
-                params=params,
-                headers=headers)
+            f"{Variable.get(kwargs['client'] + '_rock_api')}/ContentChannelItems",
+            params=params,
+            headers=headers,
+        )
         rock_objects = r.json()
 
-        print(rock_objects);
+        print(rock_objects)
 
         if not isinstance(rock_objects, list):
             print(rock_objects)
@@ -142,7 +161,6 @@ def attach_content_item_categories(ds, *args, **kwargs):
             skip += top
             continue
 
-
         skip += top
         fetched_all = len(rock_objects) < top
 
@@ -151,6 +169,8 @@ def attach_content_item_categories(ds, *args, **kwargs):
             UPDATE "contentItems"
             SET "contentItemCategoryId" = (SELECT id FROM "contentItemCategories" WHERE "originId" = '{}')
             WHERE "originId" = '{}';
-            """.format(str(safeget(obj, 'ContentChannel', 'Id')), str(obj['Id']))
+            """.format(
+                str(safeget(obj, "ContentChannel", "Id")), str(obj["Id"])
+            )
 
         pg_hook.run(list(map(update_content_queries, rock_objects)))

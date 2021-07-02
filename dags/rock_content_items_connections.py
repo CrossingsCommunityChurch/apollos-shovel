@@ -17,29 +17,34 @@ def safeget(dct, *keys):
 
 
 def fetch_and_save_content_items_connections(ds, *args, **kwargs):
-    if 'client' not in kwargs or kwargs['client'] is None:
+    if "client" not in kwargs or kwargs["client"] is None:
         raise Exception("You must configure a client for this operator")
 
-    headers = {"Authorization-Token": Variable.get(kwargs['client'] + "_rock_token")}
+    headers = {"Authorization-Token": Variable.get(kwargs["client"] + "_rock_token")}
 
     fetched_all = False
     skip = 0
     top = 10000
 
-    pg_connection = kwargs['client'] + '_apollos_postgres'
-    pg_hook = PostgresHook(postgres_conn_id=pg_connection,
+    pg_connection = kwargs["client"] + "_apollos_postgres"
+    pg_hook = PostgresHook(
+        postgres_conn_id=pg_connection,
         keepalives=1,
         keepalives_idle=30,
         keepalives_interval=10,
-        keepalives_count=5
+        keepalives_count=5,
     )
 
     def get_postgres_id(id):
-        obj = pg_hook.get_first("""
+        obj = pg_hook.get_first(
+            """
             SELECT id
             FROM "contentItems"
             WHERE "originId" = '{}'
-        """.format(id))
+        """.format(
+                id
+            )
+        )
         return obj[0]
 
     while fetched_all == False:
@@ -53,15 +58,18 @@ def fetch_and_save_content_items_connections(ds, *args, **kwargs):
             "$orderby": "ModifiedDateTime desc",
         }
 
-        if not kwargs['do_backfill']:
-            params['$filter'] = f"ModifiedDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null"
+        if not kwargs["do_backfill"]:
+            params[
+                "$filter"
+            ] = f"ModifiedDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null"
 
         print(params)
 
         r = requests.get(
-                f"{Variable.get(kwargs['client'] + '_rock_api')}/ContentChannelItemAssociations",
-                params=params,
-                headers=headers)
+            f"{Variable.get(kwargs['client'] + '_rock_api')}/ContentChannelItemAssociations",
+            params=params,
+            headers=headers,
+        )
         rock_objects = r.json()
 
         if not isinstance(rock_objects, list):
@@ -72,28 +80,39 @@ def fetch_and_save_content_items_connections(ds, *args, **kwargs):
             skip += top
             continue
 
-
         skip += top
         fetched_all = len(rock_objects) < top
 
         # "createdAt","updatedAt", "originId", "originType", "apollosType", "childId", "parentId"
         def update_content(obj):
             return (
-                kwargs['execution_date'],
-                kwargs['execution_date'],
-                obj['Id'],
-                'rock',
-                'ContentItemsConnection',
-                get_postgres_id(obj['ChildContentChannelItemId']),
-                get_postgres_id(obj['ContentChannelItemId']),
+                kwargs["execution_date"],
+                kwargs["execution_date"],
+                obj["Id"],
+                "rock",
+                "ContentItemsConnection",
+                get_postgres_id(obj["ChildContentChannelItemId"]),
+                get_postgres_id(obj["ContentChannelItemId"]),
             )
 
         def fix_casing(col):
-            return "\"{}\"".format(col)
+            return '"{}"'.format(col)
 
         content_to_insert = list(map(update_content, rock_objects))
-        columns = list(map(fix_casing, ("createdAt","updatedAt", "originId", "originType", "apollosType", "childId", "parentId")))
-
+        columns = list(
+            map(
+                fix_casing,
+                (
+                    "createdAt",
+                    "updatedAt",
+                    "originId",
+                    "originType",
+                    "apollosType",
+                    "childId",
+                    "parentId",
+                ),
+            )
+        )
 
         pg_hook.insert_rows(
             '"contentItemsConnections"',
@@ -101,9 +120,8 @@ def fetch_and_save_content_items_connections(ds, *args, **kwargs):
             columns,
             0,
             True,
-            replace_index = ('"originId"', '"originType"')
+            replace_index=('"originId"', '"originType"'),
         )
-
 
         add_apollos_ids = """
         UPDATE "contentItemsConnections"
@@ -113,20 +131,21 @@ def fetch_and_save_content_items_connections(ds, *args, **kwargs):
 
         pg_hook.run(add_apollos_ids)
 
+
 def set_parent_id(ds, *args, **kwargs):
-    if 'client' not in kwargs or kwargs['client'] is None:
+    if "client" not in kwargs or kwargs["client"] is None:
         raise Exception("You must configure a client for this operator")
 
-    headers = {"Authorization-Token": Variable.get(kwargs['client'] + "_rock_token")}
+    headers = {"Authorization-Token": Variable.get(kwargs["client"] + "_rock_token")}
 
-    pg_connection = kwargs['client'] + '_apollos_postgres'
-    pg_hook = PostgresHook(postgres_conn_id=pg_connection,
+    pg_connection = kwargs["client"] + "_apollos_postgres"
+    pg_hook = PostgresHook(
+        postgres_conn_id=pg_connection,
         keepalives=1,
         keepalives_idle=30,
         keepalives_interval=10,
-        keepalives_count=5
+        keepalives_count=5,
     )
-
 
     add_apollos_parents = """
     WITH rows_to_update AS
