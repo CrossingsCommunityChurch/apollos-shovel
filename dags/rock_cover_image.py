@@ -46,8 +46,8 @@ def fetch_and_save_cover_image(ds, *args, **kwargs):
                 imageId = images[0]['Id']
 
             if(imageId):
-                concatImageId = str(imageId) + '/' + str(content_item['Id'])
-                return pg_hook.get_first('SELECT id FROM "media" WHERE "originId" = %s', (concatImageId,))[0]
+                concatImageId = str(content_item['Id']  + '/' + str(imageId)
+                return pg_hook.get_first('SELECT id FROM "media" WHERE "originId" = %s', (concatImageId))[0]
             
             return None
 
