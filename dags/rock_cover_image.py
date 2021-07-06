@@ -25,23 +25,6 @@ def fetch_and_save_cover_image(ds, *args, **kwargs):
         keepalives_count=5
     )
 
-    def get_best_image_id (images):
-        imageId = None;
-        if(len(images) > 1):
-            squareImages = list(filter(lambda attribute: 'square' in attribute['Key'].lower(), images ))
-            if(len(squareImages) > 0):
-                imageId = squareImages[0]['Id']
-            else:
-                return images[0]['Id']
-        elif(len(images) == 1):
-            imageId = images[0]['Id']
-
-        if(imageId):
-            print(str(imageId))
-            return pg_hook.get_first('SELECT id FROM "media" WHERE "originId" = %s', (imageId,))[0]
-        
-        return None
-
     def update_content_item_cover_image(args):
         contentItemId = args['ContentItemId']
         coverImageId = str(args['CoverImageId']) + "/" + str(contentItemId)
@@ -51,6 +34,23 @@ def fetch_and_save_cover_image(ds, *args, **kwargs):
             (coverImageId, contentItemId))
 
     def map_content_items(content_item):
+        def get_best_image_id (images):
+            imageId = None;
+            if(len(images) > 1):
+                squareImages = list(filter(lambda attribute: 'square' in attribute['Key'].lower(), images ))
+                if(len(squareImages) > 0):
+                    imageId = squareImages[0]['Id']
+                else:
+                    return images[0]['Id']
+            elif(len(images) == 1):
+                imageId = images[0]['Id']
+
+            if(imageId):
+                concatImageId = str(imageId) + '/' + str(content_item['Id'])
+                return pg_hook.get_first('SELECT id FROM "media" WHERE "originId" = %s', (concatImageId,))[0]
+            
+            return None
+
         imageAttributes = get_images(content_item)
         coverImageId = get_best_image_id(imageAttributes)
 
