@@ -4,6 +4,7 @@ from airflow.hooks.postgres_hook import PostgresHook
 from html_sanitizer import Sanitizer
 import nltk
 from utilities import safeget
+from rock_media import is_media_video, is_media_audio
 
 import requests
 
@@ -69,6 +70,42 @@ def create_html_content(item):
     return html_sanitizer.sanitize(item['Content'])
 
 
+def get_typename(item, config):
+    mappings = safeget(config, 'CONTENT_MAPPINGS')
+
+    if not mappings:
+        return 'UniversalContentItem'
+
+    types = mappings.keys()
+
+    match_by_type_id = next(
+        (t for t in types if
+            safeget(item, 'ContentChannelTypeId') in (safeget(mappings[t], 'ContentChannelTypeId') or [])
+        ),
+    None)
+
+    if match_by_type_id:
+        return match_by_type_id;
+
+    match_by_channel_id = next(
+        (t for t in types if
+            safeget(item, 'ContentChannelId') in (safeget(mappings[t], 'ContentChannelId') or [])
+        ),
+    None)
+
+    if match_by_channel_id:
+        return match_by_channel_id;
+
+    def has_audio_or_video(attribute):
+        return is_media_audio(attribute, item) or is_media_video(attribute, item)
+
+    is_media_item = len(list(filter(has_audio_or_video, item['Attributes'].values()))) > 0
+    if is_media_item:
+        return 'MediaContentItem'
+
+    return 'UniversalContentItem'
+
+
 def fetch_and_save_content_items(ds, *args, **kwargs):
     if 'client' not in kwargs or kwargs['client'] is None:
         raise Exception("You must configure a client for this operator")
@@ -95,7 +132,7 @@ def fetch_and_save_content_items(ds, *args, **kwargs):
             "$skip": skip,
             # "$expand": "Photo",
             # "$select": "Id,Content",
-            "loadAttributes": "simple",
+            "loadAttributes": "expanded",
             "attributeKeys": "Summary",
             "$orderby": "ModifiedDateTime desc",
         }
@@ -123,16 +160,7 @@ def fetch_and_save_content_items(ds, *args, **kwargs):
         skip += top
         fetched_all = len(rock_objects) < top
 
-        def photo_url(path):
-            if path is None:
-                return None
-            elif path.startswith("~"):
-                rock_host = (Variable.get(kwargs['client'] + '_rock_api')).split("/api")[0]
-                return path.replace("~", rock_host)
-            else:
-                return path
-
-
+        config = Variable.get(kwargs['client'] + "_rock_config", deserialize_json=True)
 
         # "createdAt","updatedAt", "originId", "originType", "apollosType", "summary", "htmlContent", "title", "publishAt"
         def update_content(obj):
@@ -141,7 +169,7 @@ def fetch_and_save_content_items(ds, *args, **kwargs):
                 kwargs['execution_date'],
                 obj['Id'],
                 'rock',
-                'UniversalContentItem',
+                get_typename(obj, config),
                 create_summary(obj),
                 create_html_content(obj),
                 obj['Title'],

@@ -4,6 +4,23 @@ from utilities import safeget
 
 import requests
 
+
+def is_media_image(attribute, contentItem):
+    attributeKey = attribute['Key']
+    attributeValue = contentItem['AttributeValues'][attributeKey]['Value']
+    return attribute['FieldTypeId'] == 10 or ('image' in attributeKey.lower() and isinstance(attributeValue, str) and attributeValue.startswith('http'))
+
+def is_media_video(attribute, contentItem):
+    attributeKey = attribute['Key']
+    attributeValue = contentItem['AttributeValues'][attributeKey]['Value']
+    return [79, 80].count(attribute['FieldTypeId']) == 1 or 'video' in attributeKey.lower() and isinstance(attributeValue, str) and attributeValue.startswith('http')
+
+def is_media_audio(attribute, contentItem):
+    attributeKey = attribute['Key']
+    attributeValue = contentItem['AttributeValues'][attributeKey]['Value']
+    return [77, 78].count(attribute['FieldTypeId']) == 1 or 'audio' in attributeKey.lower() and isinstance(attributeValue, str) and attributeValue.startswith('http')
+
+
 def fetch_and_save_media(ds, *args, **kwargs):
     if 'client' not in kwargs or kwargs['client'] is None:
         raise Exception("You must configure a client for this operator")
@@ -25,30 +42,15 @@ def fetch_and_save_media(ds, *args, **kwargs):
 
         nodeId = get_content_item_id(contentItem['Id'])
 
-        def is_media_image( attribute ):
-            attributeKey = attribute['Key']
-            attributeValue = contentItem['AttributeValues'][attributeKey]['Value']
-            return attribute['FieldTypeId'] == 10 or ('image' in attributeKey.lower() and isinstance(attributeValue, str) and attributeValue.startswith('http'))
-
-        def is_media_video ( attribute ):
-            attributeKey = attribute['Key']
-            attributeValue = contentItem['AttributeValues'][attributeKey]['Value']
-            return [79, 80].count(attribute['FieldTypeId']) == 1 or 'video' in attributeKey.lower() and isinstance(attributeValue, str) and attributeValue.startswith('http')
-
-        def is_media_audio ( attribute ):
-            attributeKey = attribute['Key']
-            attributeValue = contentItem['AttributeValues'][attributeKey]['Value']
-            return [77, 78].count(attribute['FieldTypeId']) == 1 or 'audio' in attributeKey.lower() and isinstance(attributeValue, str) and attributeValue.startswith('http')
-
         def filter_media_attributes( attribute ):
-            return is_media_image( attribute) or is_media_video( attribute ) or is_media_audio ( attribute )
+            return is_media_image(attribute, contentItem) or is_media_video(attribute, contentItem) or is_media_audio (attribute, contentItem)
 
         def get_media_type( attribute ):
-            if(is_media_image( attribute )):
+            if(is_media_image(attribute, contentItem)):
                 return 'IMAGE'
-            elif(is_media_video( attribute )):
+            elif(is_media_video(attribute, contentItem)):
                 return 'VIDEO'
-            elif(is_media_audio( attribute )):
+            elif(is_media_audio(attribute, contentItem)):
                 return 'AUDIO'
             else:
                 return 'UNKNOWN_MEDIA_TYPE'
@@ -69,7 +71,7 @@ def fetch_and_save_media(ds, *args, **kwargs):
             attributeValue = contentItem['AttributeValues'][attributeKey]['Value']
             mediaType = get_media_type( attribute )
             mediaValue = get_media_value( attribute )
-            
+
             if(mediaValue):
                 return (
                     'Media',
@@ -82,10 +84,10 @@ def fetch_and_save_media(ds, *args, **kwargs):
                     attribute['Guid'],
                     'rock'
                 )
-            
+
             return None
 
-            
+
         filteredAttributes = filter(filter_media_attributes, contentItem['Attributes'].values())
         mappedAttributes = map(map_attributes, filteredAttributes)
 
@@ -112,6 +114,7 @@ def fetch_and_save_media(ds, *args, **kwargs):
 
         def fix_casing(col):
             return "\"{}\"".format(col)
+
         mediaAttributeLists = list(map(mapContentItems, r.json()))
         mediaAttributes = [mediaAttribute for sublist in mediaAttributeLists for mediaAttribute in sublist]
         columns = list(map(fix_casing, ('apollosType', 'createdAt', 'updatedAt', 'nodeId', 'nodeType', 'type', 'url', 'originId', 'originType')))
