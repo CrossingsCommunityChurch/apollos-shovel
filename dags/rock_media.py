@@ -61,7 +61,8 @@ def fetch_and_save_media(ds, *args, **kwargs):
             attributeValue = contentItem['AttributeValues'][attributeKey]['Value']
 
             if(mediaType == 'IMAGE'):
-                return "https://rock.apollos.app/GetImage.ashx?guid=" + attributeValue if len(attributeValue) > 0 else ''
+                rock_host = (Variable.get(kwargs['client'] + '_rock_api')).split("/api")[0]
+                return rock_host + "/GetImage.ashx?guid=" + attributeValue if len(attributeValue) > 0 else ''
             else:
                 return attributeValue
 
