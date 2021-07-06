@@ -30,11 +30,11 @@ def fetch_and_save_cover_image(ds, *args, **kwargs):
         if(len(images) > 1):
             squareImages = list(filter(lambda attribute: 'square' in attribute['Key'].lower(), images ))
             if(len(squareImages) > 0):
-                imageId = squareImages[0]['Guid']
+                imageId = squareImages[0]['Id']
             else:
-                return images[0]['Guid']
+                return images[0]['Id']
         elif(len(images) == 1):
-            imageId = images[0]['Guid']
+            imageId = images[0]['Id']
 
         if(imageId):
             print(str(imageId))
@@ -44,7 +44,7 @@ def fetch_and_save_cover_image(ds, *args, **kwargs):
 
     def update_content_item_cover_image(args):
         contentItemId = args['ContentItemId']
-        coverImageId = args['CoverImageId']
+        coverImageId = str(args['CoverImageId']) + "/" + str(contentItemId)
         return pg_hook.run(
             'UPDATE "contentItems" SET "coverImageId" = (SELECT id FROM "media" WHERE "originId" = %s) WHERE "originId"::Integer = %s', 
             True, 
