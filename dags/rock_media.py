@@ -69,6 +69,7 @@ def fetch_and_save_media(ds, *args, **kwargs):
             attributeKey = attribute['Key']
             attributeFieldType = attribute['FieldTypeId']
             attributeValue = contentItem['AttributeValues'][attributeKey]['Value']
+            attributeValueId = str(contentItem['Id']) + "/" + str(attribute['Id'])
             mediaType = get_media_type( attribute )
             mediaValue = get_media_value( attribute )
 
@@ -81,7 +82,7 @@ def fetch_and_save_media(ds, *args, **kwargs):
                     'ContentItem',
                     mediaType,
                     mediaValue,
-                    attribute['Guid'],
+                    attributeValueId,
                     'rock'
                 )
 
