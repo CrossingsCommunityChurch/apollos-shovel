@@ -26,11 +26,11 @@ def fetch_and_save_cover_image(ds, *args, **kwargs):
     )
 
     def update_content_item_cover_image(args):
-        contentItemId = args['ContentItemId']
-        coverImageId = str(str(contentItemId) + "/" + args['CoverImageId'])
+        contentItemId =str(args['ContentItemId'])
+        coverImageId = str(args['CoverImageId'])
 
         return pg_hook.run(
-            'UPDATE "contentItems" SET "coverImageId" = (SELECT id FROM "media" WHERE "originId" = %s) WHERE "originId"::Integer = %s', 
+            'UPDATE "contentItems" SET "coverImageId" = %s WHERE "originId"::Integer = %s', 
             True, 
             (coverImageId, contentItemId))
 
@@ -55,8 +55,6 @@ def fetch_and_save_cover_image(ds, *args, **kwargs):
 
         imageAttributes = get_images(content_item)
         coverImageId = get_best_image_id(imageAttributes)
-
-        
 
         if(coverImageId):
             update_content_item_cover_image({
