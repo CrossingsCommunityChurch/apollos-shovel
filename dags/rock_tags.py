@@ -41,7 +41,7 @@ def fetch_and_save_persona_tags(ds, *args, **kwargs):
         }
 
         if not kwargs['do_backfill']:
-            params['$filter'] = f"ModifiedDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null or PersistedLastRefreshDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}'"
+            params['$filter'] += f" and (ModifiedDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null or PersistedLastRefreshDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')})'"
 
         print(params)
 
@@ -63,7 +63,7 @@ def fetch_and_save_persona_tags(ds, *args, **kwargs):
         skip += top
         fetched_all = len(rock_objects) < top
 
-        # "createdAt", "updatedAt", "originId", "originType", "apollosType", "name", "data", "Persona"
+        # "createdAt", "updatedAt", "originId", "originType", "apollosType", "name", "data", "type"
         def update_tags(obj):
             return (
                 kwargs['execution_date'],
@@ -80,7 +80,7 @@ def fetch_and_save_persona_tags(ds, *args, **kwargs):
             return "\"{}\"".format(col)
 
         tags_to_insert = list(map(update_tags, rock_objects))
-        columns = list(map(fix_casing, ("createdAt","updatedAt", "originId", "originType", "apollosType", "name", "data")))
+        columns = list(map(fix_casing, ("createdAt","updatedAt", "originId", "originType", "apollosType", "name", "data", "type")))
 
         pg_hook.insert_rows(
             'tags',
