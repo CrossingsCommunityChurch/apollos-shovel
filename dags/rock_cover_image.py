@@ -27,13 +27,15 @@ def fetch_and_save_cover_image(ds, *args, **kwargs):
 
     def update_content_item_cover_image(args):
         contentItemId = args['ContentItemId']
-        coverImageId = str(args['CoverImageId']) + "/" + str(contentItemId)
+        coverImageId = str(str(contentItemId) + "/" + args['CoverImageId'])
+
         return pg_hook.run(
             'UPDATE "contentItems" SET "coverImageId" = (SELECT id FROM "media" WHERE "originId" = %s) WHERE "originId"::Integer = %s', 
             True, 
             (coverImageId, contentItemId))
 
     def map_content_items(content_item):
+
         def get_best_image_id (images):
             imageId = None;
             if(len(images) > 1):
@@ -41,18 +43,20 @@ def fetch_and_save_cover_image(ds, *args, **kwargs):
                 if(len(squareImages) > 0):
                     imageId = squareImages[0]['Id']
                 else:
-                    return images[0]['Id']
+                    imageId = images[0]['Id']
             elif(len(images) == 1):
                 imageId = images[0]['Id']
 
             if(imageId):
                 concatImageId = str(content_item['Id'])  + '/' + str(imageId)
-                return pg_hook.get_first('SELECT id FROM "media" WHERE "originId" = %s', (concatImageId))[0]
+                return pg_hook.get_first('SELECT id FROM "media" WHERE "originId" = %s', (concatImageId,))[0]
             
             return None
 
         imageAttributes = get_images(content_item)
         coverImageId = get_best_image_id(imageAttributes)
+
+        
 
         if(coverImageId):
             update_content_item_cover_image({
