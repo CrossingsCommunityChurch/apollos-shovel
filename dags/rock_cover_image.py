@@ -6,28 +6,15 @@ def get_images (content_item):
     def filter_images( attribute ):
             attributeKey = attribute['Key']
             attributeValue = content_item['AttributeValues'][attributeKey]['Value']
-
+          
             return (attribute['FieldTypeId'] == 10 and attributeValue) or ('image' in attributeKey.lower() and isinstance(attributeValue, str) and attributeValue.startswith('http'))
 
     return list(filter(filter_images, content_item['Attributes'].values()))
 
-def get_best_image_id (images):
-    if(len(images) > 1):
-        squareImages = list(filter(lambda attribute: 'square' in attribute['Key'].lower(), images ))
-        if(len(squareImages) > 0):
-            return squareImages[0]['Id']
-        else:
-            return images[0]['Id']
-    elif(len(images) == 1):
-        return images[0]['Id']
-    else:
-        return None
-
-
 def fetch_and_save_cover_image(ds, *args, **kwargs):
     if 'client' not in kwargs or kwargs['client'] is None:
         raise Exception("You must configure a client for this operator")
-
+        
     headers = {"Authorization-Token": Variable.get(kwargs['client'] + "_rock_token")}
 
     pg_connection = kwargs['client'] + '_apollos_postgres'
@@ -38,55 +25,46 @@ def fetch_and_save_cover_image(ds, *args, **kwargs):
         keepalives_count=5
     )
 
-    fetched_all = False
-    skip = 0
-    top = 10000
+    def update_content_item_cover_image(args):
+        contentItemId =str(args['ContentItemId'])
+        coverImageId = str(args['CoverImageId'])
+
+        return pg_hook.run(
+            'UPDATE "contentItems" SET "coverImageId" = %s WHERE "originId"::Integer = %s', 
+            True, 
+            (coverImageId, contentItemId))
 
     def map_content_items(content_item):
+
+        def get_best_image_id (images):
+            imageId = None;
+            if(len(images) > 1):
+                squareImages = list(filter(lambda attribute: 'square' in attribute['Key'].lower(), images ))
+                if(len(squareImages) > 0):
+                    imageId = squareImages[0]['Id']
+                else:
+                    imageId = images[0]['Id']
+            elif(len(images) == 1):
+                imageId = images[0]['Id']
+
+            if(imageId):
+                concatImageId = str(content_item['Id'])  + '/' + str(imageId)
+                return pg_hook.get_first('SELECT id FROM "media" WHERE "originId" = %s', (concatImageId,))[0]
+            
+            return None
 
         imageAttributes = get_images(content_item)
         coverImageId = get_best_image_id(imageAttributes)
 
         if(coverImageId):
-            return {
+            update_content_item_cover_image({
                 "ContentItemId": content_item['Id'],
-                # origin ID is a composite of the attribute ID and the content item id.
-                # We do this since attribute ID is not unique
-                "CoverImageId": str(content_item['Id']) + "/" + str(coverImageId)
-            }
-        '''
-        else:
-            contentItemId = content_item['Id']
+                "CoverImageId": coverImageId
+            })
 
-            parents = requests.get(
-                    f"{Variable.get(kwargs['client'] + '_rock_api')}/ContentChannelItemAssociations",
-                    params={
-                        "$filter": f'ChildContentChannelItemId eq {contentItemId}',
-                    },
-                    headers=headers).json()
-
-            if(len(parents) == 1):
-                parentContentItemId = parents[0]['ContentChannelItemId']
-                parentContentItem = requests.get(
-                    f"{Variable.get(kwargs['client'] + '_rock_api')}/ContentChannelItems/{parentContentItemId}",
-                    params={"loadAttributes": "expanded"},
-                    headers=headers).json()
-                coverImageId = get_best_image_id(get_images(parentContentItem))
-
-                return {
-                    "ContentItemId": content_item['Id'],
-                    "CoverImageId": coverImageId
-                } '''
-
-
-    def update_content_item_cover_image(args):
-        if(args):
-            contentItemId = args['ContentItemId']
-            coverImageId = args['CoverImageId']
-            return pg_hook.run(
-                'UPDATE "contentItems" SET "coverImageId" = (SELECT id FROM "media" WHERE "originId" = %s) WHERE "originId"::Integer = %s', 
-                True, 
-                (coverImageId, contentItemId))
+    fetched_all = False
+    skip = 0
+    top = 10000
 
     while fetched_all == False:
         # Fetch people records from Rock.
@@ -103,9 +81,26 @@ def fetch_and_save_cover_image(ds, *args, **kwargs):
                 f"{Variable.get(kwargs['client'] + '_rock_api')}/ContentChannelItems",
                 params=params,
                 headers=headers)
-
+                
         contentItems = list(map(map_content_items, r.json()))
-        updatedItems = list(map(update_content_item_cover_image, contentItems))
+
+        #Sets all content items without a cover image to their parent's cover image
+        pg_hook.run(
+            """
+                UPDATE "contentItems"
+                SET    "coverImageId" = r."coverImageId"
+                FROM   (SELECT "contentItems".id AS childId,
+                            parent."coverImageId"
+                        FROM   "contentItems"
+                            INNER JOIN "contentItemsConnections"
+                                    ON "contentItemsConnections"."childId" =
+                                        "contentItems".id
+                            INNER JOIN "contentItems" AS parent
+                                    ON "contentItemsConnections"."parentId" = parent.id
+                        WHERE  "contentItems"."coverImageId" IS NULL) AS r
+                WHERE  r.childId = "contentItems".id;
+            """
+        )
 
         skip += top
         fetched_all = len(r.json()) < top
