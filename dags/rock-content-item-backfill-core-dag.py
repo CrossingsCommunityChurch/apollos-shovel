@@ -7,6 +7,7 @@ from rock_media import fetch_and_save_media
 from rock_content_items_connections import fetch_and_save_content_items_connections, set_parent_id
 from rock_cover_image import fetch_and_save_cover_image
 from rock_content_item_categories import fetch_and_save_content_item_categories, attach_content_item_categories
+from rock_features import fetch_and_save_features
 
 # Default settings applied to all tasks
 default_args = {
@@ -28,53 +29,59 @@ with DAG('rock_content_item_backfill_core_dag',
          # catchup=False # enable if you don't want historical dag runs to run
          ) as dag:
 
-    t0 = PythonOperator(
+    base_items = PythonOperator(
         task_id='fetch_and_save_content_items',
         python_callable=fetch_and_save_content_items,  # make sure you don't include the () of the function
         op_kwargs={'client': 'core', 'do_backfill': True}
     )
 
-    t1 = PythonOperator(
+    connections = PythonOperator(
         task_id='fetch_and_save_content_items_connections',
         python_callable=fetch_and_save_content_items_connections,  # make sure you don't include the () of the function
         op_kwargs={'client': 'core', 'do_backfill': True}
     )
 
-    t2 = PythonOperator(
+    media = PythonOperator(
         task_id='fetch_and_save_media',
         python_callable=fetch_and_save_media,  # make sure you don't include the () of the function
         op_kwargs={'client': 'core', 'do_backfill': True}
     )
 
-    t3 = PythonOperator(
+    add_categories = PythonOperator(
         task_id='fetch_and_save_content_item_categories',
         python_callable=fetch_and_save_content_item_categories,  # make sure you don't include the () of the function
         op_kwargs={'client': 'core', 'do_backfill': True}
     )
 
-    t4 = PythonOperator(
+    attach_categories = PythonOperator(
         task_id='attach_content_item_categories',
         python_callable=attach_content_item_categories,  # make sure you don't include the () of the function
         op_kwargs={'client': 'core', 'do_backfill': True}
     )
 
-    t6 = PythonOperator(
+    set_parent_id = PythonOperator(
         task_id='set_parent_id',
         python_callable=set_parent_id,  # make sure you don't include the () of the function
         op_kwargs={'client': 'core', 'do_backfill': True}
     )
 
-    t5 = PythonOperator(
+    set_cover_image = PythonOperator(
         task_id='fetch_and_save_cover_image',
         python_callable=fetch_and_save_cover_image,  # make sure you don't include the () of the function
         op_kwargs={'client': 'core', 'do_backfill': True}
     )
 
+    features = PythonOperator(
+        task_id='fetch_and_save_features',
+        python_callable=fetch_and_save_features,  # make sure you don't include the () of the function
+        op_kwargs={'client': 'core', 'do_backfill': True}
+    )
+
     # Adding and syncing categories depends on having content items
-    t0 >> t3 >> t4
+    base_items >> add_categories >> attach_categories
 
-    t2 >> t5
+    media >> set_cover_image
 
-    t1 >> t6
+    connections >> set_parent_id >> features
 
-    t0 >> [t1, t2]
+    base_items >> [connections, media]
