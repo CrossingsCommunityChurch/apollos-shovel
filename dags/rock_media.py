@@ -1,8 +1,28 @@
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
 from utilities import safeget
+from PIL import ImageFile
+import urllib
+import json
 
 import requests
+
+def getsizes(uri):
+    # get file size *and* image size (None if not known)
+    file = urllib.request.urlopen(uri)
+    size = file.headers.get("content-length")
+    if size: size = int(size)
+    p = ImageFile.Parser()
+    while 1:
+        data = file.read(1024)
+        if not data:
+            break
+        p.feed(data)
+        if p.image:
+            return p.image.size
+            break
+    file.close()
+    return size
 
 
 def is_media_image(attribute, contentItem):
@@ -73,6 +93,12 @@ def fetch_and_save_media(ds, *args, **kwargs):
             attributeValueId = str(contentItem['Id']) + "/" + str(attribute['Id'])
             mediaType = get_media_type( attribute )
             mediaValue = get_media_value( attribute )
+            metadata = {}
+
+            if(mediaType == 'IMAGE' and mediaValue):
+                imageDimensions = getsizes(mediaValue)
+                metadata['width'] = imageDimensions[0]
+                metadata['height'] = imageDimensions[1]
 
             if(mediaValue):
                 return (
@@ -84,7 +110,8 @@ def fetch_and_save_media(ds, *args, **kwargs):
                     mediaType,
                     mediaValue,
                     attributeValueId,
-                    'rock'
+                    'rock',
+                    json.dumps(metadata)
                 )
 
             return None
@@ -119,9 +146,9 @@ def fetch_and_save_media(ds, *args, **kwargs):
 
         mediaAttributeLists = list(map(mapContentItems, r.json()))
         mediaAttributes = [mediaAttribute for sublist in mediaAttributeLists for mediaAttribute in sublist]
-        columns = list(map(fix_casing, ('apollosType', 'createdAt', 'updatedAt', 'nodeId', 'nodeType', 'type', 'url', 'originId', 'originType')))
+        columns = list(map(fix_casing, ('apollosType', 'createdAt', 'updatedAt', 'nodeId', 'nodeType', 'type', 'url', 'originId', 'originType', 'metadata')))
 
-        print('Media Items Aded: ')
+        print('Media Items Added: ')
         print(len(list(mediaAttributes)))
 
         pg_hook.insert_rows(
