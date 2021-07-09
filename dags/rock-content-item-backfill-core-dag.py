@@ -7,7 +7,7 @@ from rock_media import fetch_and_save_media
 from rock_content_items_connections import fetch_and_save_content_items_connections, set_parent_id
 from rock_cover_image import fetch_and_save_cover_image
 from rock_content_item_categories import fetch_and_save_content_item_categories, attach_content_item_categories
-from rock_tags import fetch_and_save_persona_tags, attach_persona_tags_to_people
+from rock_tags import fetch_and_save_persona_tags, attach_persona_tags_to_people, attach_persona_tags_to_content
 
 # Default settings applied to all tasks
 default_args = {
@@ -83,6 +83,12 @@ with DAG('rock_content_item_backfill_core_dag',
         op_kwargs={'client': 'core', 'do_backfill': True}
     )
 
+    t9 = PythonOperator(
+        task_id='attach_persona_tags_to_content',
+        python_callable=attach_persona_tags_to_content,
+        op_kwargs={'client': 'core', 'do_backfill': True}
+    )
+
     # Adding and syncing categories depends on having content items
     t0 >> t3 >> t4
 
@@ -92,4 +98,4 @@ with DAG('rock_content_item_backfill_core_dag',
 
     t0 >> [t1, t2]
 
-    t7 >> t8
+    t7 >> [t8, t9]

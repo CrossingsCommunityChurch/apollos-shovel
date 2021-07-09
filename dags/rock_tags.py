@@ -183,4 +183,63 @@ def attach_persona_tags_to_people(ds, *args, **kwargs):
             pg_hook.run(sql_to_run)
 
             skip += top
-            fetched_all = len(rock_objects) < top            
+            fetched_all = len(rock_objects) < top
+
+def attach_persona_tags_to_content(ds, *args, **kwargs):
+    if 'client' not in kwargs or kwargs['client'] is None:
+        raise Exception("You must configure a client for this operator")
+
+    headers = {"Authorization-Token": Variable.get(kwargs['client'] + "_rock_token")}
+
+    pg_connection = kwargs['client'] + '_apollos_postgres'
+    pg_hook = PostgresHook(
+        postgres_conn_id=pg_connection,
+        keepalives=1,
+        keepalives_idle=30,
+        keepalives_interval=10,
+        keepalives_count=5
+    )
+
+    # Entity of Content Item
+    item_entity_id = requests.get(
+        f"{Variable.get(kwargs['client'] + '_rock_api')}/EntityTypes",
+        params={"$filter": "Name eq 'Rock.Model.ContentChannelItem'"},
+        headers=headers
+    ).json()[0]['Id']
+
+    # Fields that represent dataview (a single dataview), and dataviews. 
+    dataview_fields = requests.get(
+        f"{Variable.get(kwargs['client'] + '_rock_api')}/FieldTypes",
+        params={"$filter": "Class eq 'Rock.Field.Types.DataViewsFieldType' or Class eq 'Rock.Field.Types.DataViewFieldType'"},
+        headers=headers
+    ).json()
+
+    dataview_id, dataviews_id = map(lambda f: f['Id'], dataview_fields)
+
+    # Attribute values that belong to fields that are dataviews (and are content items)
+    dataview_attribute_values = requests.get(
+        f"{Variable.get(kwargs['client'] + '_rock_api')}/AttributeValues",
+        params={
+            "$filter": f"Attribute/EntityTypeId eq {item_entity_id} and (Attribute/FieldTypeId eq {dataview_id} or Attribute/FieldTypeId eq {dataviews_id})",
+            "$select": "Value, EntityId"
+        },
+        headers=headers
+    ).json()
+
+    def generate_insert_sql(obj):
+        return f'''
+            INSERT INTO content_tag ("tagId", "contentItemId", "createdAt", "updatedAt")
+            SELECT t.id,
+                   i.id,
+                   NOW(),
+                   NOW()
+            FROM tags t,
+                 "contentItems" i
+            WHERE t.data ->> 'guid' = '{obj["Value"]}'
+              AND i."originId" = '{obj["EntityId"]}'
+            ON CONFLICT ("tagId", "contentItemId") DO NOTHING
+        '''
+
+    sql_to_run = map(generate_insert_sql, dataview_attribute_values)
+
+    pg_hook.run(sql_to_run)
