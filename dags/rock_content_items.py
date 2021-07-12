@@ -150,7 +150,7 @@ def fetch_and_save_content_items(ds, *args, **kwargs):
         params = {
             "$top": top,
             "$skip": skip,
-            # "$expand": "Photo",
+            "$expand": "ContentChannel",
             # "$select": "Id,Content",
             "loadAttributes": "expanded",
             "attributeKeys": "Summary",
@@ -163,7 +163,7 @@ def fetch_and_save_content_items(ds, *args, **kwargs):
         print(params)
 
         r = requests.get(
-                f"{Variable.get(kwargs['client'] + '_rock_api')}/ContentChannelItems?$expand=ContentChannel",
+                f"{Variable.get(kwargs['client'] + '_rock_api')}/ContentChannelItems",
                 params=params,
                 headers=headers)
         rock_objects = r.json()
