@@ -72,6 +72,7 @@ with DAG('rock_content_item_backfill_core_dag',
         op_kwargs={'client': 'core', 'do_backfill': True}
     )
 
+    
     content_tags = PythonOperator(
         task_id='attach_persona_tags_to_content',
         python_callable=attach_persona_tags_to_content,
