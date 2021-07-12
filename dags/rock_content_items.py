@@ -5,6 +5,7 @@ from html_sanitizer import Sanitizer
 import nltk
 from utilities import safeget
 from rock_media import is_media_video, is_media_audio
+from datetime import datetime
 
 import requests
 
@@ -105,6 +106,25 @@ def get_typename(item, config):
 
     return 'UniversalContentItem'
 
+def get_status(contentItem):
+    startDateTime = datetime.fromisoformat(contentItem['StartDateTime']) if contentItem['StartDateTime'] else None;
+    expireDateTime = datetime.fromisoformat(contentItem['ExpireDateTime']) if contentItem['ExpireDateTime'] else None;
+
+    if(
+        (
+            (startDateTime == None or startDateTime < datetime.now())
+            and
+            (expireDateTime == None or  expireDateTime > datetime.now())
+        )
+        and
+        (
+            contentItem['Status'] == 2 or contentItem['ContentChannel']['RequiresApproval'] == False
+        )
+    ):
+        return True
+    else:
+        return False
+
 
 def fetch_and_save_content_items(ds, *args, **kwargs):
     if 'client' not in kwargs or kwargs['client'] is None:
@@ -130,7 +150,7 @@ def fetch_and_save_content_items(ds, *args, **kwargs):
         params = {
             "$top": top,
             "$skip": skip,
-            # "$expand": "Photo",
+            "$expand": "ContentChannel",
             # "$select": "Id,Content",
             "loadAttributes": "expanded",
             "attributeKeys": "Summary",
@@ -174,13 +194,14 @@ def fetch_and_save_content_items(ds, *args, **kwargs):
                 create_html_content(obj),
                 obj['Title'],
                 obj['StartDateTime'],
+                get_status(obj)
             )
 
         def fix_casing(col):
             return "\"{}\"".format(col)
 
         content_to_insert = list(map(update_content, rock_objects))
-        columns = list(map(fix_casing, ("createdAt", "updatedAt", "originId", "originType", "apollosType", "summary", "htmlContent", "title", 'publishAt')))
+        columns = list(map(fix_casing, ("createdAt", "updatedAt", "originId", "originType", "apollosType", "summary", "htmlContent", "title", 'publishAt', "active")))
 
 
         pg_hook.insert_rows(
