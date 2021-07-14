@@ -3,6 +3,8 @@ from airflow.hooks.postgres_hook import PostgresHook
 from utilities import safeget
 from psycopg2.extras import Json
 
+from functools import reduce
+
 import requests
 
 def fetch_and_save_persona_tags(ds, *args, **kwargs):
@@ -226,6 +228,13 @@ def attach_persona_tags_to_content(ds, *args, **kwargs):
         headers=headers
     ).json()
 
+    def split_to_multiple_attributes(attribute):
+        attributes = attribute["Value"].split(',')
+        return map(lambda a: {'Value': a, 'EntityId': attribute["EntityId"]}, attributes)
+
+    split_attribute_values = map(split_to_multiple_attributes, dataview_attribute_values)
+    attribute_values = reduce(lambda x,y: x + y, split_attribute_values)
+
     def generate_insert_sql(obj):
         return f'''
             INSERT INTO content_tag ("tagId", "contentItemId", "createdAt", "updatedAt")
@@ -240,6 +249,6 @@ def attach_persona_tags_to_content(ds, *args, **kwargs):
             ON CONFLICT ("tagId", "contentItemId") DO NOTHING
         '''
 
-    sql_to_run = map(generate_insert_sql, dataview_attribute_values)
+    sql_to_run = map(generate_insert_sql, attribute_values)
 
     pg_hook.run(sql_to_run)
