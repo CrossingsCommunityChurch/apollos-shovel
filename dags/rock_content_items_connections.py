@@ -49,7 +49,7 @@ def fetch_and_save_content_items_connections(ds, *args, **kwargs):
             "$top": top,
             "$skip": skip,
             # "$expand": "Photo",
-            "$select": "Id,ChildContentChannelItemId,ContentChannelItemId",
+            "$select": "Id,ChildContentChannelItemId,ContentChannelItemId,Order",
             "$orderby": "ModifiedDateTime desc",
         }
 
@@ -86,13 +86,14 @@ def fetch_and_save_content_items_connections(ds, *args, **kwargs):
                 'ContentItemsConnection',
                 get_postgres_id(obj['ChildContentChannelItemId']),
                 get_postgres_id(obj['ContentChannelItemId']),
+                obj['Order']
             )
 
         def fix_casing(col):
             return "\"{}\"".format(col)
 
         content_to_insert = list(map(update_content, rock_objects))
-        columns = list(map(fix_casing, ("createdAt","updatedAt", "originId", "originType", "apollosType", "childId", "parentId")))
+        columns = list(map(fix_casing, ("createdAt","updatedAt", "originId", "originType", "apollosType", "childId", "parentId", "order")))
 
 
         pg_hook.insert_rows(
