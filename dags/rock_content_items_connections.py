@@ -113,7 +113,7 @@ def fetch_and_save_content_items_connections(ds, *args, **kwargs):
 
         pg_hook.run(add_apollos_ids)
 
-def set_parent_id(ds, *args, **kwargs):
+def set_content_item_parent_id(ds, *args, **kwargs):
     if 'client' not in kwargs or kwargs['client'] is None:
         raise Exception("You must configure a client for this operator")
 

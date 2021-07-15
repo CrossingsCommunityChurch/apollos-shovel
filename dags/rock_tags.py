@@ -43,7 +43,7 @@ def fetch_and_save_persona_tags(ds, *args, **kwargs):
         }
 
         if not kwargs['do_backfill']:
-            params['$filter'] += f" and (ModifiedDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null or PersistedLastRefreshDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')})'"
+            params['$filter'] += f" and (ModifiedDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null or PersistedLastRefreshDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}')"
 
         print(params)
 
@@ -130,13 +130,16 @@ def attach_persona_tags_to_people(ds, *args, **kwargs):
     }
 
     if not kwargs['do_backfill']:
-        persona_params['$filter'] += f" and (ModifiedDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null or PersistedLastRefreshDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')})'"
+        persona_params['$filter'] += f" and (ModifiedDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null or PersistedLastRefreshDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}')"
 
 
     personas = requests.get(
             f"{Variable.get(kwargs['client'] + '_rock_api')}/DataViews",
             params=persona_params,
             headers=headers).json()
+
+    print("Personas:")
+    print(personas)
 
 
     for persona in personas:
@@ -151,6 +154,8 @@ def attach_persona_tags_to_people(ds, *args, **kwargs):
                 "$select": "Id",
                 "$orderby": "ModifiedDateTime desc",
             }
+
+           
 
             r = requests.get(
                     f"{Variable.get(kwargs['client'] + '_rock_api')}/People/DataView/{persona['Id']}",
@@ -230,9 +235,9 @@ def attach_persona_tags_to_content(ds, *args, **kwargs):
 
     def split_to_multiple_attributes(attribute):
         attributes = attribute["Value"].split(',')
-        return map(lambda a: {'Value': a, 'EntityId': attribute["EntityId"]}, attributes)
+        return list(map(lambda a: {'Value': a, 'EntityId': attribute["EntityId"]}, attributes))
 
-    split_attribute_values = map(split_to_multiple_attributes, dataview_attribute_values)
+    split_attribute_values = list(map(split_to_multiple_attributes, dataview_attribute_values))
     attribute_values = reduce(lambda x,y: x + y, split_attribute_values)
 
     def generate_insert_sql(obj):
