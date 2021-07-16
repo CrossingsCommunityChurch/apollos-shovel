@@ -10,7 +10,7 @@ from rock_content_item_categories import fetch_and_save_content_item_categories,
 from rock_tags import fetch_and_save_persona_tags, attach_persona_tags_to_people, attach_persona_tags_to_content
 from rock_features import fetch_and_save_features
 
-start_date = datetime(2021, 6, 21);
+start_date = datetime(2021, 7, 16);
 
 # Default settings applied to all tasks
 default_args = {
