@@ -9,6 +9,7 @@ from rock_cover_image import fetch_and_save_cover_image
 from rock_content_item_categories import fetch_and_save_content_item_categories, attach_content_item_categories
 from rock_tags import fetch_and_save_persona_tags, attach_persona_tags_to_people, attach_persona_tags_to_content
 from rock_features import fetch_and_save_features
+from rock_deleted_tags import remove_deleted_tags
 from rock_deleted_content_items_dag import remove_deleted_content_items
 
 start_date = datetime(2021, 7, 16);
@@ -99,6 +100,12 @@ def create_content_item_dag(dag_name, start_date, schedule_interval, do_backfill
             op_kwargs={'client': 'core', 'do_backfill': do_backfill}
         )
 
+        deleted_tags = PythonOperator(
+            task_id='remove_deleted_tags',
+            python_callable=remove_deleted_tags,  # make sure you don't include the () of the function
+            op_kwargs={'client': 'core', 'do_backfill': do_backfill}
+        )
+
         deleted_content_items = PythonOperator(
             task_id='remove_deleted_content_items',
             python_callable=remove_deleted_content_items,  # make sure you don't include the () of the function
@@ -113,6 +120,8 @@ def create_content_item_dag(dag_name, start_date, schedule_interval, do_backfill
         connections >> set_parent_id >> features
 
         tags >> [persona_tags, content_tags]
+        
+        deleted_content_items >> deleted_tags
 
         base_items >> [connections, media, deleted_content_items]
     
