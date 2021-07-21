@@ -25,8 +25,11 @@ def remove_deleted_tags(ds, *args, **kwargs):
         headers=headers
     ).json()[0]['Id']
 
+    
+    rock_config = Variable.get(kwargs['client'] + "_rock_config", deserialize_json=True)    
+
     params = {
-        "$filter": f"EntityTypeId eq {person_entity_id} and CategoryId eq {186}",
+        "$filter": f"EntityTypeId eq {person_entity_id} and CategoryId eq {rock_config['PERSONA_CATEGORY_ID']}",
         "$select": "Id",
         "$orderby": "ModifiedDateTime desc",
     }
