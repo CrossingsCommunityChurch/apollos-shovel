@@ -32,12 +32,15 @@ def fetch_and_save_persona_tags(ds, *args, **kwargs):
         headers=headers
     ).json()[0]['Id']
 
+    rock_config = Variable.get(kwargs['client'] + "_rock_config", deserialize_json=True)
+
     while not fetched_all:
+
 
         params = {
             "$top": top,
             "$skip": skip,
-            "$filter": f"EntityTypeId eq {person_entity_id} and CategoryId eq {186}",
+            "$filter": f"EntityTypeId eq {person_entity_id} and CategoryId eq {rock_config['PERSONA_CATEGORY_ID']}",
             "$select": "Id,Name,Guid",
             "$orderby": "ModifiedDateTime desc",
         }
@@ -123,8 +126,10 @@ def attach_persona_tags_to_people(ds, *args, **kwargs):
         headers=headers
     ).json()[0]['Id']
 
+    rock_config = Variable.get(kwargs['client'] + "_rock_config", deserialize_json=True)
+
     persona_params = {
-        "$filter": f"EntityTypeId eq {person_entity_id} and CategoryId eq {186}",
+        "$filter": f"EntityTypeId eq {person_entity_id} and CategoryId eq {rock_config['PERSONA_CATEGORY_ID']}",
         "$select": "Id,Name,Guid",
         "$orderby": "ModifiedDateTime desc",
     }

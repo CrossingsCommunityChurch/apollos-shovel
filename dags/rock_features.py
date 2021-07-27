@@ -82,7 +82,7 @@ def fetch_and_save_features(ds, *args, **kwargs):
         button_link_feature = safeget_no_case(content, 'AttributeValues', 'ButtonText', 'Value')
         if (button_link_feature):
             features.append({
-                "type": "ButtonLink",
+                "type": "Button",
                 "data": {
                     "title": safeget_no_case(content, 'AttributeValues', 'ButtonText', 'Value'),
                     "url": safeget_no_case(content, 'AttributeValues', 'ButtonLink', 'Value'),
