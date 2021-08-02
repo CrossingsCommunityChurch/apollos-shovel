@@ -243,22 +243,24 @@ def attach_persona_tags_to_content(ds, *args, **kwargs):
         return list(map(lambda a: {'Value': a, 'EntityId': attribute["EntityId"]}, attributes))
 
     split_attribute_values = list(map(split_to_multiple_attributes, dataview_attribute_values))
-    attribute_values = reduce(lambda x,y: x + y, split_attribute_values)
 
-    def generate_insert_sql(obj):
-        return f'''
-            INSERT INTO content_tag ("tagId", "contentItemId", "createdAt", "updatedAt")
-            SELECT t.id,
-                   i.id,
-                   NOW(),
-                   NOW()
-            FROM tags t,
-                 "contentItems" i
-            WHERE t.data ->> 'guid' = '{obj["Value"]}'
-              AND i."originId" = '{obj["EntityId"]}'
-            ON CONFLICT ("tagId", "contentItemId") DO NOTHING
-        '''
+    if(len(split_attribute_values) > 0):
+        attribute_values = reduce(lambda x,y: x + y, split_attribute_values)
 
-    sql_to_run = map(generate_insert_sql, attribute_values)
+        def generate_insert_sql(obj):
+            return f'''
+                INSERT INTO content_tag ("tagId", "contentItemId", "createdAt", "updatedAt")
+                SELECT t.id,
+                    i.id,
+                    NOW(),
+                    NOW()
+                FROM tags t,
+                    "contentItems" i
+                WHERE t.data ->> 'guid' = '{obj["Value"]}'
+                AND i."originId" = '{obj["EntityId"]}'
+                ON CONFLICT ("tagId", "contentItemId") DO NOTHING
+            '''
 
-    pg_hook.run(sql_to_run)
+        sql_to_run = map(generate_insert_sql, attribute_values)
+
+        pg_hook.run(sql_to_run)
