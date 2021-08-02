@@ -18,7 +18,7 @@ def remove_deleted_content_items(ds, *args, **kwargs):
         keepalives_count=5
     )
 
-    postgresContentItems = pg_hook.get_records('SELECT id, "originId" FROM "contentItems"')
+    postgresContentItems = pg_hook.get_records('SELECT id, origin_id FROM content_item')
 
     params = {
         "$select": "Id",
@@ -42,7 +42,7 @@ def remove_deleted_content_items(ds, *args, **kwargs):
 
     if(len(deletedContentItems) > 0):
         pg_hook.run("""
-            DELETE FROM "contentItems"
+            DELETE FROM content_item
             WHERE id = ANY(%s::uuid[])
         """, True, (deletedContentItems,))
 

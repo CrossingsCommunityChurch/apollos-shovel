@@ -38,12 +38,11 @@ def fetch_and_save_campuses(ds, *args, **kwargs):
     rock_objects = r.json()
 
     for obj in rock_objects:
-
         dts_insert = """
-        INSERT into campuses ("createdAt", "updatedAt", "originId", "originType", "apollosType", "name", "street1", "street2", "city", "state", "postalCode", "latitude", "longitude", "digital")
+        INSERT into campus ("created_at", "updated_at", "origin_id", "origin_type", "apollos_type", "name", "street1", "street2", "city", "state", "postal_code", "latitude", "longitude", "digital")
         values (%(current_date)s, %(current_date)s, %(id)s, 'rock', 'Campus', %(name)s, %(street1)s, %(street2)s, %(city)s, %(state)s, %(postalCode)s, %(latitude)s, %(longitude)s, %(digital)s)
-        ON CONFLICT ("originId", "originType")
-        DO UPDATE SET ("updatedAt", "name", "street1", "street2", "city", "state", "postalCode", "latitude", "longitude", "digital") = (%(current_date)s, %(name)s, %(street1)s, %(street2)s, %(city)s, %(state)s, %(postalCode)s, %(latitude)s, %(longitude)s, %(digital)s)
+        ON CONFLICT (origin_id, origin_type)
+        DO UPDATE SET ("updated_at", "name", "street1", "street2", "city", "state", "postal_code", "latitude", "longitude", "digital") = (%(current_date)s, %(name)s, %(street1)s, %(street2)s, %(city)s, %(state)s, %(postalCode)s, %(latitude)s, %(longitude)s, %(digital)s)
         """
 
         pg_hook.run(dts_insert, parameters=({
@@ -61,14 +60,14 @@ def fetch_and_save_campuses(ds, *args, **kwargs):
         }))
 
         users_without_apollos_id_select = """
-        SELECT id from campuses
-        WHERE "originType" = 'rock' and "apollosId" IS NULL
+        SELECT id from campus
+        WHERE origin_type = 'rock' and apollos_id IS NULL
         """
 
         for new_id in pg_hook.get_records(users_without_apollos_id_select):
             apollos_id_update = """
-            UPDATE campuses
-            SET "apollosId" = %s
+            UPDATE campus
+            SET apollos_id = %s
             WHERE id = %s::uuid
             """
 

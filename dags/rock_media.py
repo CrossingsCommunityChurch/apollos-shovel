@@ -56,7 +56,7 @@ def fetch_and_save_media(ds, *args, **kwargs):
     )
 
     def get_content_item_id(rockOriginId):
-        return pg_hook.get_first(f'SELECT id FROM "contentItems" WHERE "originId"::Integer = {rockOriginId}')[0]
+        return pg_hook.get_first(f'SELECT id FROM content_item WHERE origin_id::Integer = {rockOriginId}')[0]
 
     def mapContentItems(contentItem):
 
@@ -146,7 +146,7 @@ def fetch_and_save_media(ds, *args, **kwargs):
 
         mediaAttributeLists = list(map(mapContentItems, r.json()))
         mediaAttributes = [mediaAttribute for sublist in mediaAttributeLists for mediaAttribute in sublist]
-        columns = list(map(fix_casing, ('apollosType', 'createdAt', 'updatedAt', 'nodeId', 'nodeType', 'type', 'url', 'originId', 'originType', 'metadata')))
+        columns = list(map(fix_casing, ('apollos_type', 'created_at', 'updated_at', 'node_id', 'node_type', 'type', 'url', 'origin_id', 'origin_type', 'metadata')))
 
         print('Media Items Added: ')
         print(len(list(mediaAttributes)))
@@ -157,13 +157,13 @@ def fetch_and_save_media(ds, *args, **kwargs):
             columns,
             0,
             True,
-            replace_index = ('"originId"', '"originType"')
+            replace_index = ('"origin_id"', '"origin_type"')
         )
 
         add_apollos_ids = """
-        UPDATE "media"
-        SET "apollosId" = "apollosType" || ':' || id::varchar
-        WHERE "originType" = 'rock' and "apollosId" IS NULL
+        UPDATE media
+        SET apollos_id = apollos_type || ':' || id::varchar
+        WHERE origin_type = 'rock' and apollos_id IS NULL
         """
 
         pg_hook.run(add_apollos_ids)

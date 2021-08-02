@@ -185,7 +185,7 @@ def fetch_and_save_content_items(ds, *args, **kwargs):
 
         config = Variable.get(kwargs['client'] + "_rock_config", deserialize_json=True)
 
-        # "createdAt","updatedAt", "originId", "originType", "apollosType", "summary", "htmlContent", "title", "publishAt"
+        # "created_at","updated_at", "origin_id", "origin_type", "apollos_type", "summary", "htmlContent", "title", "publish_at", "active"
         def update_content(obj):
             return (
                 kwargs['execution_date'],
@@ -204,23 +204,23 @@ def fetch_and_save_content_items(ds, *args, **kwargs):
             return "\"{}\"".format(col)
 
         content_to_insert = list(map(update_content, rock_objects))
-        columns = list(map(fix_casing, ("createdAt", "updatedAt", "originId", "originType", "apollosType", "summary", "htmlContent", "title", 'publishAt', "active")))
+        columns = list(map(fix_casing, ("created_at","updated_at", "origin_id", "origin_type", "apollos_type", "summary", "html_content", "title", "publish_at", "active")))
 
 
         pg_hook.insert_rows(
-            '"contentItems"',
+            '"content_item"',
             content_to_insert,
             columns,
             0,
             True,
-            replace_index = ('"originId"', '"originType"')
+            replace_index = ('"origin_id"', '"origin_type"')
         )
 
 
         add_apollos_ids = """
-        UPDATE "contentItems"
-        SET "apollosId" = "apollosType" || ':' || id::varchar
-        WHERE "originType" = 'rock' and "apollosId" IS NULL
+        UPDATE content_item
+        SET apollos_id = apollos_type || ':' || id::varchar
+        WHERE origin_type = 'rock' and apollos_id IS NULL
         """
 
         pg_hook.run(add_apollos_ids)

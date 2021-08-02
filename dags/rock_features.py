@@ -52,7 +52,7 @@ def fetch_and_save_features(ds, *args, **kwargs):
     def get_features(content):
         features = []
 
-        postgres_id, parent_rock_id = pg_hook.get_first(f'select "contentItems".id, "parentItem"."originId" from "contentItems" left outer join "contentItems" as "parentItem" on "parentItem".id = "contentItems"."parentId" where "contentItems"."originId" = \'{content["Id"]}\'')
+        postgres_id, parent_rock_id = pg_hook.get_first(f'select content_item.id, "parentItem".origin_id from content_item left outer join content_item as "parentItem" on "parentItem".id = content_item.parent_id where content_item.origin_id = \'{content["Id"]}\'')
         # Add features from a key value list
         # This is now the only way to add scripture and text features
         # We previously supported a textFeature and
@@ -161,7 +161,7 @@ def fetch_and_save_features(ds, *args, **kwargs):
         print(features_by_item)
         flat_features_list = [item for items in features_by_item for item in items]
 
-        # "createdAt", "updatedAt", "apollosType", "data", "type", "parentId", "parentType"
+        # "created_at", "updated_at", "apollos_type", "data", "type", "parent_id", "parent_type"
         def feature_attributes(obj):
             return (
                 kwargs['execution_date'],
@@ -175,21 +175,21 @@ def fetch_and_save_features(ds, *args, **kwargs):
 
         insert_features = list(map(feature_attributes, flat_features_list))
 
-        columns = list(map(fix_casing, ("createdAt", "updatedAt", "apollosType", "data", "type", "parentId", "parentType")))
+        columns = list(map(fix_casing, ("created_at", "updated_at", "apollos_type", "data", "type", "parent_id", "parent_type")))
 
         pg_hook.insert_rows(
-            '"features"',
+            '"feature"',
             list(insert_features),
             columns,
             0,
             True,
-            replace_index=('"parentId"', '"type"', '"data"')
+            replace_index=('"parent_id"', '"type"', '"data"')
         )
 
         add_apollos_ids = """
-        UPDATE "features"
-        SET "apollosId" = "apollosType" || ':' || id::varchar
-        WHERE "apollosId" IS NULL
+        UPDATE feature
+        SET apollos_id = apollos_type || ':' || id::varchar
+        WHERE apollos_id IS NULL
         """
 
         pg_hook.run(add_apollos_ids)

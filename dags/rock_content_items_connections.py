@@ -37,8 +37,8 @@ def fetch_and_save_content_items_connections(ds, *args, **kwargs):
     def get_postgres_id(id):
         obj = pg_hook.get_first("""
             SELECT id
-            FROM "contentItems"
-            WHERE "originId" = '{}'
+            FROM content_item
+            WHERE origin_id = '{}'
         """.format(id))
         return obj[0]
 
@@ -76,7 +76,7 @@ def fetch_and_save_content_items_connections(ds, *args, **kwargs):
         skip += top
         fetched_all = len(rock_objects) < top
 
-        # "createdAt","updatedAt", "originId", "originType", "apollosType", "childId", "parentId", "Order"
+        # "created_at","updated_at", "origin_id", "origin_type", "apollos_type", "child_id", "parent_id", "order"
         def update_content(obj):
             return (
                 kwargs['execution_date'],
@@ -93,23 +93,23 @@ def fetch_and_save_content_items_connections(ds, *args, **kwargs):
             return "\"{}\"".format(col)
 
         content_to_insert = list(map(update_content, rock_objects))
-        columns = list(map(fix_casing, ("createdAt","updatedAt", "originId", "originType", "apollosType", "childId", "parentId", "order")))
+        columns = list(map(fix_casing, ("created_at","updated_at", "origin_id", "origin_type", "apollos_type", "child_id", "parent_id", "order")))
 
 
         pg_hook.insert_rows(
-            '"contentItemsConnections"',
+            '"content_item_connection"',
             content_to_insert,
             columns,
             0,
             True,
-            replace_index = ('"originId"', '"originType"')
+            replace_index = ('"origin_id"', '"origin_type"')
         )
 
 
         add_apollos_ids = """
-        UPDATE "contentItemsConnections"
-        SET "apollosId" = "apollosType" || id::varchar
-        WHERE "originType" = 'rock' and "apollosId" IS NULL
+        UPDATE content_item_category
+        SET apollos_id = apollos_type || id::varchar
+        WHERE origin_type = 'rock' and apollos_id IS NULL
         """
 
         pg_hook.run(add_apollos_ids)
@@ -133,23 +133,23 @@ def set_content_item_parent_id(ds, *args, **kwargs):
 
     add_apollos_parents = f"""
     WITH rows_to_update AS
-      (SELECT "contentItemsConnections"."parentId",
-              "contentItemsConnections"."childId" AS id
+      (SELECT content_item_connection.parent_id,
+              content_item_connection.child_id AS id
        FROM
          (SELECT c.id,
-          count(cc."childId") AS parents_count
-          FROM "contentItems" c
-          LEFT JOIN "contentItemsConnections" cc ON c.id = cc."childId"
-          LEFT JOIN "contentItems" p ON p.id = cc."parentId"
-          LEFT JOIN "contentItemCategories" p_cat ON p."contentItemCategoryId" = p_cat.id
-          WHERE p_cat."originId" IN ({series_parent_category_ids})
+          count(cc.child_id) AS parents_count
+          FROM content_item c
+          LEFT JOIN content_item_connection cc ON c.id = cc.child_id
+          LEFT JOIN content_item p ON p.id = cc.parent_id
+          LEFT JOIN content_item_category p_cat ON p.content_item_category_id = p_cat.id
+          WHERE p_cat.origin_id IN ({series_parent_category_ids})
           GROUP BY c.id) AS items_and_parents
-       INNER JOIN "contentItemsConnections" ON "childId" = items_and_parents.id
+       INNER JOIN content_item_connection ON child_id = items_and_parents.id
        WHERE parents_count = 1)
-    UPDATE "contentItems"
-    SET "parentId" = rows_to_update."parentId"
+    UPDATE content_item
+    SET parent_id = rows_to_update.parent_id
     FROM rows_to_update
-    WHERE "contentItems".id = rows_to_update.id;
+    WHERE content_item.id = rows_to_update.id;
     """
 
     pg_hook.run(add_apollos_parents)

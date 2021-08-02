@@ -68,7 +68,7 @@ def fetch_and_save_persona_tags(ds, *args, **kwargs):
         skip += top
         fetched_all = len(rock_objects) < top
 
-        # "createdAt", "updatedAt", "originId", "originType", "apollosType", "name", "data", "type"
+        # "created_at","updated_at", "origin_id", "origin_type", "apollos_type", "name", "data", "type"
         def update_tags(obj):
             return (
                 kwargs['execution_date'],
@@ -85,21 +85,21 @@ def fetch_and_save_persona_tags(ds, *args, **kwargs):
             return "\"{}\"".format(col)
 
         tags_to_insert = list(map(update_tags, rock_objects))
-        columns = list(map(fix_casing, ("createdAt","updatedAt", "originId", "originType", "apollosType", "name", "data", "type")))
+        columns = list(map(fix_casing, ("created_at","updated_at", "origin_id", "origin_type", "apollos_type", "name", "data", "type")))
 
         pg_hook.insert_rows(
-            'tags',
+            'tag',
             tags_to_insert,
             columns,
             0,
             True,
-            replace_index = ('"originId"', '"originType"')
+            replace_index = ('"origin_id"', '"origin_type"')
         )
 
         add_apollos_ids = """
-        UPDATE "tags"
-        SET "apollosId" = "apollosType" || ':' || id::varchar
-        WHERE "originType" = 'rock' and "apollosId" IS NULL
+        UPDATE tag
+        SET apollos_id = apollos_type || ':' || id::varchar
+        WHERE origin_type = 'rock' and apollos_id IS NULL
         """
 
         pg_hook.run(add_apollos_ids)
@@ -178,16 +178,16 @@ def attach_persona_tags_to_people(ds, *args, **kwargs):
 
             def generate_insert_sql(tag_id, person_id):
                 return f'''
-                    INSERT INTO people_tag ("tagId", "personId", "createdAt", "updatedAt")
+                    INSERT INTO people_tag (tag_id, person_id, created_at, updated_at)
                     SELECT t.id,
                            p.id,
                            NOW(),
                            NOW()
                     FROM people p,
-                         tags t
-                    WHERE t."originId" = '{tag_id}'
-                      AND p."originId" = '{person_id}'
-                    ON CONFLICT ("tagId", "personId") DO NOTHING
+                         tag t
+                    WHERE t.origin_id = '{tag_id}'
+                      AND p.origin_id = '{person_id}'
+                    ON CONFLICT (tag_id, person_id) DO NOTHING
                 '''
 
             sql_to_run = map(lambda p: generate_insert_sql(persona['Id'], p['Id']), rock_objects)
@@ -249,18 +249,19 @@ def attach_persona_tags_to_content(ds, *args, **kwargs):
 
         def generate_insert_sql(obj):
             return f'''
-                INSERT INTO content_tag ("tagId", "contentItemId", "createdAt", "updatedAt")
+                INSERT INTO content_tag (tag_id, content_item_id, created_at, updated_at)
                 SELECT t.id,
-                    i.id,
-                    NOW(),
-                    NOW()
-                FROM tags t,
-                    "contentItems" i
+                       i.id,
+                       NOW(),
+                       NOW()
+                FROM tag t,
+                      content_item i
                 WHERE t.data ->> 'guid' = '{obj["Value"]}'
-                AND i."originId" = '{obj["EntityId"]}'
-                ON CONFLICT ("tagId", "contentItemId") DO NOTHING
+                  AND i.origin_id = '{obj["EntityId"]}'
+                ON CONFLICT (tag_id, content_item_id) DO NOTHING
             '''
 
         sql_to_run = map(generate_insert_sql, attribute_values)
 
         pg_hook.run(sql_to_run)
+

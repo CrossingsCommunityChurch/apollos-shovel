@@ -30,7 +30,7 @@ def fetch_and_save_cover_image(ds, *args, **kwargs):
         coverImageId = str(args['CoverImageId'])
 
         return pg_hook.run(
-            'UPDATE "contentItems" SET "coverImageId" = %s WHERE "originId"::Integer = %s', 
+            'UPDATE content_item SET cover_image_id = %s WHERE origin_id::Integer = %s', 
             True, 
             (coverImageId, contentItemId))
 
@@ -49,7 +49,7 @@ def fetch_and_save_cover_image(ds, *args, **kwargs):
 
             if(imageId):
                 concatImageId = str(content_item['Id'])  + '/' + str(imageId)
-                return pg_hook.get_first('SELECT id FROM "media" WHERE "originId" = %s', (concatImageId,))[0]
+                return pg_hook.get_first('SELECT id FROM media WHERE origin_id = %s', (concatImageId,))[0]
             
             return None
 
@@ -87,18 +87,16 @@ def fetch_and_save_cover_image(ds, *args, **kwargs):
         #Sets all content items without a cover image to their parent's cover image
         pg_hook.run(
             """
-                UPDATE "contentItems"
-                SET    "coverImageId" = r."coverImageId"
-                FROM   (SELECT "contentItems".id AS childId,
-                            parent."coverImageId"
-                        FROM   "contentItems"
-                            INNER JOIN "contentItemsConnections"
-                                    ON "contentItemsConnections"."childId" =
-                                        "contentItems".id
-                            INNER JOIN "contentItems" AS parent
-                                    ON "contentItemsConnections"."parentId" = parent.id
-                        WHERE  "contentItems"."coverImageId" IS NULL) AS r
-                WHERE  r.childId = "contentItems".id;
+                UPDATE content_item
+                SET    cover_image_id = r.cover_image_id
+                FROM   (
+                    SELECT content_item.id AS childId, parent.cover_image_id
+                    FROM    content_item
+                    INNER JOIN content_item_connection ON content_item_connection.child_id = content_item.id
+                    INNER JOIN content_item AS parent ON content_item_connection.parent_id = parent.id
+                    WHERE  content_item.cover_image_id IS NULL
+                ) AS r
+                WHERE  r.childId = content_item.id;
             """
         )
 

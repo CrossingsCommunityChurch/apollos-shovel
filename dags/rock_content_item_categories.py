@@ -56,7 +56,7 @@ def fetch_and_save_content_item_categories(ds, *args, **kwargs):
         skip += top
         fetched_all = len(rock_objects) < top
 
-        # "createdAt","updatedAt", "originId", "originType", "apollosType", "title"
+        # "create_aAt","updated_at", "origin_id", "origin_type", "apollos_type", "title"
         def update_content(obj):
             return (
                 kwargs['execution_date'],
@@ -71,23 +71,23 @@ def fetch_and_save_content_item_categories(ds, *args, **kwargs):
             return "\"{}\"".format(col)
 
         content_to_insert = list(map(update_content, rock_objects))
-        columns = list(map(fix_casing, ("createdAt","updatedAt", "originId", "originType", "apollosType", "title")))
+        columns = list(map(fix_casing, ("created_at","updated_at", "origin_id", "origin_type", "apollos_type", "title")))
 
 
         pg_hook.insert_rows(
-            '"contentItemCategories"',
+            '"content_item_category"',
             content_to_insert,
             columns,
             0,
             True,
-            replace_index = ('"originId"', '"originType"')
+            replace_index = ('"origin_id"', '"origin_type"')
         )
 
 
         add_apollos_ids = """
-        UPDATE "contentItemCategories"
-        SET "apollosId" = "apollosType" || id::varchar
-        WHERE "originType" = 'rock' and "apollosId" IS NULL
+        UPDATE content_item_category
+        SET apollos_id = apollos_type || id::varchar
+        WHERE origin_type = 'rock' and apollos_id IS NULL
         """
 
         pg_hook.run(add_apollos_ids)
@@ -148,9 +148,9 @@ def attach_content_item_categories(ds, *args, **kwargs):
 
         def update_content_queries(obj):
             return """
-            UPDATE "contentItems"
-            SET "contentItemCategoryId" = (SELECT id FROM "contentItemCategories" WHERE "originId" = '{}')
-            WHERE "originId" = '{}';
+            UPDATE content_item
+            SET content_item_category_id = (SELECT id FROM content_item_category WHERE origin_id = '{}')
+            WHERE origin_id = '{}';
             """.format(str(safeget(obj, 'ContentChannel', 'Id')), str(obj['Id']))
 
         pg_hook.run(list(map(update_content_queries, rock_objects)))

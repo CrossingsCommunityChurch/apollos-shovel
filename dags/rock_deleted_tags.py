@@ -17,7 +17,7 @@ def remove_deleted_tags(ds, *args, **kwargs):
         keepalives_count=5
     )
     
-    postgresTags = pg_hook.get_records('SELECT id, "originId" FROM "tags"')
+    postgresTags = pg_hook.get_records('SELECT id, origin_id FROM tag')
 
     person_entity_id = requests.get(
         f"{Variable.get(kwargs['client'] + '_rock_api')}/EntityTypes",
@@ -53,7 +53,7 @@ def remove_deleted_tags(ds, *args, **kwargs):
 
     if(len(deletedTags) > 0):
         pg_hook.run("""
-            DELETE FROM "tags"
+            DELETE FROM tag
             WHERE id = ANY(%s::uuid[])
         """, True, (deletedTags,))
 
