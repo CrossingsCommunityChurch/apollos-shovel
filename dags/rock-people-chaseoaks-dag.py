@@ -16,13 +16,15 @@ default_args = {
 }
 
 # Using a DAG context manager, you don't have to specify the dag property of each task
-with DAG('rock_people_chaseoaks_dag',
-         start_date=datetime(2021, 6, 30),
-         max_active_runs=1,
-         schedule_interval=timedelta(minutes=30),  # https://airflow.apache.org/docs/stable/scheduler.html#dag-runs
-         default_args=default_args,
+with DAG(
+        'rock_people_chaseoaks_dag',
+        start_date=datetime(2021, 6, 30),
+        max_active_runs=1,
+        schedule_interval=timedelta(minutes=30),  # https://airflow.apache.org/docs/stable/scheduler.html#dag-runs
+        default_args=default_args,
+        tags=['chaseoaks', 'people'],
          # catchup=False # enable if you don't want historical dag runs to run
-         ) as dag:
+    ) as dag:
 
     t0 = PythonOperator(
         task_id='fetch_and_save_campuses',

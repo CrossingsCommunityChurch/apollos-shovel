@@ -22,12 +22,18 @@ default_args = {
 }
 
 def create_rock_content_item_dag(church, dag_name, start_date, schedule_interval, do_backfill):
-    dag = DAG(dag_name,
-            start_date=start_date,
-            max_active_runs=1,
-            schedule_interval=schedule_interval,
-            default_args=default_args,
-            )
+    tags = [church, 'content']
+    if do_backfill:
+        tags.append('backfill')
+
+    dag = DAG(
+        dag_name,
+        start_date=start_date,
+        max_active_runs=1,
+        schedule_interval=schedule_interval,
+        default_args=default_args,
+        tags=tags,
+    )
 
     with dag:
         base_items = PythonOperator(

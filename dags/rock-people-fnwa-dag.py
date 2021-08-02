@@ -22,6 +22,7 @@ with DAG('rock_people_fnwa_dag',
          max_active_runs=1,
          schedule_interval=timedelta(minutes=30),  # https://airflow.apache.org/docs/stable/scheduler.html#dag-runs
          default_args=default_args,
+         tags=['fnwa', 'people'],
          # catchup=False # enable if you don't want historical dag runs to run
          ) as dag:
 

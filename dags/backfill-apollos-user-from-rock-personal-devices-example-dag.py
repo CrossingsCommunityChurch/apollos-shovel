@@ -22,6 +22,7 @@ with DAG('backfill_apollos_user_from_rock_personal_devices_example',
          max_active_runs=1,
          schedule_interval='@once',  # https://airflow.apache.org/docs/stable/scheduler.html#dag-runs
          default_args=default_args,
+         tags=['example', 'backfill', 'personal_devices'],
          # catchup=False # enable if you don't want historical dag runs to run
          ) as dag:
 

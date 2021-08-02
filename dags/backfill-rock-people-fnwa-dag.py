@@ -23,6 +23,7 @@ with DAG('backfill_rock_people_fnwa_dag',
          max_active_runs=1,
          schedule_interval='@once',  # https://airflow.apache.org/docs/stable/scheduler.html#dag-runs
          default_args=default_args,
+         tags=['fnwa', 'backfill', 'people'],
          # catchup=False # enable if you don't want historical dag runs to run
          ) as dag:
 
