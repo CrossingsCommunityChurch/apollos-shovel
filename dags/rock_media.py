@@ -80,7 +80,7 @@ def fetch_and_save_media(ds, *args, **kwargs):
             attributeKey = attribute['Key']
             attributeValue = contentItem['AttributeValues'][attributeKey]['Value']
 
-            if(mediaType == 'IMAGE'):
+            if(attributeValue and mediaType == 'IMAGE'):
                 rock_host = (Variable.get(kwargs['client'] + '_rock_api')).split("/api")[0]
                 return rock_host + "/GetImage.ashx?guid=" + attributeValue if len(attributeValue) > 0 else ''
             else:

@@ -65,9 +65,12 @@ def create_summary(item):
 
     cleaned = summary_sanitizer.sanitize(item['Content'])
     sentences = nltk.sent_tokenize(cleaned)
-    return sentences[0]
-
+    return sentences[0] if len(sentences) > 0 else ''
+    
 def create_html_content(item):
+    if not item['Content']:
+        return ''
+
     return html_sanitizer.sanitize(item['Content'])
 
 
