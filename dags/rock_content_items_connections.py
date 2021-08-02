@@ -128,19 +128,22 @@ def set_content_item_parent_id(ds, *args, **kwargs):
         keepalives_count=5
     )
 
+    rock_config = Variable.get(kwargs['client'] + "_rock_config", deserialize_json=True)
+    series_parent_category_ids = ", ".join(map(lambda id: f"'{id}'", rock_config['SERIES_CATEGORY_ORIGIN_IDS']))
 
-    add_apollos_parents = """
+    add_apollos_parents = f"""
     WITH rows_to_update AS
       (SELECT "contentItemsConnections"."parentId",
               "contentItemsConnections"."childId" AS id
        FROM
          (SELECT c.id,
-                 count(cc."childId") AS parents_count
+          count(cc."childId") AS parents_count
           FROM "contentItems" c
           LEFT JOIN "contentItemsConnections" cc ON c.id = cc."childId"
-          WHERE c."parentId" IS NULL
-          GROUP BY c.id
-          ORDER BY c.id) AS items_and_parents
+          LEFT JOIN "contentItems" p ON p.id = cc."parentId"
+          LEFT JOIN "contentItemCategories" p_cat ON p."contentItemCategoryId" = p_cat.id
+          WHERE p_cat."originId" IN ({series_parent_category_ids})
+          GROUP BY c.id) AS items_and_parents
        INNER JOIN "contentItemsConnections" ON "childId" = items_and_parents.id
        WHERE parents_count = 1)
     UPDATE "contentItems"
