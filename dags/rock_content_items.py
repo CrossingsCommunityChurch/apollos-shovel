@@ -65,8 +65,10 @@ def create_summary(item):
 
     cleaned = summary_sanitizer.sanitize(item['Content'])
     sentences = nltk.sent_tokenize(cleaned)
+
     return sentences[0] if len(sentences) > 0 else ''
     
+
 def create_html_content(item):
     if not item['Content']:
         return ''
@@ -110,8 +112,9 @@ def get_typename(item, config):
     return 'UniversalContentItem'
 
 def get_status(contentItem):
-    startDateTime = datetime.fromisoformat(contentItem['StartDateTime']) if contentItem['StartDateTime'] else None;
-    expireDateTime = datetime.fromisoformat(contentItem['ExpireDateTime']) if contentItem['ExpireDateTime'] else None;
+    # The split strips the seconds off, which can cause issues when parsing.
+    startDateTime = datetime.fromisoformat(contentItem['StartDateTime'].split('.')[0]) if contentItem['StartDateTime'] else None;
+    expireDateTime = datetime.fromisoformat(contentItem['ExpireDateTime'].split('.')[0]) if contentItem['ExpireDateTime'] else None;
 
     if(
         (

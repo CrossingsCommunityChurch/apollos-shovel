@@ -34,13 +34,15 @@ def fetch_and_save_content_items_connections(ds, *args, **kwargs):
         keepalives_count=5
     )
 
-    def get_postgres_id(id):
-        obj = pg_hook.get_first("""
-            SELECT id
+    def get_child_and_parent(child_id, parent_id):
+        child, parent = pg_hook.get_records("""
+            SELECT id, origin_id
             FROM content_item
-            WHERE origin_id = '{}'
-        """.format(id))
-        return obj[0]
+            JOIN unnest('{{{child_id},{parent_id}}}'::text[]) WITH ORDINALITY t(origin_id, ord) USING (origin_id)
+            WHERE origin_id = '{child_id}' or origin_id = '{parent_id}'
+            ORDER BY t.ord
+        """.format(child_id=child_id, parent_id=parent_id))
+        return (child[0], parent[0])
 
     while fetched_all == False:
         # Fetch people records from Rock.
@@ -78,14 +80,15 @@ def fetch_and_save_content_items_connections(ds, *args, **kwargs):
 
         # "created_at","updated_at", "origin_id", "origin_type", "apollos_type", "child_id", "parent_id", "order"
         def update_content(obj):
+            child_id, parent_id = get_child_and_parent(obj['ChildContentChannelItemId'], obj['ContentChannelItemId'])
             return (
                 kwargs['execution_date'],
                 kwargs['execution_date'],
                 obj['Id'],
                 'rock',
                 'ContentItemsConnection',
-                get_postgres_id(obj['ChildContentChannelItemId']),
-                get_postgres_id(obj['ContentChannelItemId']),
+                child_id,
+                parent_id,
                 obj['Order']
             )
 

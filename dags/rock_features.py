@@ -148,6 +148,9 @@ def fetch_and_save_features(ds, *args, **kwargs):
             "attributeKeys": "features, comments, buttontext, buttonlink",
         }
 
+        if not kwargs['do_backfill']:
+            params['$filter'] = f"ModifiedDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null"
+
         r = requests.get(
                 f"{Variable.get(kwargs['client'] + '_rock_api')}/ContentChannelItems",
                 params=params,
