@@ -2,8 +2,17 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import timedelta
 
-from rock.rock_people import fetch_and_save_people
-from rock.rock_campus import fetch_and_save_campuses
+from rock.rock_people import fetch_and_save_people as fetch_and_save_people_camelcased
+from rock.rock_campus import (
+    fetch_and_save_campuses as fetch_and_save_campuses_camelcased,
+)
+
+from rock.rock_people_underscore import (
+    fetch_and_save_people as fetch_and_save_people_underscore,
+)
+from rock.rock_campus_underscore import (
+    fetch_and_save_campuses as fetch_and_save_campuses_underscore,
+)
 
 # Default settings applied to all tasks
 default_args = {
@@ -16,7 +25,9 @@ default_args = {
 }
 
 
-def create_rock_people_dag(church, start_date, schedule_interval, do_backfill):
+def create_rock_people_dag(
+    church, start_date, schedule_interval, do_backfill, camelcased_tables=True
+):
     tags = [church, "people"]
     name = f"{church}_rock_people_dag"
     if do_backfill:
@@ -31,6 +42,17 @@ def create_rock_people_dag(church, start_date, schedule_interval, do_backfill):
         default_args=default_args,
         tags=tags
         # catchup=False # enable if you don't want historical dag runs to run
+    )
+
+    fetch_and_save_campuses = (
+        fetch_and_save_campuses_camelcased
+        if camelcased_tables
+        else fetch_and_save_campuses_underscore
+    )
+    fetch_and_save_people = (
+        fetch_and_save_people_camelcased
+        if camelcased_tables
+        else fetch_and_save_people_underscore
     )
 
     with dag:

@@ -8,9 +8,9 @@ from rock.rock_people_dag import create_rock_people_dag
 start_date = datetime(2021, 6, 21)
 
 globals()["core_backfill_rock_people_dag"] = create_rock_people_dag(
-    "core", start_date, "@once", True
+    "core", start_date, "@once", True, camelcased_tables=False
 )
 
 globals()["core_rock_people_dag"] = create_rock_people_dag(
-    "core", start_date, timedelta(minutes=30), False
+    "core", start_date, timedelta(minutes=30), False, camelcased_tables=False
 )
