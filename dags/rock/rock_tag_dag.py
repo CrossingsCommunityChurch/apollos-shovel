@@ -65,4 +65,4 @@ def create_rock_tag_dag(church, start_date, schedule_interval, do_backfill):
 
         tags >> deleted_tags
 
-    return dag
+    return dag, name

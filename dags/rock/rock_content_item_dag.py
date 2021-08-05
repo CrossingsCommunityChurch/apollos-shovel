@@ -32,15 +32,15 @@ default_args = {
 }
 
 
-def create_rock_content_item_dag(
-    church, dag_name, start_date, schedule_interval, do_backfill
-):
+def create_rock_content_item_dag(church, start_date, schedule_interval, do_backfill):
     tags = [church, "content"]
+    name = f"{church}_rock_content_item_dag"
     if do_backfill:
         tags.append("backfill")
+        name = f"{church}_backfill_rock_content_item_dag"
 
     dag = DAG(
-        dag_name,
+        name,
         start_date=start_date,
         max_active_runs=1,
         schedule_interval=schedule_interval,
@@ -114,4 +114,4 @@ def create_rock_content_item_dag(
 
         base_items >> [connections, media, deleted_content_items]
 
-    return dag
+    return dag, name

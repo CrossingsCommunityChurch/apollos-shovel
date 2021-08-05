@@ -5,10 +5,14 @@ from rock.rock_people_dag import create_rock_people_dag
 
 start_date = datetime(2021, 4, 29)
 
-globals()["rivervalley_backfill_rock_people_dag"] = create_rock_people_dag(
+backfill_dag, backfill_name = create_rock_people_dag(
     "rivervalley", start_date, "@once", True
 )
 
-globals()["rivervalley_rock_people_dag"] = create_rock_people_dag(
+globals()[backfill_name] = backfill_dag
+
+dag, name = create_rock_people_dag(
     "rivervalley", start_date, timedelta(minutes=30), False
 )
+
+globals()[name] = dag

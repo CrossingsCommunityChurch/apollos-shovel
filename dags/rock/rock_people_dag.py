@@ -72,4 +72,4 @@ def create_rock_people_dag(
 
         t0 >> t1
 
-    return dag
+    return dag, name
