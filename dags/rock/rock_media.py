@@ -69,7 +69,8 @@ def fetch_and_save_media(ds, *args, **kwargs):
     if "client" not in kwargs or kwargs["client"] is None:
         raise Exception("You must configure a client for this operator")
 
-    headers = {"Authorization-Token": Variable.get(kwargs["client"] + "_rock_token")}
+    headers = {
+        "Authorization-Token": Variable.get(kwargs["client"] + "_rock_token")}
 
     pg_connection = kwargs["client"] + "_apollos_postgres"
     pg_hook = PostgresHook(
@@ -81,15 +82,17 @@ def fetch_and_save_media(ds, *args, **kwargs):
     )
 
     def default_parse_asset_url(value, media_type):
-        if media_type == "IMAGE":
-            rock_host = (Variable.get(kwargs["client"] + "_rock_api")).split("/api")[0]
+        if value and media_type == "IMAGE":
+            rock_host = (Variable.get(
+                kwargs["client"] + "_rock_api")).split("/api")[0]
             return rock_host + "/GetImage.ashx?guid=" + value if len(value) > 0 else ""
         else:
             return value
 
     # It's pretty common for churches to need custom functions to parse image urls.
     # For example, when using S3.
-    parse_asset_url = safeget(kwargs, "parse_asset_url") or default_parse_asset_url
+    parse_asset_url = safeget(
+        kwargs, "parse_asset_url") or default_parse_asset_url
     is_image = safeget(kwargs, "is_image") or is_media_image
     is_video = safeget(kwargs, "is_video") or is_media_video
     is_audio = safeget(kwargs, "is_audio") or is_media_audio
@@ -135,7 +138,8 @@ def fetch_and_save_media(ds, *args, **kwargs):
             return asset_url
 
         def map_attributes(attribute):
-            attribute_value_id = str(content_item["Id"]) + "/" + str(attribute["Id"])
+            attribute_value_id = str(
+                content_item["Id"]) + "/" + str(attribute["Id"])
             media_type = get_media_type(attribute)
             media_value = get_media_value(attribute)
             metadata = {}
@@ -216,7 +220,8 @@ def fetch_and_save_media(ds, *args, **kwargs):
             return '"{}"'.format(col)
 
         mediaAttributeLists = filter(
-            lambda atr_list: bool(atr_list), list(map(mapContentItems, rock_objects))
+            lambda atr_list: bool(atr_list), list(
+                map(mapContentItems, rock_objects))
         )
         mediaAttributes = [
             mediaAttribute
