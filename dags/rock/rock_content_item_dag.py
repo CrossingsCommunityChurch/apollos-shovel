@@ -91,33 +91,9 @@ def create_rock_content_item_dag(
             op_kwargs={"client": church, "do_backfill": do_backfill},
         )
 
-        content_tags = PythonOperator(
-            task_id="attach_persona_tags_to_content",
-            python_callable=attach_persona_tags_to_content,
-            op_kwargs={"client": church, "do_backfill": do_backfill},
-        )
-
-        persona_tags = PythonOperator(
-            task_id="attach_persona_tags_to_people",
-            python_callable=attach_persona_tags_to_people,
-            op_kwargs={"client": church, "do_backfill": do_backfill},
-        )
-
-        tags = PythonOperator(
-            task_id="fetch_and_save_persona_tags",
-            python_callable=fetch_and_save_persona_tags,  # make sure you don't include the () of the function
-            op_kwargs={"client": church, "do_backfill": do_backfill},
-        )
-
         features = PythonOperator(
             task_id="fetch_and_save_features",
             python_callable=fetch_and_save_features,  # make sure you don't include the () of the function
-            op_kwargs={"client": church, "do_backfill": do_backfill},
-        )
-
-        deleted_tags = PythonOperator(
-            task_id="remove_deleted_tags",
-            python_callable=remove_deleted_tags,  # make sure you don't include the () of the function
             op_kwargs={"client": church, "do_backfill": do_backfill},
         )
 
@@ -134,9 +110,7 @@ def create_rock_content_item_dag(
 
         connections >> set_parent_id >> features
 
-        tags >> [persona_tags, content_tags]
-
-        deleted_content_items >> deleted_tags
+        deleted_content_items
 
         base_items >> [connections, media, deleted_content_items]
 
