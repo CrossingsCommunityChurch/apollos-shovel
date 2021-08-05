@@ -5,6 +5,7 @@ from apollos_type import apollos_id
 
 import requests
 
+
 def safeget(dct, *keys):
     for key in keys:
         try:
@@ -15,22 +16,24 @@ def safeget(dct, *keys):
             return None
     return dct
 
+
 def fetch_and_save_campuses(ds, *args, **kwargs):
     if 'client' not in kwargs or kwargs['client'] is None:
         raise Exception("You must configure a client for this operator")
 
     pg_connection = kwargs['client'] + '_apollos_postgres'
     pg_hook = PostgresHook(postgres_conn_id=pg_connection)
-    headers = {"Authorization-Token": Variable.get(kwargs['client'] + "_rock_token")}
+    headers = {
+        "Authorization-Token": Variable.get(kwargs['client'] + "_rock_token")}
 
     r = requests.get(
-            f"{Variable.get(kwargs['client'] + '_rock_api')}/Campuses",
-            params={
-                "$top": 100,
-                # "$filter": f"ModifiedDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null",
-                "$expand": "CampusTypeValue, Location"
-            },
-            headers=headers)
+        f"{Variable.get(kwargs['client'] + '_rock_api')}/Campuses",
+        params={
+            "$top": 100,
+            # "$filter": f"ModifiedDateTime ge datetime'{kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null",
+            "$expand": "CampusTypeValue, Location"
+        },
+        headers=headers)
 
     rock_objects = r.json()
 
