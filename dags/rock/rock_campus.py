@@ -87,4 +87,4 @@ def fetch_and_save_campuses(ds, *args, **kwargs):
 
     campus_task = Klass(kwargs)
 
-    campus_task.run_fetch_and_save_content_items()
+    campus_task.run_fetch_and_save_campuses()
