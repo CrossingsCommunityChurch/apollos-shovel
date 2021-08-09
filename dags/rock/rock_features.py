@@ -1,6 +1,6 @@
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
-from utilities import safeget_no_case
+from utilities import safeget_no_case, safeget
 from urllib.parse import unquote
 from psycopg2.extras import Json
 
@@ -61,9 +61,18 @@ class Feature:
         # Add features from a key value list
         # This is now the only way to add scripture and text features
         # We previously supported a textFeature and
+
         key_value_features = self.parse_key_value_attribute(
             safeget_no_case(content, "AttributeValues", "Features", "Value") or ""
         )
+
+        scriptures = safeget(content, "AttributeValues", "Scriptures", "Values")
+
+        if scriptures:
+            key_value_features.append(
+                {"key": "scripture", "value": safeget(scriptures["Value"])}
+            )
+
         for kv in key_value_features:
             feature_type = kv["key"]
 
@@ -185,7 +194,7 @@ class Feature:
                 # "$select": "Id,Content",
                 "loadAttributes": "expanded",
                 "$orderby": "ModifiedDateTime desc",
-                "attributeKeys": "features, comments, buttontext, buttonlink",
+                "attributeKeys": "features, comments, buttontext, buttonlink, Scriptures",
             }
 
             if not self.kwargs["do_backfill"]:
