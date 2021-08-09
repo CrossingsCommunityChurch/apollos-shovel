@@ -117,36 +117,34 @@ class ContentItem:
     def get_typename(self, item, config):
         mappings = safeget(config, "CONTENT_MAPPINGS")
 
-        if not mappings:
-            return "UniversalContentItem"
+        if mappings:
+            types = mappings.keys()
 
-        types = mappings.keys()
+            match_by_type_id = next(
+                (
+                    t
+                    for t in types
+                    if safeget(item, "ContentChannelTypeId")
+                    in (safeget(mappings[t], "ContentChannelTypeId") or [])
+                ),
+                None,
+            )
 
-        match_by_type_id = next(
-            (
-                t
-                for t in types
-                if safeget(item, "ContentChannelTypeId")
-                in (safeget(mappings[t], "ContentChannelTypeId") or [])
-            ),
-            None,
-        )
+            if match_by_type_id:
+                return match_by_type_id
 
-        if match_by_type_id:
-            return match_by_type_id
+            match_by_channel_id = next(
+                (
+                    t
+                    for t in types
+                    if safeget(item, "ContentChannelId")
+                    in (safeget(mappings[t], "ContentChannelId") or [])
+                ),
+                None,
+            )
 
-        match_by_channel_id = next(
-            (
-                t
-                for t in types
-                if safeget(item, "ContentChannelId")
-                in (safeget(mappings[t], "ContentChannelId") or [])
-            ),
-            None,
-        )
-
-        if match_by_channel_id:
-            return match_by_channel_id
+            if match_by_channel_id:
+                return match_by_channel_id
 
         is_media_item = (
             len(
@@ -159,6 +157,7 @@ class ContentItem:
             )
             > 0
         )
+        print(is_media_item)
         if is_media_item:
             return "MediaContentItem"
 
@@ -203,7 +202,7 @@ class ContentItem:
                 "$expand": "ContentChannel",
                 # "$select": "Id,Content",
                 "loadAttributes": "expanded",
-                "attributeKeys": "Summary",
+                # "attributeKeys": "Summary",
                 "$orderby": "ModifiedDateTime desc",
             }
 
