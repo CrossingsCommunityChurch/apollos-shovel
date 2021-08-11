@@ -93,7 +93,7 @@ class ContentItem:
         )
 
     def create_summary(self, item):
-        summary_value = safeget(item, "AttributeValues", "Attribute", "Value")
+        summary_value = safeget(item, "AttributeValues", "Summary", "Value")
         if summary_value and summary_value is not "":
             return summary_value
 
