@@ -3,28 +3,22 @@ from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 
 from rock.rock_content_items import fetch_and_save_content_items
-from rock.rock_media import fetch_and_save_media
+from rock.rock_media import fetch_and_save_media, Media
 from rock.rock_content_items_connections import (
     fetch_and_save_content_items_connections,
     set_content_item_parent_id,
 )
-from rock.rock_cover_image import fetch_and_save_cover_image
+from rock.rock_cover_image import fetch_and_save_cover_image, CoverImage
 from rock.rock_content_item_categories import (
     fetch_and_save_content_item_categories,
     attach_content_item_categories,
 )
-from rock.rock_tags import (
-    fetch_and_save_persona_tags,
-    attach_persona_tags_to_people,
-    attach_persona_tags_to_content,
-)
 from rock.rock_features import fetch_and_save_features
-from rock.rock_deleted_tags import remove_deleted_tags
 from rock.rock_deleted_content_items_dag import remove_deleted_content_items
 from misc.wista import set_wistia_urls
 import json
 
-start_date = datetime(2021, 8, 9)
+start_date = datetime(2021, 7, 22)
 
 # Default settings applied to all tasks
 default_args = {
@@ -36,10 +30,27 @@ default_args = {
     "retry_delay": timedelta(minutes=5),
 }
 
-# Currently we do not support Audio in s3
-def create_content_item_dag(dag_name, start_date, schedule_interval, do_backfill):
-    def parse_asset_url(value, media_type):
-        if media_type == "IMAGE":
+
+def is_media_image(content_item, attribute):
+    attribute_key = attribute["Key"]
+    attribute_value = content_item["AttributeValues"][attribute_key]["Value"]
+    if (attribute["FieldTypeId"] == 10 or attribute["FieldTypeId"] == 131) and bool(attribute_value):
+        try:
+            parsed_value = json.loads(attribute_value)
+            return (
+                "audio" not in parsed_value["Key"].split("/")
+                and "video" not in parsed_value["Key"].split("/")
+                and ".mp3" not in parsed_value["Key"]
+            )
+        except Exception as err:
+            return True
+
+    return False
+
+
+class crossingsMedia(Media):
+    def parse_asset_url(self, value, media_type):
+        if media_type == "IMAGE" or media_type == "AUDIO" and bool(value):
             try:
                 parsed_value = json.loads(value)
                 if "path" in parsed_value:
@@ -52,14 +63,16 @@ def create_content_item_dag(dag_name, start_date, schedule_interval, do_backfill
                 return ""
         return value
 
-    def is_media_image(attribute, contentItem):
-        attributeKey = attribute["Key"]
-        attributeValue = contentItem["AttributeValues"][attributeKey]["Value"]
-        return attribute["FieldTypeId"] == 10 or attribute["FieldTypeId"] == 131 or (
-            "image" in attributeKey.lower()
-            and isinstance(attributeValue, str)
-            and attributeValue.startswith("http")
-        )
+    def is_image(self, content_item, attribute):
+        return is_media_image(content_item, attribute)
+
+
+class crossingsCoverImage(CoverImage):
+    def is_image(self, content_item, attribute):
+        return is_media_image(content_item, attribute)
+
+
+def create_content_item_dag(dag_name, start_date, schedule_interval, do_backfill):
     dag = DAG(
         dag_name,
         start_date=start_date,
@@ -87,8 +100,7 @@ def create_content_item_dag(dag_name, start_date, schedule_interval, do_backfill
             op_kwargs={
                 "client": "crossings",
                 "do_backfill": do_backfill,
-                "parse_asset_url": parse_asset_url,
-                "is_image": is_media_image,
+                "klass": crossingsMedia,
             },
         )
 
@@ -116,7 +128,7 @@ def create_content_item_dag(dag_name, start_date, schedule_interval, do_backfill
             op_kwargs={
                 "client": "crossings",
                 "do_backfill": do_backfill,
-                "is_image": is_media_image,
+                "klass": crossingsCoverImage,
             },
         )
 

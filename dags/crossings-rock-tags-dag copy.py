@@ -4,7 +4,9 @@ from rock.rock_tag_dag import create_rock_tag_dag
 
 start_date = datetime(2021, 8, 4)
 
-backfill_dag, backfill_name = create_rock_tag_dag("crossings", start_date, "@once", True)
+backfill_dag, backfill_name = create_rock_tag_dag(
+    "crossings", start_date, "@once", True
+)
 
 globals()[backfill_name] = backfill_dag
 
