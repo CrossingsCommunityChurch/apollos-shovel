@@ -19,7 +19,7 @@ from rock.rock_deleted_content_items_dag import remove_deleted_content_items
 from misc.hopestream import set_hopestream_urls
 
 
-start_date = datetime(2021, 7, 16)
+start_date = datetime(2021, 8, 12)
 
 default_args = {
     "owner": "airflow",
