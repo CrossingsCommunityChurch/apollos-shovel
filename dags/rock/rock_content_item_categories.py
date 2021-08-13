@@ -152,7 +152,7 @@ class ContentItemCategory:
 
             add_apollos_ids = """
             UPDATE content_item_category
-            SET apollos_id = apollos_type || id::varchar
+            SET apollos_id = apollos_type || ':' || id::varchar
             WHERE origin_type = 'rock' and apollos_id IS NULL
             """
 
