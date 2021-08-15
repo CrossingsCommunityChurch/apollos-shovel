@@ -96,7 +96,6 @@ class ContentItem:
         summary_value = safeget(item, "AttributeValues", "Summary", "Value")
         if summary_value and summary_value is not "":
             return summary_value
-
         if not item["Content"]:
             return ""
 
@@ -108,7 +107,6 @@ class ContentItem:
     def create_html_content(self, item):
         if not item["Content"]:
             return ""
-
         return self.html_sanitizer.sanitize(item["Content"])
 
     def has_audio_or_video(self, item, attribute):
