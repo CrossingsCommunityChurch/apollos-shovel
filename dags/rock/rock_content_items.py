@@ -94,7 +94,7 @@ class ContentItem:
 
     def create_summary(self, item):
         summary_value = safeget(item, "AttributeValues", "Summary", "Value")
-        if summary_value and summary_value is not "":
+        if summary_value and summary_value != "":
             return summary_value
 
         if not item["Content"]:
@@ -177,11 +177,11 @@ class ContentItem:
         )
 
         if (
-            (startDateTime == None or startDateTime < datetime.now())
-            and (expireDateTime == None or expireDateTime > datetime.now())
+            (startDateTime is None or startDateTime < datetime.now())
+            and (expireDateTime is None or expireDateTime > datetime.now())
         ) and (
             contentItem["Status"] == 2
-            or contentItem["ContentChannel"]["RequiresApproval"] == False
+            or not contentItem["ContentChannel"]["RequiresApproval"]
         ):
             return True
         else:
@@ -193,7 +193,7 @@ class ContentItem:
         skip = 0
         top = 10000
 
-        while fetched_all == False:
+        while not fetched_all:
             # Fetch people records from Rock.
 
             params = {

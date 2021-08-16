@@ -1,6 +1,5 @@
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
-from utilities import safeget
 from psycopg2.extras import Json
 
 from functools import reduce

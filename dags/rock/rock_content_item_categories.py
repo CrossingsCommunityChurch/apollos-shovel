@@ -45,7 +45,7 @@ class ContentItemCategory:
         skip = 0
         top = 10000
 
-        while fetched_all == False:
+        while not fetched_all:
             # Fetch people records from Rock.
 
             params = {
@@ -90,7 +90,7 @@ class ContentItemCategory:
         skip = 0
         top = 10000
 
-        while fetched_all == False:
+        while not fetched_all:
             # Fetch people records from Rock.
 
             params = {

@@ -1,4 +1,3 @@
-from airflow import DAG
 from datetime import datetime, timedelta
 from rock.rock_tag_dag import create_rock_tag_dag
 

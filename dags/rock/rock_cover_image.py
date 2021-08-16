@@ -49,7 +49,7 @@ class CoverImage:
                 return self.pg_hook.get_first(
                     "SELECT id FROM media WHERE origin_id = %s", (concatImageId,)
                 )[0]
-            except:
+            except:  # noqa E722
                 print("Did not find media we were expecting")
                 print(
                     f"Looking for media with ID {str(content_item['Id'])  + '/' + str(imageId)}"
@@ -81,7 +81,7 @@ class CoverImage:
         skip = 0
         top = 1000
 
-        while fetched_all == False:
+        while not fetched_all:
             # Fetch people records from Rock.
 
             params = {
@@ -110,8 +110,6 @@ class CoverImage:
                 print(f"skip: {skip}")
                 skip += top
                 continue
-
-            content_items = list(map(self.map_content_items, rock_objects))
 
             # Sets all content items without a cover image to their parent's cover image
 

@@ -1,6 +1,5 @@
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
-from utilities import safeget
 from PIL import ImageFile
 import urllib
 import json
@@ -96,7 +95,7 @@ class Media:
             return self.pg_hook.get_first(
                 f"SELECT id FROM content_item WHERE origin_id::Integer = {rock_origin_id}"
             )[0]
-        except:
+        except:  # noqa E722
             print("Item not found")
             print(rock_origin_id)
             return None
@@ -152,7 +151,7 @@ class Media:
                 try:
                     metadata["width"] = image_dimensions[0]
                     metadata["height"] = image_dimensions[1]
-                except:
+                except:  # noqa E722
                     print("Error getting media sizes")
                     print(image_dimensions)
                     print(attribute)
@@ -190,7 +189,7 @@ class Media:
         skip = 0
         top = 100
 
-        while fetched_all == False:
+        while not fetched_all:
             # Fetch people records from Rock.
 
             params = {
