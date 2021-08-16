@@ -1,3 +1,5 @@
+from airflow import DAG  # noqa: F401
+
 from datetime import datetime, timedelta
 from rock.rock_tag_dag import create_rock_tag_dag
 
