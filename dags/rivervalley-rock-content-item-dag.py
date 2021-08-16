@@ -2,6 +2,11 @@ from airflow import DAG
 from datetime import datetime, timedelta
 from airflow.operators.python import PythonOperator
 
+from airflow.hooks.postgres_hook import PostgresHook
+from airflow.models import Variable
+from algoliasearch.search_client import SearchClient
+
+
 # from rock.rock_content_item_dag import create_rock_content_item_dag
 from rock.rock_content_items import fetch_and_save_content_items, ContentItem
 from rock.rock_media import fetch_and_save_media, Media
@@ -73,6 +78,42 @@ class RivervalleyMedia(Media):
         return is_media_video(content_item, attribute)
 
 
+def algolia():
+
+    # pull content items from DB
+    pg_hook = PostgresHook(
+        postgres_conn_id="rivervalley_apollos_postgres",
+        keepalives=1,
+        keepalives_idle=30,
+        keepalives_interval=10,
+        keepalives_count=5,
+    )
+    categories = pg_hook.get_records(
+        "select id from content_item_category where title in ('Sermons', 'Sermon Series')"
+    )
+    categoryList = [f"'{category[0]}'" for category in categories]
+    items = pg_hook.get_records(
+        f"select * from content_item where content_item_category_id in ({','.join(categoryList)})"
+    )
+    media = pg_hook.get_records("select id, url from media")
+    urls = {item[0]: item[1] for item in media}
+
+    client = SearchClient.create("J5MIK3FKRK", Variable.get("rivervalley_algolia_key"))
+    index = client.init_index("prod_ContentItem")
+    index.clear_objects()
+    batch = [
+        {
+            "id": f"{item[9]}:{item[0]}",
+            "title": item[1],
+            "summary": item[2],
+            "__typename": item[9],
+            "coverImage": {"sources": [{"uri": urls.get(item[13], "")}]},
+        }
+        for item in items
+    ]
+    index.save_objects(batch, {"autoGenerateObjectIDIfNotExist": True})
+
+
 def create_rock_content_item_dag(church, start_date, schedule_interval, do_backfill):
     tags = [church, "content"]
     name = f"{church}_rock_content_item_dag"
@@ -98,6 +139,11 @@ def create_rock_content_item_dag(church, start_date, schedule_interval, do_backf
                 "do_backfill": do_backfill,
                 "klass": RivervalleyContentItem,
             },
+        )
+
+        algolia_index = PythonOperator(
+            task_id="index_items_with_algolia",
+            python_callable=algolia,  # make sure you don't include the () of the function
         )
 
         connections = PythonOperator(
@@ -159,15 +205,17 @@ def create_rock_content_item_dag(church, start_date, schedule_interval, do_backf
         )
 
         # Adding and syncing categories depends on having content items
-        base_items >> add_categories >> attach_categories
+        add_categories >> attach_categories >> media
 
         media >> [set_cover_image, hopestream]
 
         connections >> set_parent_id >> features
 
+        set_cover_image >> algolia_index
+
         deleted_content_items
 
-        base_items >> [connections, media, deleted_content_items]
+        base_items >> [connections, deleted_content_items, add_categories]
 
     return dag, name
 
