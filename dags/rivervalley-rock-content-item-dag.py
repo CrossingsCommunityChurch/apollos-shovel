@@ -1,15 +1,11 @@
 from airflow import DAG
 from datetime import datetime, timedelta
 from airflow.operators.python import PythonOperator
-
 from airflow.hooks.postgres_hook import PostgresHook
 from airflow.models import Variable
 from algoliasearch.search_client import SearchClient
-
-
-# from rock.rock_content_item_dag import create_rock_content_item_dag
 from rock.rock_content_items import fetch_and_save_content_items, ContentItem
-from rock.rock_media import fetch_and_save_media, Media
+from rock.rock_media import fetch_and_save_media, fetch_and_save_channel_image, Media
 from rock.rock_content_items_connections import (
     fetch_and_save_content_items_connections,
     set_content_item_parent_id,
@@ -174,6 +170,12 @@ def create_rock_content_item_dag(church, start_date, schedule_interval, do_backf
             op_kwargs={"client": church, "do_backfill": do_backfill},
         )
 
+        channel_image = PythonOperator(
+            task_id="fetch_and_save_channel_image",
+            python_callable=fetch_and_save_channel_image,  # make sure you don't include the () of the function
+            op_kwargs={"client": church, "do_backfill": do_backfill},
+        )
+
         attach_categories = PythonOperator(
             task_id="attach_content_item_categories",
             python_callable=attach_content_item_categories,  # make sure you don't include the () of the function
@@ -205,9 +207,11 @@ def create_rock_content_item_dag(church, start_date, schedule_interval, do_backf
         )
 
         # Adding and syncing categories depends on having content items
+        base_items >> add_categories >> attach_categories >> channel_image
+
         add_categories >> attach_categories >> media
 
-        media >> [set_cover_image, hopestream]
+        media >> [hopestream, set_cover_image]
 
         connections >> set_parent_id >> features
 
@@ -216,6 +220,8 @@ def create_rock_content_item_dag(church, start_date, schedule_interval, do_backf
         deleted_content_items
 
         base_items >> [connections, deleted_content_items, add_categories]
+
+        channel_image >> set_cover_image
 
     return dag, name
 

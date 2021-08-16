@@ -58,6 +58,15 @@ class CoverImage:
 
         return None
 
+    def get_channel_image(self, content_item):
+        rock_channel_id = content_item["ContentChannelId"]
+        images = self.pg_hook.get_first(
+            "select media.id from content_item_category as c inner join media on media.node_id = c.id and media.node_type = 'ContentItemCategory' where c.origin_id = %s and c.origin_type = 'rock' ;",
+            (f"{rock_channel_id}",),
+        )
+
+        return images[0] if images else None
+
     def is_image(self, content_item, attribute):
         return is_media_image(content_item, attribute)
 
@@ -75,6 +84,15 @@ class CoverImage:
             self.update_content_item_cover_image(
                 {"ContentItemId": content_item["Id"], "CoverImageId": cover_image_id}
             )
+        else:
+            channel_image_id = self.get_channel_image(content_item)
+            if channel_image_id:
+                self.update_content_item_cover_image(
+                    {
+                        "ContentItemId": content_item["Id"],
+                        "CoverImageId": channel_image_id,
+                    }
+                )
 
     def run_fetch_and_save_cover_image(self):
         fetched_all = False
