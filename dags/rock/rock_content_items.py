@@ -5,7 +5,6 @@ from html_sanitizer import Sanitizer
 import nltk
 from utilities import safeget
 from rock.rock_media import is_media_video, is_media_audio
-from datetime import datetime
 
 import requests
 
@@ -164,22 +163,7 @@ class ContentItem:
         return "UniversalContentItem"
 
     def get_status(self, contentItem):
-        # The split strips the seconds off, which can cause issues when parsing.
-        startDateTime = (
-            datetime.fromisoformat(contentItem["StartDateTime"].split(".")[0])
-            if contentItem["StartDateTime"]
-            else None
-        )
-        expireDateTime = (
-            datetime.fromisoformat(contentItem["ExpireDateTime"].split(".")[0])
-            if contentItem["ExpireDateTime"]
-            else None
-        )
-
         if (
-            (startDateTime is None or startDateTime < datetime.now())
-            and (expireDateTime is None or expireDateTime > datetime.now())
-        ) and (
             contentItem["Status"] == 2
             or not contentItem["ContentChannel"]["RequiresApproval"]
         ):
