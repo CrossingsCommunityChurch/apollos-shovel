@@ -5,8 +5,8 @@ import os
 
 load_dotenv()
 
-API_BASE_URL = os.getenv('api-base-url')
-API_TOKEN= os.getenv('')
+API_BASE_URL = os.getenv("api-base-url")
+API_TOKEN = os.getenv("")
 
 
 pg_hook = psycopg2.connect(
@@ -17,11 +17,15 @@ pg_hook = psycopg2.connect(
 
 pg_cursor = pg_hook.cursor()
 
+
 def delete_tags(tags):
-    pg_cursor.execute("""
+    pg_cursor.execute(
+        """
         DELETE FROM "tags"
         WHERE id = ANY(%s::uuid[])
-    """, (tags,))
+    """,
+        (tags,),
+    )
 
 
 def get_deleted_tags():
@@ -29,13 +33,13 @@ def get_deleted_tags():
 
     pg_cursor.execute('SELECT id, "originId" FROM "tags"')
 
-    postgresTags = list(pg_cursor.fetchall());
+    postgresTags = list(pg_cursor.fetchall())
 
     person_entity_id = requests.get(
         "https://rock.apollos.app/api/EntityTypes",
         params={"$filter": "Name eq 'Rock.Model.Person'"},
-        headers=headers
-    ).json()[0]['Id']
+        headers=headers,
+    ).json()[0]["Id"]
 
     params = {
         "$filter": f"EntityTypeId eq {person_entity_id} and CategoryId eq {186}",
@@ -44,25 +48,21 @@ def get_deleted_tags():
     }
 
     r = requests.get(
-            "https://rock.apollos.app/api/DataViews",
-            params=params,
-            headers=headers)
-            
-    rockTags = list(map(lambda tag: tag['Id'], r.json()));
-    
+        "https://rock.apollos.app/api/DataViews", params=params, headers=headers
+    )
+
+    rockTags = list(map(lambda tag: tag["Id"], r.json()))
+
     deletedTags = list(
         map(
             lambda tag: tag[0],
-            filter(
-                lambda tag: int(tag[1]) not in rockTags,
-                postgresTags
-            )
+            filter(lambda tag: int(tag[1]) not in rockTags, postgresTags),
         )
-    );
+    )
 
     delete_tags(deletedTags)
-    print('hello')
-    
+    print("hello")
+
 
 get_deleted_tags()
 pg_hook.commit()

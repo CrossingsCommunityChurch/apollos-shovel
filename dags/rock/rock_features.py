@@ -65,7 +65,7 @@ class Feature:
         key_value_features = self.parse_key_value_attribute(
             safeget_no_case(content, "AttributeValues", "Features", "Value") or ""
         )
-        
+
         scriptures = safeget(content, "AttributeValues", "Scriptures", "Value")
 
         if scriptures:

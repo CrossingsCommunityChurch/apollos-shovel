@@ -12,13 +12,7 @@ from rock.rock_content_item_categories import (
     fetch_and_save_content_item_categories,
     attach_content_item_categories,
 )
-from rock.rock_tags import (
-    fetch_and_save_persona_tags,
-    attach_persona_tags_to_people,
-    attach_persona_tags_to_content,
-)
 from rock.rock_features import fetch_and_save_features
-from rock.rock_deleted_tags import remove_deleted_tags
 from rock.rock_deleted_content_items_dag import remove_deleted_content_items
 
 # Default settings applied to all tasks

@@ -1,9 +1,11 @@
 from airflow import DAG
 from datetime import datetime, timedelta
 from airflow.operators.python import PythonOperator
-# from rock.rock_content_item_dag import create_rock_content_item_dag
+from airflow.hooks.postgres_hook import PostgresHook
+from airflow.models import Variable
+from algoliasearch.search_client import SearchClient
 from rock.rock_content_items import fetch_and_save_content_items, ContentItem
-from rock.rock_media import fetch_and_save_media, Media
+from rock.rock_media import fetch_and_save_media, fetch_and_save_channel_image, Media
 from rock.rock_content_items_connections import (
     fetch_and_save_content_items_connections,
     set_content_item_parent_id,
@@ -14,12 +16,11 @@ from rock.rock_content_item_categories import (
     attach_content_item_categories,
 )
 from rock.rock_features import fetch_and_save_features
-from rock.rock_deleted_tags import remove_deleted_tags
 from rock.rock_deleted_content_items_dag import remove_deleted_content_items
 from misc.hopestream import set_hopestream_urls
 
 
-start_date = datetime(2021, 7, 16)
+start_date = datetime(2021, 8, 12)
 
 default_args = {
     "owner": "airflow",
@@ -30,14 +31,17 @@ default_args = {
     "retry_delay": timedelta(minutes=5),
 }
 
+
 def is_media_video(content_item, attribute):
     attribute_key = attribute["Key"]
     attribute_value = content_item["AttributeValues"][attribute_key]["Value"]
     return (
         [79, 80].count(attribute["FieldTypeId"]) == 1
-        or ("video" in attribute_key.lower()
-        and isinstance(attribute_value, str)
-        and attribute_value.startswith("http"))
+        or (
+            "video" in attribute_key.lower()
+            and isinstance(attribute_value, str)
+            and attribute_value.startswith("http")
+        )
         or "hopestream" in attribute_key.lower()
     )
 
@@ -47,23 +51,63 @@ def is_media_audio(content_item, attribute):
     attribute_value = content_item["AttributeValues"][attribute_key]["Value"]
     return (
         [77, 78].count(attribute["FieldTypeId"]) == 1
-        or ("audio" in attribute_key.lower()
-        and isinstance(attribute_value, str)
-        and attribute_value.startswith("http"))
+        or (
+            "audio" in attribute_key.lower()
+            and isinstance(attribute_value, str)
+            and attribute_value.startswith("http")
+        )
         or "hopestream" in attribute_key.lower()
     )
+
 
 class RivervalleyContentItem(ContentItem):
     def has_audio_or_video(self, item, attribute):
         print(is_media_audio(item, attribute) or is_media_video(item, attribute))
         return is_media_audio(item, attribute) or is_media_video(item, attribute)
 
+
 class RivervalleyMedia(Media):
     def is_audio(self, content_item, attribute):
         return is_media_audio(content_item, attribute)
 
     def is_video(self, content_item, attribute):
-        return is_media_video(content_item, attribute)    
+        return is_media_video(content_item, attribute)
+
+
+def algolia():
+
+    # pull content items from DB
+    pg_hook = PostgresHook(
+        postgres_conn_id="rivervalley_apollos_postgres",
+        keepalives=1,
+        keepalives_idle=30,
+        keepalives_interval=10,
+        keepalives_count=5,
+    )
+    categories = pg_hook.get_records(
+        "select id from content_item_category where title in ('Sermons', 'Sermon Series')"
+    )
+    categoryList = [f"'{category[0]}'" for category in categories]
+    items = pg_hook.get_records(
+        f"select * from content_item where content_item_category_id in ({','.join(categoryList)})"
+    )
+    media = pg_hook.get_records("select id, url from media")
+    urls = {item[0]: item[1] for item in media}
+
+    client = SearchClient.create("J5MIK3FKRK", Variable.get("rivervalley_algolia_key"))
+    index = client.init_index("prod_ContentItem")
+    index.clear_objects()
+    batch = [
+        {
+            "id": f"{item[9]}:{item[0]}",
+            "title": item[1],
+            "summary": item[2],
+            "__typename": item[9],
+            "coverImage": {"sources": [{"uri": urls.get(item[13], "")}]},
+        }
+        for item in items
+    ]
+    index.save_objects(batch, {"autoGenerateObjectIDIfNotExist": True})
 
 
 def create_rock_content_item_dag(church, start_date, schedule_interval, do_backfill):
@@ -86,7 +130,16 @@ def create_rock_content_item_dag(church, start_date, schedule_interval, do_backf
         base_items = PythonOperator(
             task_id="fetch_and_save_content_items",
             python_callable=fetch_and_save_content_items,  # make sure you don't include the () of the function
-            op_kwargs={"client": church, "do_backfill": do_backfill, 'klass': RivervalleyContentItem},
+            op_kwargs={
+                "client": church,
+                "do_backfill": do_backfill,
+                "klass": RivervalleyContentItem,
+            },
+        )
+
+        algolia_index = PythonOperator(
+            task_id="index_items_with_algolia",
+            python_callable=algolia,  # make sure you don't include the () of the function
         )
 
         connections = PythonOperator(
@@ -98,18 +151,28 @@ def create_rock_content_item_dag(church, start_date, schedule_interval, do_backf
         media = PythonOperator(
             task_id="fetch_and_save_media",
             python_callable=fetch_and_save_media,  # make sure you don't include the () of the function
-            op_kwargs={"client": church, "do_backfill": do_backfill, 'klass': RivervalleyMedia},
+            op_kwargs={
+                "client": church,
+                "do_backfill": do_backfill,
+                "klass": RivervalleyMedia,
+            },
         )
 
         hopestream = PythonOperator(
             task_id="set_hopestream_urls",
             python_callable=set_hopestream_urls,  # make sure you don't include the () of the function
             op_kwargs={"client": church, "do_backfill": do_backfill},
-        )        
+        )
 
         add_categories = PythonOperator(
             task_id="fetch_and_save_content_item_categories",
             python_callable=fetch_and_save_content_item_categories,  # make sure you don't include the () of the function
+            op_kwargs={"client": church, "do_backfill": do_backfill},
+        )
+
+        channel_image = PythonOperator(
+            task_id="fetch_and_save_channel_image",
+            python_callable=fetch_and_save_channel_image,  # make sure you don't include the () of the function
             op_kwargs={"client": church, "do_backfill": do_backfill},
         )
 
@@ -144,15 +207,21 @@ def create_rock_content_item_dag(church, start_date, schedule_interval, do_backf
         )
 
         # Adding and syncing categories depends on having content items
-        base_items >> add_categories >> attach_categories
+        base_items >> add_categories >> attach_categories >> channel_image
 
-        media >> [set_cover_image, hopestream]
+        add_categories >> attach_categories >> media
+
+        media >> [hopestream, set_cover_image]
 
         connections >> set_parent_id >> features
 
+        set_cover_image >> algolia_index
+
         deleted_content_items
 
-        base_items >> [connections, media, deleted_content_items]
+        base_items >> [connections, deleted_content_items, add_categories]
+
+        channel_image >> set_cover_image
 
     return dag, name
 

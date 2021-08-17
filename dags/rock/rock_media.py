@@ -1,7 +1,7 @@
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
-from utilities import safeget
 from PIL import ImageFile
+from utilities import safeget
 import urllib
 import json
 
@@ -96,7 +96,7 @@ class Media:
             return self.pg_hook.get_first(
                 f"SELECT id FROM content_item WHERE origin_id::Integer = {rock_origin_id}"
             )[0]
-        except:
+        except:  # noqa E722
             print("Item not found")
             print(rock_origin_id)
             return None
@@ -152,7 +152,7 @@ class Media:
                 try:
                     metadata["width"] = image_dimensions[0]
                     metadata["height"] = image_dimensions[1]
-                except:
+                except:  # noqa E722
                     print("Error getting media sizes")
                     print(image_dimensions)
                     print(attribute)
@@ -174,6 +174,17 @@ class Media:
 
         return None
 
+    def get_channel_image_attribute_value(self, channel):
+        attributes = safeget(channel, "Attributes")
+        images = []
+        for attribute in attributes.values():
+            if is_media_image(channel, attribute):
+                images.append(attribute)
+
+        if len(images) > 0:
+            image_key = images[0]["Key"]
+            return channel["AttributeValues"][image_key]
+
     def reduce_media_from_content_item(self, content_item):
         filtered_attributes = filter(
             lambda a: self.filter_media_attributes(content_item, a),
@@ -185,12 +196,113 @@ class Media:
 
         return list(filter(lambda media: bool(media), mapped_attributes))
 
+    def reduce_media_from_content_channel(self, channel):
+        image_attribute_value = self.get_channel_image_attribute_value(channel)
+        if image_attribute_value:
+            image_url = self.parse_asset_url(
+                safeget(image_attribute_value, "Value"), "IMAGE"
+            )
+
+            if not image_url:
+                return None
+
+            channel_id = channel["Id"]
+            node_id = self.pg_hook.get_first(
+                "SELECT id FROM content_item_category WHERE origin_id = %s",
+                (f"{channel_id}",),
+            )[0]
+            attribute_id = safeget(image_attribute_value, "AttributeId")
+            attribute_value_id = f"{channel['Id']}/{attribute_id}"
+
+            metadata = {}
+            image_dimensions = getsizes(image_url)
+            if image_dimensions:
+                try:
+                    metadata["width"] = image_dimensions[0]
+                    metadata["height"] = image_dimensions[1]
+                except:  # noqa E722
+                    print("Error getting media sizes")
+                    print(image_dimensions)
+                    print(image_attribute_value)
+                    print(image_url)
+
+            return (
+                "Media",
+                self.kwargs["execution_date"],
+                self.kwargs["execution_date"],
+                node_id,
+                "ContentItemCategory",
+                "IMAGE",
+                image_url,
+                attribute_value_id,
+                "rock",
+                json.dumps(metadata),
+            )
+        else:
+            return None
+
+    def run_fetch_and_save_channel_image(self):
+        params = {
+            "loadAttributes": "expanded",
+            "$orderby": "ModifiedDateTime desc",
+        }
+
+        if not self.kwargs["do_backfill"]:
+            params[
+                "$filter"
+            ] = f"ModifiedDateTime ge datetime'{self.kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null"
+
+        channels = requests.get(
+            f"{Variable.get(self.kwargs['client'] + '_rock_api')}/ContentChannels",
+            params=params,
+            headers=self.headers,
+        ).json()
+
+        channels_with_images = map(
+            self.reduce_media_from_content_channel,
+            channels,
+        )
+
+        channels_with_image_values = filter(
+            lambda channel: channel, channels_with_images
+        )
+
+        columns = (
+            "apollos_type",
+            "created_at",
+            "updated_at",
+            "node_id",
+            "node_type",
+            "type",
+            "url",
+            "origin_id",
+            "origin_type",
+            "metadata",
+        )
+
+        self.pg_hook.insert_rows(
+            "media",
+            list(channels_with_image_values),
+            columns,
+            0,
+            True,
+            replace_index=("origin_id", "origin_type"),
+        )
+
+        add_apollos_ids = """
+            UPDATE media
+            SET apollos_id = apollos_type || ':' || id::varchar
+            WHERE origin_type = 'rock' and apollos_id IS NULL
+            """
+
+        self.pg_hook.run(add_apollos_ids)
+
     def run_fetch_and_save_media(self):
         fetched_all = False
         skip = 0
         top = 100
 
-        while fetched_all == False:
+        while not fetched_all:
             # Fetch people records from Rock.
 
             params = {
@@ -275,3 +387,14 @@ def fetch_and_save_media(ds, *args, **kwargs):
     media_task.run_fetch_and_save_media()
     # It's pretty common for churches to need custom functions to parse image urls.
     # For example, when using S3.
+
+
+def fetch_and_save_channel_image(ds, *args, **kwargs):
+    if "client" not in kwargs or kwargs["client"] is None:
+        raise Exception("You must configure a client for this operator")
+
+    Klass = Media if "klass" not in kwargs else kwargs["klass"]
+
+    media_task = Klass(kwargs)
+
+    media_task.run_fetch_and_save_channel_image()

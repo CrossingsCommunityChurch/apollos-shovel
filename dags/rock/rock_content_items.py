@@ -5,7 +5,6 @@ from html_sanitizer import Sanitizer
 import nltk
 from utilities import safeget
 from rock.rock_media import is_media_video, is_media_audio
-from datetime import datetime
 
 import requests
 
@@ -94,7 +93,7 @@ class ContentItem:
 
     def create_summary(self, item):
         summary_value = safeget(item, "AttributeValues", "Summary", "Value")
-        if summary_value and summary_value is not "":
+        if summary_value and summary_value != "":
             return summary_value
         if not item["Content"]:
             return ""
@@ -162,24 +161,9 @@ class ContentItem:
         return "UniversalContentItem"
 
     def get_status(self, contentItem):
-        # The split strips the seconds off, which can cause issues when parsing.
-        startDateTime = (
-            datetime.fromisoformat(contentItem["StartDateTime"].split(".")[0])
-            if contentItem["StartDateTime"]
-            else None
-        )
-        expireDateTime = (
-            datetime.fromisoformat(contentItem["ExpireDateTime"].split(".")[0])
-            if contentItem["ExpireDateTime"]
-            else None
-        )
-
         if (
-            (startDateTime == None or startDateTime < datetime.now())
-            and (expireDateTime == None or expireDateTime > datetime.now())
-        ) and (
             contentItem["Status"] == 2
-            or contentItem["ContentChannel"]["RequiresApproval"] == False
+            or not contentItem["ContentChannel"]["RequiresApproval"]
         ):
             return True
         else:
@@ -191,7 +175,7 @@ class ContentItem:
         skip = 0
         top = 10000
 
-        while fetched_all == False:
+        while not fetched_all:
             # Fetch people records from Rock.
 
             params = {

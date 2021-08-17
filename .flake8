@@ -1,0 +1,10 @@
+[flake8]
+# from Bugbear https://github.com/PyCQA/flake8-bugbear
+# essentially "it's ok if lines are too long sometimes"
+max-line-length = 88
+select = C,E,F,W,B,B950
+extend-ignore = E203, E501
+
+# for a more minimal, strict set
+#max-line-length = 88
+#extend-ignore = E203

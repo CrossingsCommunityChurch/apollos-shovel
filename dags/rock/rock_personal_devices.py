@@ -1,5 +1,4 @@
 from airflow.models import Variable
-from datetime import datetime, timedelta
 from airflow.hooks.postgres_hook import PostgresHook
 
 import requests
@@ -23,7 +22,7 @@ def fetch_and_save_personal_devices_to_apollos_user(ds, *args, **kwargs):
         keepalives_count=5,
     )
 
-    while fetched_all == False:
+    while not fetched_all:
         # Fetch people records from Rock.
 
         params = {

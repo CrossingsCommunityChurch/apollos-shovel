@@ -1,6 +1,5 @@
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
-from utilities import safeget
 
 import requests
 
@@ -55,7 +54,7 @@ class ContentItemConnection:
         skip = 0
         top = 10000
 
-        while fetched_all == False:
+        while not fetched_all:
             # Fetch people records from Rock.
 
             params = {

@@ -45,7 +45,7 @@ class ContentItemCategory:
         skip = 0
         top = 10000
 
-        while fetched_all == False:
+        while not fetched_all:
             # Fetch people records from Rock.
 
             params = {
@@ -90,7 +90,7 @@ class ContentItemCategory:
         skip = 0
         top = 10000
 
-        while fetched_all == False:
+        while not fetched_all:
             # Fetch people records from Rock.
 
             params = {
@@ -152,7 +152,7 @@ class ContentItemCategory:
 
             add_apollos_ids = """
             UPDATE content_item_category
-            SET apollos_id = apollos_type || id::varchar
+            SET apollos_id = apollos_type || ':' || id::varchar
             WHERE origin_type = 'rock' and apollos_id IS NULL
             """
 

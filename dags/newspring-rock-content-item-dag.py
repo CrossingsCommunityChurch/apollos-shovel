@@ -51,7 +51,7 @@ def is_media_image(content_item, attribute):
                 and ".mp3" not in parsed_value["Key"]
             )
 
-        except Exception as err:
+        except Exception:
             return True
 
     return False

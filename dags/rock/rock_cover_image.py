@@ -49,7 +49,7 @@ class CoverImage:
                 return self.pg_hook.get_first(
                     "SELECT id FROM media WHERE origin_id = %s", (concatImageId,)
                 )[0]
-            except:
+            except:  # noqa E722
                 print("Did not find media we were expecting")
                 print(
                     f"Looking for media with ID {str(content_item['Id'])  + '/' + str(imageId)}"
@@ -57,6 +57,15 @@ class CoverImage:
                 return None
 
         return None
+
+    def get_channel_image(self, content_item):
+        rock_channel_id = content_item["ContentChannelId"]
+        images = self.pg_hook.get_first(
+            "select media.id from content_item_category as c inner join media on media.node_id = c.id and media.node_type = 'ContentItemCategory' where c.origin_id = %s and c.origin_type = 'rock' ;",
+            (f"{rock_channel_id}",),
+        )
+
+        return images[0] if images else None
 
     def is_image(self, content_item, attribute):
         return is_media_image(content_item, attribute)
@@ -75,13 +84,22 @@ class CoverImage:
             self.update_content_item_cover_image(
                 {"ContentItemId": content_item["Id"], "CoverImageId": cover_image_id}
             )
+        else:
+            channel_image_id = self.get_channel_image(content_item)
+            if channel_image_id:
+                self.update_content_item_cover_image(
+                    {
+                        "ContentItemId": content_item["Id"],
+                        "CoverImageId": channel_image_id,
+                    }
+                )
 
     def run_fetch_and_save_cover_image(self):
         fetched_all = False
         skip = 0
         top = 1000
 
-        while fetched_all == False:
+        while not fetched_all:
             # Fetch people records from Rock.
 
             params = {
@@ -110,8 +128,6 @@ class CoverImage:
                 print(f"skip: {skip}")
                 skip += top
                 continue
-
-            content_items = list(map(self.map_content_items, rock_objects))
 
             # Sets all content items without a cover image to their parent's cover image
 
