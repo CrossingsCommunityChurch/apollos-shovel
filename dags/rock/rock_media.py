@@ -91,16 +91,6 @@ class Media:
         else:
             return value
 
-    def get_content_item_id(self, rock_origin_id):
-        try:
-            return self.pg_hook.get_first(
-                f"SELECT id FROM content_item WHERE origin_id::Integer = {rock_origin_id}"
-            )[0]
-        except:  # noqa E722
-            print("Item not found")
-            print(rock_origin_id)
-            return None
-
     def filter_media_attributes(self, content_item, attribute):
         return (
             self.is_image(content_item, attribute)
@@ -135,7 +125,7 @@ class Media:
         return asset_url
 
     def map_attributes(self, content_item, attribute):
-        node_id = self.get_content_item_id(content_item["Id"])
+        node_id = content_item["node_id"]
         if not node_id:
             return None
 
@@ -195,6 +185,25 @@ class Media:
         )
 
         return list(filter(lambda media: bool(media), mapped_attributes))
+
+    def add_postgres_data_to_rock_media(self, media):
+        origin_ids = ", ".join(map(lambda r: f"'{str(r['Id'])}'", media))
+        postgres_records = self.pg_hook.get_records(
+            f"""
+            SELECT content_item.id, content_item.origin_id
+            FROM content_item
+            WHERE content_item.origin_id in ({origin_ids})
+            """
+        )
+        postgres_records_by_origin_id = {f[1]: f[0] for f in postgres_records}
+        media_with_postgres_data = [
+            {
+                **media_item,
+                "node_id": postgres_records_by_origin_id.get(str(media_item["Id"])),
+            }
+            for media_item in media
+        ]
+        return media_with_postgres_data
 
     def reduce_media_from_content_channel(self, channel):
         image_attribute_value = self.get_channel_image_attribute_value(channel)
@@ -332,9 +341,10 @@ class Media:
                 skip += top
                 continue
 
+            media_with_postgres_id = self.add_postgres_data_to_rock_media(rock_objects)
             media_attribute_lists = filter(
                 lambda atr_list: bool(atr_list),
-                list(map(self.reduce_media_from_content_item, rock_objects)),
+                list(map(self.reduce_media_from_content_item, media_with_postgres_id)),
             )
             media_attributes = [
                 media_attribute

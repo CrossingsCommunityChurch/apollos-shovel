@@ -23,7 +23,12 @@ class Feature:
             keepalives_count=5,
         )
 
+        self.rock_content_cache = {}
+
     def get_rock_content_item(self, origin_id):
+        if origin_id in self.rock_content_cache:
+            return self.rock_content_cache[origin_id]
+
         params = {
             "loadAttributes": "expanded",
             "$orderby": "ModifiedDateTime desc",
@@ -35,7 +40,28 @@ class Feature:
             params=params,
             headers=self.headers,
         )
+
+        self.rock_content_cache["origin_id"] = r.json()
         return r.json()
+
+    def add_postgres_data_to_rock_features(self, features):
+        origin_ids = ", ".join(map(lambda r: f"'{str(r['Id'])}'", features))
+        postgres_records = self.pg_hook.get_records(
+            f"""
+            SELECT content_item.id, parent_item.origin_id, content_item.origin_id
+            FROM content_item
+            LEFT OUTER JOIN content_item AS parent_item ON parent_item.id = content_item.parent_id
+            WHERE content_item.origin_id in ({origin_ids})
+            """
+        )
+        postgres_records_by_origin_id = {
+            f[2]: {"node_id": f[0], "parent_origin_id": f[1]} for f in postgres_records
+        }
+        rock_with_postgres_features = [
+            {**feature, **postgres_records_by_origin_id.get(str(feature["Id"]))}
+            for feature in features
+        ]
+        return rock_with_postgres_features
 
     # Rock transports { foo: 'bar', baz: 'bat' } as 'foo^bar|baz^bat`
     def parse_key_value_attribute(self, value):
@@ -55,9 +81,6 @@ class Feature:
     def get_features(self, content):
         features = []
 
-        postgres_id, parent_rock_id = self.pg_hook.get_first(
-            f'select content_item.id, "parentItem".origin_id from content_item left outer join content_item as "parentItem" on "parentItem".id = content_item.parent_id where content_item.origin_id = \'{content["Id"]}\''
-        )
         # Add features from a key value list
         # This is now the only way to add scripture and text features
         # We previously supported a textFeature and
@@ -80,7 +103,7 @@ class Feature:
                     {
                         "type": "Scripture",
                         "data": {"reference": kv["value"]},
-                        "parent_id": postgres_id,
+                        "parent_id": content["node_id"],
                     }
                 )
             if feature_type == "text":
@@ -88,7 +111,7 @@ class Feature:
                     {
                         "type": "Text",
                         "data": {"text": kv["value"]},
-                        "parent_id": postgres_id,
+                        "parent_id": content["node_id"],
                     }
                 )
 
@@ -108,7 +131,7 @@ class Feature:
                         ),
                         "action": "OPEN_AUTHENTICATED_URL",
                     },
-                    "parent_id": postgres_id,
+                    "parent_id": content["node_id"],
                 }
             )
 
@@ -123,7 +146,7 @@ class Feature:
                         "initialPrompt": "Write Something...",
                         "addPrompt": "What stands out to you?",
                     },
-                    "parent_id": postgres_id,
+                    "parent_id": content["node_id"],
                 }
             )
             features.append(
@@ -133,11 +156,11 @@ class Feature:
                         "initialPrompt": "Write Something...",
                         "addPrompt": "What stands out to you?",
                     },
-                    "parent_id": postgres_id,
+                    "parent_id": content["node_id"],
                 }
             )
-        elif parent_rock_id:
-            parent_item = self.get_rock_content_item(parent_rock_id)
+        elif content["parent_origin_id"]:
+            parent_item = self.get_rock_content_item(content["parent_origin_id"])
             parent_comment_feature = (
                 safeget_no_case(
                     parent_item, "AttributeValues", "childrenHaveComments", "value"
@@ -152,7 +175,7 @@ class Feature:
                             "initialPrompt": "Write Something...",
                             "addPrompt": "What stands out to you?",
                         },
-                        "parent_id": postgres_id,
+                        "parent_id": content["node_id"],
                     }
                 )
                 features.append(
@@ -162,7 +185,7 @@ class Feature:
                             "initialPrompt": "Write Something...",
                             "addPrompt": "What stands out to you?",
                         },
-                        "parent_id": postgres_id,
+                        "parent_id": content["node_id"],
                     }
                 )
 
@@ -207,7 +230,10 @@ class Feature:
                 headers=self.headers,
             ).json()
 
-            features_by_item = list(map(self.get_features, rock_objects))
+            features_with_postgres_data = self.add_postgres_data_to_rock_features(
+                rock_objects
+            )
+            features_by_item = list(map(self.get_features, features_with_postgres_data))
             flat_features_list = [item for items in features_by_item for item in items]
 
             # "created_at", "updated_at", "apollos_type", "data", "type", "parent_id", "parent_type"
