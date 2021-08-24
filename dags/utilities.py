@@ -1,3 +1,6 @@
+import pytz
+
+
 def safeget(dct, *keys):
     for key in keys:
         try:
@@ -21,3 +24,11 @@ def safeget_no_case(dct, *keys):
         except TypeError:
             return None
     return dct
+
+
+def get_delta_offset(kwargs):
+    local_zone = pytz.timezone("EST")
+    execution_date_string = (
+        kwargs["execution_date"].astimezone(local_zone).strftime("%Y-%m-%dT%H:%M:%S")
+    )
+    return f"ModifiedDateTime ge datetime'{execution_date_string}' or ModifiedDateTime eq null"

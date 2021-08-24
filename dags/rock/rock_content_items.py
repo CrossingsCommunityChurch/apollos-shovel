@@ -3,7 +3,7 @@ from airflow.hooks.postgres_hook import PostgresHook
 
 from html_sanitizer import Sanitizer
 import nltk
-from utilities import safeget
+from utilities import safeget, get_delta_offset
 from rock.rock_media import is_media_video, is_media_audio
 
 import requests
@@ -191,9 +191,7 @@ class ContentItem:
             }
 
             if not self.kwargs["do_backfill"]:
-                params[
-                    "$filter"
-                ] = f"ModifiedDateTime ge datetime'{self.kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null"
+                params["$filter"] = get_delta_offset(self.kwargs)
 
             print(params)
 

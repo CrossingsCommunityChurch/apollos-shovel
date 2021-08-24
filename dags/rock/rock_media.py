@@ -1,7 +1,7 @@
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
 from PIL import ImageFile
-from utilities import safeget
+from utilities import safeget, get_delta_offset
 import urllib
 import json
 
@@ -257,9 +257,7 @@ class Media:
         }
 
         if not self.kwargs["do_backfill"]:
-            params[
-                "$filter"
-            ] = f"ModifiedDateTime ge datetime'{self.kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null"
+            params["$filter"] = get_delta_offset(self.kwargs)
 
         channels = requests.get(
             f"{Variable.get(self.kwargs['client'] + '_rock_api')}/ContentChannels",
@@ -323,9 +321,7 @@ class Media:
             }
 
             if not self.kwargs["do_backfill"]:
-                params[
-                    "$filter"
-                ] = f"ModifiedDateTime ge datetime'{self.kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null"
+                params["$filter"] = get_delta_offset(self.kwargs)
 
             rock_objects = requests.get(
                 f"{Variable.get(self.kwargs['client'] + '_rock_api')}/ContentChannelItems",
