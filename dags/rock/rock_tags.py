@@ -8,7 +8,9 @@ import pytz
 
 
 def get_delta_offset(kwargs):
-    local_zone = pytz.timezone("EST")
+    local_zone = pytz.timezone(
+        Variable.get(kwargs["client"] + "_rock_tz", default_var="EST")
+    )
     execution_date_string = (
         kwargs["execution_date"].astimezone(local_zone).strftime("%Y-%m-%dT%H:%M:%S")
     )
