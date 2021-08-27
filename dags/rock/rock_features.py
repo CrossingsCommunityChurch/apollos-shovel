@@ -1,6 +1,6 @@
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
-from utilities import safeget_no_case, safeget
+from utilities import safeget_no_case, safeget, get_delta_offset
 from urllib.parse import unquote
 from psycopg2.extras import Json
 
@@ -220,9 +220,7 @@ class Feature:
             }
 
             if not self.kwargs["do_backfill"]:
-                params[
-                    "$filter"
-                ] = f"ModifiedDateTime ge datetime'{self.kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null"
+                params["$filter"] = get_delta_offset(self.kwargs)
 
             rock_objects = requests.get(
                 f"{Variable.get(self.kwargs['client'] + '_rock_api')}/ContentChannelItems",

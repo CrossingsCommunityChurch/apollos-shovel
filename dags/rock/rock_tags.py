@@ -3,8 +3,18 @@ from airflow.hooks.postgres_hook import PostgresHook
 from psycopg2.extras import Json
 
 from functools import reduce
-
 import requests
+import pytz
+
+
+def get_delta_offset(kwargs):
+    local_zone = pytz.timezone(
+        Variable.get(kwargs["client"] + "_rock_tz", default_var="EST")
+    )
+    execution_date_string = (
+        kwargs["execution_date"].astimezone(local_zone).strftime("%Y-%m-%dT%H:%M:%S")
+    )
+    return f"ModifiedDateTime ge datetime'{execution_date_string}' or ModifiedDateTime eq null or PersistedLastRefreshDateTime ge datetime'{execution_date_string}'"
 
 
 class Tag:
@@ -61,9 +71,7 @@ class Tag:
             }
 
             if not self.kwargs["do_backfill"]:
-                params[
-                    "$filter"
-                ] += f" and (ModifiedDateTime ge datetime'{self.kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null or PersistedLastRefreshDateTime ge datetime'{self.kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}')"
+                params["$filter"] += f" and ({get_delta_offset(self.kwargs)})"
 
             print(params)
 
@@ -142,9 +150,7 @@ class Tag:
         }
 
         if not self.kwargs["do_backfill"]:
-            persona_params[
-                "$filter"
-            ] += f" and (ModifiedDateTime ge datetime'{self.kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null or PersistedLastRefreshDateTime ge datetime'{self.kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}')"
+            persona_params["$filter"] += f" and ({get_delta_offset(self.kwargs)})"
 
         personas = requests.get(
             f"{Variable.get(self.kwargs['client'] + '_rock_api')}/DataViews",

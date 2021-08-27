@@ -1,6 +1,7 @@
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
 
+from utilities import get_delta_offset
 import requests
 
 
@@ -66,9 +67,7 @@ class ContentItemConnection:
             }
 
             if not self.kwargs["do_backfill"]:
-                params[
-                    "$filter"
-                ] = f"ModifiedDateTime ge datetime'{self.kwargs['execution_date'].strftime('%Y-%m-%dT00:00')}' or ModifiedDateTime eq null"
+                params["$filter"] = get_delta_offset(self.kwargs)
 
             print(params)
 
