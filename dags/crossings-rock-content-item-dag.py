@@ -15,8 +15,8 @@ from rock.rock_content_item_categories import (
 )
 from rock.rock_features import fetch_and_save_features
 from rock.rock_deleted_content_items_dag import remove_deleted_content_items
-from misc.wista import set_wistia_urls
 import json
+import urllib.parse
 
 start_date = datetime(2021, 7, 22)
 
@@ -41,6 +41,7 @@ def is_media_image(content_item, attribute):
                 "audio" not in parsed_value["Key"].split("/")
                 and "video" not in parsed_value["Key"].split("/")
                 and ".mp3" not in parsed_value["Key"]
+                and ".pdf" not in parsed_value["Key"]
             )
         except Exception as err:
             return True
@@ -56,7 +57,8 @@ class crossingsMedia(Media):
                 if "path" in parsed_value:
                     return parsed_value["path"]
                 if "Key" in parsed_value and "AssetStorageProviderId" in parsed_value:
-                    return f"https://images.crossings.church/fit-in/700x700/{parsed_value['Key']}"
+                    safeurl = urllib.parse.quote(parsed_value['Key'])
+                    return f"https://images.crossings.church/fit-in/700x700/{safeurl}"
             except Exception as err:
                 print(err)
                 print(value)
@@ -150,6 +152,8 @@ def create_content_item_dag(dag_name, start_date, schedule_interval, do_backfill
         media >> set_cover_image
 
         connections >> set_parent_id >> features
+
+        deleted_content_items
 
         base_items >> [connections, media, deleted_content_items]
 
