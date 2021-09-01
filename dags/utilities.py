@@ -35,6 +35,6 @@ def get_delta_offset(kwargs):
         kwargs["execution_date"].astimezone(local_zone).strftime("%Y-%m-%dT%H:%M:%S")
     )
     print(
-        f"ModifiedDateTime ge datetime'{execution_date_string}' or ModifiedDateTime eq null"
+        f"ModifiedDateTime ge datetime'{execution_date_string}' or (ModifiedDateTime eq null and CreatedDateTime ge datetime'{execution_date_string}')"
     )
-    return f"ModifiedDateTime ge datetime'{execution_date_string}' or ModifiedDateTime eq null"
+    return f"ModifiedDateTime ge datetime'{execution_date_string}' or (ModifiedDateTime eq null and CreatedDateTime ge datetime'{execution_date_string}')"
