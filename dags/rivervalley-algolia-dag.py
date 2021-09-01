@@ -73,6 +73,8 @@ def create_algolia_dag(church, start_date, schedule_interval):
             python_callable=algolia,  # make sure you don't include the () of the function
         )
 
+        algolia_index
+
     return dag, name
 
 

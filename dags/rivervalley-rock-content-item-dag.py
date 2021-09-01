@@ -1,8 +1,6 @@
 from airflow import DAG
 from datetime import datetime, timedelta
 from airflow.operators.python import PythonOperator
-from airflow.hooks.postgres_hook import PostgresHook
-from airflow.models import Variable
 from rock.rock_content_items import fetch_and_save_content_items, ContentItem
 from rock.rock_media import fetch_and_save_media, fetch_and_save_channel_image, Media
 from rock.rock_content_items_connections import (
