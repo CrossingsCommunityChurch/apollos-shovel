@@ -71,7 +71,7 @@ class CoverImage:
     def is_image(self, content_item, attribute):
         return is_media_image(content_item, attribute)
 
-    def map_content_items(self, content_item):
+    def find_and_set_cover_image(self, content_item):
         image_attributes = list(
             filter(
                 lambda a: self.is_image(content_item, a),
@@ -129,6 +129,8 @@ class CoverImage:
                 continue
 
             # Sets all content items without a cover image to their parent's cover image
+            for content_item in rock_objects:
+                self.find_and_set_cover_image(content_item)
 
             skip += top
             fetched_all = len(rock_objects) < top
