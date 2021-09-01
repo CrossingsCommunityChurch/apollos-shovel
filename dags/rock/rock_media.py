@@ -187,6 +187,9 @@ class Media:
         return list(filter(lambda media: bool(media), mapped_attributes))
 
     def add_postgres_data_to_rock_media(self, media):
+        if len(media) == 0:
+            return []
+
         origin_ids = ", ".join(map(lambda r: f"'{str(r['Id'])}'", media))
         postgres_records = self.pg_hook.get_records(
             f"""

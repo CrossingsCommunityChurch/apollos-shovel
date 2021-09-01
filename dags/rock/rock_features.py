@@ -45,6 +45,9 @@ class Feature:
         return r.json()
 
     def add_postgres_data_to_rock_features(self, features):
+        if len(features) == 0:
+            return []
+
         origin_ids = ", ".join(map(lambda r: f"'{str(r['Id'])}'", features))
         postgres_records = self.pg_hook.get_records(
             f"""
