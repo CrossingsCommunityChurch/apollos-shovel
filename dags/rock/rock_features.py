@@ -31,7 +31,6 @@ class Feature:
 
         params = {
             "loadAttributes": "expanded",
-            "$orderby": "ModifiedDateTime desc",
             "attributeKeys": "childrenHaveComments",
         }
 
@@ -41,7 +40,7 @@ class Feature:
             headers=self.headers,
         )
 
-        self.rock_content_cache["origin_id"] = r.json()
+        self.rock_content_cache[origin_id] = r.json()
         return r.json()
 
     def add_postgres_data_to_rock_features(self, features):
