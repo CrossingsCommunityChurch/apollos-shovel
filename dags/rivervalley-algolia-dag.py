@@ -6,7 +6,7 @@ from airflow.models import Variable
 from algoliasearch.search_client import SearchClient
 
 
-start_date = datetime(2021, 8, 12)
+start_date = datetime(2021, 8, 31)
 
 default_args = {
     "owner": "airflow",
@@ -55,7 +55,7 @@ def algolia():
 
 
 def create_algolia_dag(church, start_date, schedule_interval):
-    tags = [church, "content"]
+    tags = [church, "algolia"]
     name = f"{church}_algolia_dag"
 
     dag = DAG(
