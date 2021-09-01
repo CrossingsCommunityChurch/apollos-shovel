@@ -76,6 +76,6 @@ def create_algolia_dag(church, start_date, schedule_interval):
     return dag, name
 
 
-dag, dag_name = create_algolia_dag("rivervalley", start_date, timedelta(minutes=30))
+dag, dag_name = create_algolia_dag("rivervalley", start_date, timedelta(hours=12))
 
 globals()[dag_name] = dag
