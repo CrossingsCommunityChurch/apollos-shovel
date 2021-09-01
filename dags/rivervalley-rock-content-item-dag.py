@@ -188,7 +188,7 @@ backfill_dag, backfill_name = create_rock_content_item_dag(
 globals()[backfill_name] = backfill_dag
 
 dag, dag_name = create_rock_content_item_dag(
-    "rivervalley", start_date, timedelta(minutes=15), False
+    "rivervalley", start_date, timedelta(minutes=5), False
 )
 
 globals()[dag_name] = dag
