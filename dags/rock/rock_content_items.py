@@ -94,7 +94,7 @@ class ContentItem:
     def get_start_date(self, item):
         if not item["StartDateTime"]:
             return None
-        return rock_timestamp_to_utc(item, self.kwargs)
+        return rock_timestamp_to_utc(item["StartDateTime"], self.kwargs)
 
     def create_summary(self, item):
         summary_value = safeget(item, "AttributeValues", "Summary", "Value")
