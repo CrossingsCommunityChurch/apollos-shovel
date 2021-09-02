@@ -1,5 +1,6 @@
 import pytz
 from airflow.models import Variable
+from dateutil import parser
 
 
 def safeget(dct, *keys):
@@ -25,6 +26,21 @@ def safeget_no_case(dct, *keys):
         except TypeError:
             return None
     return dct
+
+
+def rock_timestamp_to_utc(timestamp, kwargs):
+    # Get the local timezone
+    local_zone = pytz.timezone(
+        Variable.get(kwargs["client"] + "_rock_tz", default_var="EST")
+    )
+    # Find the UTC offset, for that time and timezone. it will be different depending on DST.
+    offset_hours = (
+        local_zone.localize(parser.parse(timestamp)).utcoffset().total_seconds()
+        / 60
+        / 60
+    )
+    # Return that original date, this time with the correct offset appended.
+    return parser.parse(f"{timestamp}{int(offset_hours)}")
 
 
 def get_delta_offset(kwargs):

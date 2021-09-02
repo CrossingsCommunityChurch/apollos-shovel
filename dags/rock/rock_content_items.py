@@ -3,7 +3,7 @@ from airflow.hooks.postgres_hook import PostgresHook
 
 from html_sanitizer import Sanitizer
 import nltk
-from utilities import safeget, get_delta_offset
+from utilities import safeget, get_delta_offset, rock_timestamp_to_utc
 from rock.rock_media import is_media_video, is_media_audio
 
 import requests
@@ -87,9 +87,14 @@ class ContentItem:
             self.create_summary(obj),
             self.create_html_content(obj),
             obj["Title"],
-            obj["StartDateTime"],
+            self.get_start_date(obj),
             self.get_status(obj),
         )
+
+    def get_start_date(self, item):
+        if not item["StartDateTime"]:
+            return None
+        return rock_timestamp_to_utc(item, self.kwargs)
 
     def create_summary(self, item):
         summary_value = safeget(item, "AttributeValues", "Summary", "Value")
