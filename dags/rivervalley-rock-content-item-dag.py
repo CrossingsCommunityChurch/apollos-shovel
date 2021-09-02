@@ -181,7 +181,7 @@ def create_rock_content_item_dag(church, start_date, schedule_interval, do_backf
 
 
 backfill_dag, backfill_name = create_rock_content_item_dag(
-    "rivervalley", start_date, "@once", True
+    "rivervalley", datetime(2021, 1, 1), "@once", True
 )
 globals()[backfill_name] = backfill_dag
 
