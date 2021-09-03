@@ -3,7 +3,11 @@ from airflow.hooks.postgres_hook import PostgresHook
 
 from html_sanitizer import Sanitizer
 import nltk
-from utilities import safeget, get_delta_offset, rock_timestamp_to_utc
+from utilities import (
+    safeget,
+    get_delta_offset_with_content_attributes,
+    rock_timestamp_to_utc,
+)
 from rock.rock_media import is_media_video, is_media_audio
 
 import requests
@@ -181,6 +185,7 @@ class ContentItem:
         fetched_all = False
         skip = 0
         top = 10000
+        retry_count = 0
 
         while not fetched_all:
             # Fetch people records from Rock.
@@ -196,7 +201,9 @@ class ContentItem:
             }
 
             if not self.kwargs["do_backfill"]:
-                params["$filter"] = get_delta_offset(self.kwargs)
+                params["$filter"] = get_delta_offset_with_content_attributes(
+                    self.kwargs
+                )
 
             print(params)
 
@@ -209,8 +216,14 @@ class ContentItem:
             if not isinstance(rock_objects, list):
                 print(rock_objects)
                 print("oh uh, we might have made a bad request")
-                print("top: {top}")
-                print("skip: {skip}")
+                print(f"top: {top}")
+                print(f"skip: {skip}")
+                print(f"params: {params}")
+
+                if retry_count >= 3:
+                    raise Exception(f"Rock Error: {rock_objects}")
+
+                retry_count += 1
                 skip += top
                 continue
 

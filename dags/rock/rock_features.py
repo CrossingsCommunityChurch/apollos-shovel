@@ -1,6 +1,6 @@
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
-from utilities import safeget_no_case, safeget, get_delta_offset
+from utilities import safeget_no_case, safeget, get_delta_offset_with_content_attributes
 from urllib.parse import unquote
 from psycopg2.extras import Json
 
@@ -220,6 +220,8 @@ class Feature:
         skip = 0
         top = 10000
 
+        retry_count = 0
+
         while not fetched_all:
             # Fetch people records from Rock.
 
@@ -233,13 +235,29 @@ class Feature:
             }
 
             if not self.kwargs["do_backfill"]:
-                params["$filter"] = get_delta_offset(self.kwargs)
+                params["$filter"] = get_delta_offset_with_content_attributes(
+                    self.kwargs
+                )
 
             rock_objects = requests.get(
                 f"{Variable.get(self.kwargs['client'] + '_rock_api')}/ContentChannelItems",
                 params=params,
                 headers=self.headers,
             ).json()
+
+            if not isinstance(rock_objects, list):
+                print(rock_objects)
+                print("oh uh, we might have made a bad request")
+                print(f"top: {top}")
+                print(f"skip: {skip}")
+                print(f"params: {params}")
+
+                if retry_count >= 3:
+                    raise Exception(f"Rock Error: {rock_objects}")
+
+                retry_count += 1
+                skip += top
+                continue
 
             features_with_postgres_data = self.add_postgres_data_to_rock_features(
                 rock_objects

@@ -2,7 +2,7 @@ from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
 import requests
 from rock.rock_media import is_media_image
-from utilities import get_delta_offset
+from utilities import get_delta_offset_with_content_attributes
 
 
 class CoverImage:
@@ -100,6 +100,7 @@ class CoverImage:
         skip = 0
         top = 1000
 
+        retry_count = 0
         while not fetched_all:
             # Fetch people records from Rock.
 
@@ -112,7 +113,9 @@ class CoverImage:
             }
 
             if not self.kwargs["do_backfill"]:
-                params["$filter"] = get_delta_offset(self.kwargs)
+                params["$filter"] = get_delta_offset_with_content_attributes(
+                    self.kwargs
+                )
 
             rock_objects = requests.get(
                 f"{Variable.get(self.kwargs['client'] + '_rock_api')}/ContentChannelItems",
@@ -125,6 +128,12 @@ class CoverImage:
                 print("oh uh, we might have made a bad request")
                 print(f"top: {top}")
                 print(f"skip: {skip}")
+                print(f"params: {params}")
+
+                if retry_count >= 3:
+                    raise Exception(f"Rock Error: {rock_objects}")
+
+                retry_count += 1
                 skip += top
                 continue
 
