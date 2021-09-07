@@ -1,6 +1,5 @@
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
-from apollos_type import apollos_id
 from utilities import safeget
 import requests
 
@@ -34,10 +33,10 @@ class Campus:
 
         for obj in rock_objects:
             dts_insert = """
-            INSERT into campus ("created_at", "updated_at", "origin_id", "origin_type", "apollos_type", "name", "street1", "street2", "city", "state", "postal_code", "latitude", "longitude", "digital")
-            values (%(current_date)s, %(current_date)s, %(id)s, 'rock', 'Campus', %(name)s, %(street1)s, %(street2)s, %(city)s, %(state)s, %(postalCode)s, %(latitude)s, %(longitude)s, %(digital)s)
+            INSERT into campus ("created_at", "updated_at", "origin_id", "origin_type", "apollos_type", "name", "street1", "street2", "city", "state", "postal_code", "latitude", "longitude", "digital", "active")
+            values (%(current_date)s, %(current_date)s, %(id)s, 'rock', 'Campus', %(name)s, %(street1)s, %(street2)s, %(city)s, %(state)s, %(postalCode)s, %(latitude)s, %(longitude)s, %(digital)s, %(active)s)
             ON CONFLICT (origin_id, origin_type)
-            DO UPDATE SET ("updated_at", "name", "street1", "street2", "city", "state", "postal_code", "latitude", "longitude", "digital") = (%(current_date)s, %(name)s, %(street1)s, %(street2)s, %(city)s, %(state)s, %(postalCode)s, %(latitude)s, %(longitude)s, %(digital)s)
+            DO UPDATE SET ("updated_at", "name", "street1", "street2", "city", "state", "postal_code", "latitude", "longitude", "digital", "active") = (%(current_date)s, %(name)s, %(street1)s, %(street2)s, %(city)s, %(state)s, %(postalCode)s, %(latitude)s, %(longitude)s, %(digital)s, %(active)s)
             """
 
             self.pg_hook.run(
@@ -55,26 +54,18 @@ class Campus:
                         "latitude": safeget(obj, "Location", "Latitude"),
                         "longitude": safeget(obj, "Location", "Longitude"),
                         "digital": safeget(obj, "CampusTypeValue", "Value") == "Online",
+                        "active": obj["IsActive"],
                     }
                 ),
             )
 
-            users_without_apollos_id_select = """
-            SELECT id from campus
+            add_apollos_ids = """
+            UPDATE campus
+            SET apollos_id = apollos_type || ':' || id::varchar
             WHERE origin_type = 'rock' and apollos_id IS NULL
             """
 
-            for new_id in self.pg_hook.get_records(users_without_apollos_id_select):
-                apollos_id_update = """
-                UPDATE campus
-                SET apollos_id = %s
-                WHERE id = %s::uuid
-                """
-
-                self.pg_hook.run(
-                    apollos_id_update,
-                    parameters=((apollos_id("Campus", new_id[0]), new_id[0])),
-                )
+            self.pg_hook.run(add_apollos_ids)
 
 
 def fetch_and_save_campuses(ds, *args, **kwargs):

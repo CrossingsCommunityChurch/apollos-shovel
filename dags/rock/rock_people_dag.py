@@ -13,6 +13,9 @@ from rock.rock_people_underscore import (
 from rock.rock_campus_underscore import (
     fetch_and_save_campuses as fetch_and_save_campuses_underscore,
 )
+from rock.rock_campus_media import (
+    fetch_and_save_campus_media,
+)
 
 # Default settings applied to all tasks
 default_args = {
@@ -70,6 +73,13 @@ def create_rock_people_dag(
             op_kwargs={"do_backfill": do_backfill, "client": church},
         )
 
+        t2 = PythonOperator(
+            task_id="fetch_and_save_campus_media",
+            python_callable=fetch_and_save_campus_media,  # make sure you don't include the () of the function
+            op_kwargs={"client": church},
+        )
+
         t0 >> t1
+        t0 >> t2
 
     return dag, name
