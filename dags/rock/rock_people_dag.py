@@ -73,7 +73,7 @@ def create_rock_people_dag(
             op_kwargs={"do_backfill": do_backfill, "client": church},
         )
 
-        if camelcased_tables:
+        if not camelcased_tables:
             t2 = PythonOperator(
                 task_id="fetch_and_save_campus_media",
                 python_callable=fetch_and_save_campus_media,  # make sure you don't include the () of the function
