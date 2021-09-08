@@ -3,7 +3,11 @@ from airflow.hooks.postgres_hook import PostgresHook
 
 from html_sanitizer import Sanitizer
 import nltk
-from utilities import safeget, get_delta_offset
+from utilities import (
+    safeget,
+    get_delta_offset_with_content_attributes,
+    rock_timestamp_to_utc,
+)
 from rock.rock_media import is_media_video, is_media_audio
 
 import requests
@@ -87,9 +91,14 @@ class ContentItem:
             self.create_summary(obj),
             self.create_html_content(obj),
             obj["Title"],
-            obj["StartDateTime"],
+            self.get_start_date(obj),
             self.get_status(obj),
         )
+
+    def get_start_date(self, item):
+        if not item["StartDateTime"]:
+            return None
+        return rock_timestamp_to_utc(item["StartDateTime"], self.kwargs)
 
     def create_summary(self, item):
         summary_value = safeget(item, "AttributeValues", "Summary", "Value")
@@ -174,6 +183,7 @@ class ContentItem:
         fetched_all = False
         skip = 0
         top = 10000
+        retry_count = 0
 
         while not fetched_all:
             # Fetch people records from Rock.
@@ -189,7 +199,9 @@ class ContentItem:
             }
 
             if not self.kwargs["do_backfill"]:
-                params["$filter"] = get_delta_offset(self.kwargs)
+                params["$filter"] = get_delta_offset_with_content_attributes(
+                    self.kwargs
+                )
 
             print(params)
 
@@ -202,8 +214,14 @@ class ContentItem:
             if not isinstance(rock_objects, list):
                 print(rock_objects)
                 print("oh uh, we might have made a bad request")
-                print("top: {top}")
-                print("skip: {skip}")
+                print(f"top: {top}")
+                print(f"skip: {skip}")
+                print(f"params: {params}")
+
+                if retry_count >= 3:
+                    raise Exception(f"Rock Error: {rock_objects}")
+
+                retry_count += 1
                 skip += top
                 continue
 

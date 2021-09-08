@@ -2,7 +2,7 @@ from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
 import requests
 from rock.rock_media import is_media_image
-from utilities import get_delta_offset
+from utilities import get_delta_offset_with_content_attributes
 
 
 class CoverImage:
@@ -71,7 +71,7 @@ class CoverImage:
     def is_image(self, content_item, attribute):
         return is_media_image(content_item, attribute)
 
-    def map_content_items(self, content_item):
+    def find_and_set_cover_image(self, content_item):
         image_attributes = list(
             filter(
                 lambda a: self.is_image(content_item, a),
@@ -100,6 +100,7 @@ class CoverImage:
         skip = 0
         top = 1000
 
+        retry_count = 0
         while not fetched_all:
             # Fetch people records from Rock.
 
@@ -112,7 +113,9 @@ class CoverImage:
             }
 
             if not self.kwargs["do_backfill"]:
-                params["$filter"] = get_delta_offset(self.kwargs)
+                params["$filter"] = get_delta_offset_with_content_attributes(
+                    self.kwargs
+                )
 
             rock_objects = requests.get(
                 f"{Variable.get(self.kwargs['client'] + '_rock_api')}/ContentChannelItems",
@@ -125,12 +128,20 @@ class CoverImage:
                 print("oh uh, we might have made a bad request")
                 print(f"top: {top}")
                 print(f"skip: {skip}")
+                print(f"params: {params}")
+
+                if retry_count >= 3:
+                    raise Exception(f"Rock Error: {rock_objects}")
+
+                retry_count += 1
                 skip += top
                 continue
 
             content_items = list(map(self.map_content_items, rock_objects))
 
             # Sets all content items without a cover image to their parent's cover image
+            for content_item in rock_objects:
+                self.find_and_set_cover_image(content_item)
 
             skip += top
             fetched_all = len(rock_objects) < top

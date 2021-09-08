@@ -1,6 +1,6 @@
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
-from utilities import safeget_no_case, safeget, get_delta_offset
+from utilities import safeget_no_case, safeget, get_delta_offset_with_content_attributes
 from urllib.parse import unquote
 from psycopg2.extras import Json
 
@@ -31,7 +31,6 @@ class Feature:
 
         params = {
             "loadAttributes": "expanded",
-            "$orderby": "ModifiedDateTime desc",
             "attributeKeys": "childrenHaveComments",
         }
 
@@ -41,10 +40,13 @@ class Feature:
             headers=self.headers,
         )
 
-        self.rock_content_cache["origin_id"] = r.json()
+        self.rock_content_cache[origin_id] = r.json()
         return r.json()
 
     def add_postgres_data_to_rock_features(self, features):
+        if len(features) == 0:
+            return []
+
         origin_ids = ", ".join(map(lambda r: f"'{str(r['Id'])}'", features))
         postgres_records = self.pg_hook.get_records(
             f"""
@@ -76,8 +78,13 @@ class Feature:
 
         return map(string_to_dict, entries)
 
-    # def get_
+    # map feature priority from index
+    def map_feature_priority(self, feature):
+        index = feature[0]
+        obj = feature[1]
+        return {**obj, "priority": index}
 
+    # def get_
     def get_features(self, content):
         features = []
 
@@ -114,26 +121,6 @@ class Feature:
                         "parent_id": content["node_id"],
                     }
                 )
-
-        button_link_feature = safeget_no_case(
-            content, "AttributeValues", "ButtonText", "Value"
-        )
-        if button_link_feature:
-            features.append(
-                {
-                    "type": "Button",
-                    "data": {
-                        "title": safeget_no_case(
-                            content, "AttributeValues", "ButtonText", "Value"
-                        ),
-                        "url": safeget_no_case(
-                            content, "AttributeValues", "ButtonLink", "Value"
-                        ),
-                        "action": "OPEN_AUTHENTICATED_URL",
-                    },
-                    "parent_id": content["node_id"],
-                }
-            )
 
         comment_feature = (
             safeget_no_case(content, "AttributeValues", "comments", "value") or "False"
@@ -189,9 +176,34 @@ class Feature:
                     }
                 )
 
-        return features
+        button_link_feature = safeget_no_case(
+            content, "AttributeValues", "ButtonText", "Value"
+        )
+        if button_link_feature:
+            features.append(
+                {
+                    "type": "Button",
+                    "data": {
+                        "title": safeget_no_case(
+                            content, "AttributeValues", "ButtonText", "Value"
+                        ),
+                        "url": safeget_no_case(
+                            content, "AttributeValues", "ButtonLink", "Value"
+                        ),
+                        "action": "OPEN_AUTHENTICATED_URL",
+                    },
+                    "parent_id": content["node_id"],
+                }
+            )
+
+        features_with_priority = list(
+            map(self.map_feature_priority, enumerate(features))
+        )
+
+        return features_with_priority
 
     def map_feature_to_columns(self, obj):
+
         return (
             self.kwargs["execution_date"],
             self.kwargs["execution_date"],
@@ -200,12 +212,15 @@ class Feature:
             obj["type"],
             obj["parent_id"],
             "ContentItem",
+            obj["priority"],
         )
 
     def run_fetch_and_save_features(self):
         fetched_all = False
         skip = 0
         top = 10000
+
+        retry_count = 0
 
         while not fetched_all:
             # Fetch people records from Rock.
@@ -220,13 +235,29 @@ class Feature:
             }
 
             if not self.kwargs["do_backfill"]:
-                params["$filter"] = get_delta_offset(self.kwargs)
+                params["$filter"] = get_delta_offset_with_content_attributes(
+                    self.kwargs
+                )
 
             rock_objects = requests.get(
                 f"{Variable.get(self.kwargs['client'] + '_rock_api')}/ContentChannelItems",
                 params=params,
                 headers=self.headers,
             ).json()
+
+            if not isinstance(rock_objects, list):
+                print(rock_objects)
+                print("oh uh, we might have made a bad request")
+                print(f"top: {top}")
+                print(f"skip: {skip}")
+                print(f"params: {params}")
+
+                if retry_count >= 3:
+                    raise Exception(f"Rock Error: {rock_objects}")
+
+                retry_count += 1
+                skip += top
+                continue
 
             features_with_postgres_data = self.add_postgres_data_to_rock_features(
                 rock_objects
@@ -246,6 +277,7 @@ class Feature:
                 "type",
                 "parent_id",
                 "parent_type",
+                "priority",
             )
 
             self.pg_hook.insert_rows(
