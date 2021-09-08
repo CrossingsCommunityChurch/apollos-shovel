@@ -15,6 +15,51 @@ def safeget(dct, *keys):
     return dct
 
 
+def find_supported_fields(pg_hook, insert_data, table_name):
+    conn = pg_hook.get_conn()
+    cursor = conn.cursor()
+    # Get a list of columns by table name.
+    cursor.execute(f"select * from {table_name} limit 0;")
+    colnames = set([desc[0] for desc in cursor.description])
+    conn.close()
+    cursor.close()
+
+    if insert_data:
+        print("Omitting the following columns")
+        print(set(insert_data[0].keys()).difference(colnames))
+
+    # Find the columns that are not in the list of columns in the database.
+    data_with_valid_keys = map(
+        lambda insert_row: {
+            k: insert_row[k]
+            for k in insert_row.keys()
+            if k not in list(set(insert_row.keys()).difference(colnames))
+        },
+        insert_data,
+    )
+
+    # Sort the resulting dictonary by it's keys
+    # We need the insert array to match the list of columns to insert
+    sorted_insert_data = list(
+        map(lambda r: {key: r[key] for key in sorted(r.keys())}, data_with_valid_keys)
+    )
+
+    # Now we turm our dictonary into our list.
+    insert_data_as_list = [row.values() for row in sorted_insert_data]
+
+    # Andddd, here's where we set the column names that we will be inserting.
+    # By default, using the colnames array.
+    col_names_to_insert = colnames
+    # Identify the data intersection using the first row
+    # This is to catch situations where we have more columns in our database
+    # than columns in our insert
+    if sorted_insert_data:
+        col_names_to_insert = sorted_insert_data[0].keys()
+
+    # Return the data to insert and our (sorted) list.
+    return (insert_data_as_list, sorted(list(col_names_to_insert)))
+
+
 def safeget_no_case(dct, *keys):
     dct = {k.lower(): v for k, v in dct.items()}
     for key in keys:
