@@ -3,7 +3,7 @@ from airflow.hooks.postgres_hook import PostgresHook
 
 from html_sanitizer import Sanitizer
 import nltk
-from utilities import (
+from rock.utilities import (
     safeget,
     get_delta_offset_with_content_attributes,
     rock_timestamp_to_utc,

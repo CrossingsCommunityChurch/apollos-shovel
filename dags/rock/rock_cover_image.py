@@ -2,7 +2,7 @@ from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
 import requests
 from rock.rock_media import is_media_image
-from utilities import get_delta_offset_with_content_attributes
+from rock.utilities import get_delta_offset_with_content_attributes
 
 
 class CoverImage:

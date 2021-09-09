@@ -1,0 +1,1086 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 13.4 (Ubuntu 13.4-1.pgdg20.04+1)
+-- Dumped by pg_dump version 13.4
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pg_trgm; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching based on trigrams';
+
+
+--
+-- Name: uuid-ossp; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
+
+
+--
+-- Name: enum_comments_visibility; Type: TYPE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TYPE public.enum_comments_visibility AS ENUM (
+    'PUBLIC',
+    'PRIVATE',
+    'FOLLOWERS'
+);
+
+
+ALTER TYPE public.enum_comments_visibility OWNER TO brxycailpjqogm;
+
+--
+-- Name: enum_follow_requests_state; Type: TYPE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TYPE public.enum_follow_requests_state AS ENUM (
+    'REQUESTED',
+    'DECLINED',
+    'ACCEPTED'
+);
+
+
+ALTER TYPE public.enum_follow_requests_state OWNER TO brxycailpjqogm;
+
+--
+-- Name: enum_follows_state; Type: TYPE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TYPE public.enum_follows_state AS ENUM (
+    'REQUESTED',
+    'DECLINED',
+    'ACCEPTED'
+);
+
+
+ALTER TYPE public.enum_follows_state OWNER TO brxycailpjqogm;
+
+--
+-- Name: enum_media_type; Type: TYPE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TYPE public.enum_media_type AS ENUM (
+    'IMAGE',
+    'VIDEO',
+    'AUDIO'
+);
+
+
+ALTER TYPE public.enum_media_type OWNER TO brxycailpjqogm;
+
+--
+-- Name: enum_people_gender; Type: TYPE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TYPE public.enum_people_gender AS ENUM (
+    'MALE',
+    'FEMALE',
+    'UNKNOWN'
+);
+
+
+ALTER TYPE public.enum_people_gender OWNER TO brxycailpjqogm;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: SequelizeMeta; Type: TABLE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TABLE public."SequelizeMeta" (
+    name character varying(255) NOT NULL
+);
+
+
+ALTER TABLE public."SequelizeMeta" OWNER TO brxycailpjqogm;
+
+--
+-- Name: campus; Type: TABLE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TABLE public.campus (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    name character varying(255),
+    street1 text,
+    street2 text,
+    city text,
+    state text,
+    postal_code text,
+    latitude double precision,
+    longitude double precision,
+    image_url text,
+    digital boolean,
+    apollos_id character varying(255),
+    apollos_type character varying(255) NOT NULL,
+    origin_id character varying(255) NOT NULL,
+    origin_type character varying(255) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    active boolean DEFAULT false,
+    image_id uuid
+);
+
+
+ALTER TABLE public.campus OWNER TO brxycailpjqogm;
+
+--
+-- Name: comment; Type: TABLE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TABLE public.comment (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    text text,
+    visibility public.enum_comments_visibility,
+    external_parent_id text,
+    external_parent_type text,
+    external_parent_source text,
+    person_id uuid,
+    flag_count integer DEFAULT 0,
+    apollos_id character varying(255),
+    apollos_type character varying(255) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    liked_count integer DEFAULT 0
+);
+
+
+ALTER TABLE public.comment OWNER TO brxycailpjqogm;
+
+--
+-- Name: content_item; Type: TABLE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TABLE public.content_item (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    title text,
+    summary text,
+    html_content text,
+    publish_at timestamp with time zone,
+    active boolean,
+    origin_id character varying(255) NOT NULL,
+    origin_type character varying(255) NOT NULL,
+    apollos_id character varying(255),
+    apollos_type character varying(255) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    content_item_category_id uuid,
+    cover_image_id uuid,
+    parent_id uuid,
+    expire_at timestamp with time zone
+);
+
+
+ALTER TABLE public.content_item OWNER TO brxycailpjqogm;
+
+--
+-- Name: content_item_category; Type: TABLE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TABLE public.content_item_category (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    title text,
+    origin_id character varying(255) NOT NULL,
+    origin_type character varying(255) NOT NULL,
+    apollos_id character varying(255),
+    apollos_type character varying(255) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.content_item_category OWNER TO brxycailpjqogm;
+
+--
+-- Name: content_item_connection; Type: TABLE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TABLE public.content_item_connection (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    "order" integer DEFAULT 0,
+    child_id uuid,
+    parent_id uuid,
+    origin_id character varying(255) NOT NULL,
+    origin_type character varying(255) NOT NULL,
+    apollos_id character varying(255),
+    apollos_type character varying(255) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.content_item_connection OWNER TO brxycailpjqogm;
+
+--
+-- Name: content_tag; Type: TABLE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TABLE public.content_tag (
+    tag_id uuid NOT NULL,
+    content_item_id uuid NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.content_tag OWNER TO brxycailpjqogm;
+
+--
+-- Name: feature; Type: TABLE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TABLE public.feature (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    parent_id uuid,
+    parent_type text,
+    type text,
+    data jsonb,
+    apollos_id character varying(255),
+    apollos_type character varying(255) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    priority integer DEFAULT 0
+);
+
+
+ALTER TABLE public.feature OWNER TO brxycailpjqogm;
+
+--
+-- Name: follow; Type: TABLE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TABLE public.follow (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    request_person_id uuid,
+    followed_person_id uuid,
+    state public.enum_follows_state,
+    apollos_id character varying(255),
+    apollos_type character varying(255) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.follow OWNER TO brxycailpjqogm;
+
+--
+-- Name: interaction; Type: TABLE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TABLE public.interaction (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    person_id uuid,
+    action character varying(255) NOT NULL,
+    arguments jsonb,
+    node_id uuid,
+    node_type text,
+    origin_id text,
+    origin_type character varying(255),
+    apollos_id character varying(255),
+    apollos_type character varying(255) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.interaction OWNER TO brxycailpjqogm;
+
+--
+-- Name: media; Type: TABLE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TABLE public.media (
+    type public.enum_media_type,
+    url text,
+    node_id uuid,
+    node_type character varying(255),
+    origin_id character varying(255) NOT NULL,
+    origin_type character varying(255) NOT NULL,
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    apollos_id character varying(255),
+    apollos_type character varying(255) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    metadata jsonb DEFAULT '{}'::jsonb NOT NULL
+);
+
+
+ALTER TABLE public.media OWNER TO brxycailpjqogm;
+
+--
+-- Name: notification; Type: TABLE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TABLE public.notification (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    title text,
+    subtitle text,
+    body text,
+    sent_at timestamp with time zone,
+    scheduled_at timestamp with time zone,
+    data json,
+    notification_type text,
+    delivery_method text,
+    person_id uuid,
+    external_notification_id text,
+    apollos_id character varying(255),
+    apollos_type character varying(255) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.notification OWNER TO brxycailpjqogm;
+
+--
+-- Name: notification_preference; Type: TABLE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TABLE public.notification_preference (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    enabled boolean,
+    notification_provider_id text,
+    notification_provider_type text,
+    person_id uuid,
+    apollos_id character varying(255),
+    apollos_type character varying(255) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.notification_preference OWNER TO brxycailpjqogm;
+
+--
+-- Name: people; Type: TABLE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TABLE public.people (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    first_name character varying(255),
+    last_name character varying(255),
+    email character varying(255),
+    birth_date timestamp with time zone,
+    profile_image_url text,
+    gender public.enum_people_gender,
+    campus_id uuid,
+    apollos_user boolean DEFAULT false,
+    apollos_id character varying(255),
+    apollos_type character varying(255) NOT NULL,
+    origin_id character varying(255) NOT NULL,
+    origin_type character varying(255) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.people OWNER TO brxycailpjqogm;
+
+--
+-- Name: people_tag; Type: TABLE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TABLE public.people_tag (
+    tag_id uuid NOT NULL,
+    person_id uuid NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.people_tag OWNER TO brxycailpjqogm;
+
+--
+-- Name: person_prayed_for; Type: TABLE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TABLE public.person_prayed_for (
+    person_id uuid NOT NULL,
+    prayer_request_id uuid NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.person_prayed_for OWNER TO brxycailpjqogm;
+
+--
+-- Name: prayer_request; Type: TABLE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TABLE public.prayer_request (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    text text,
+    person_id uuid,
+    origin_id character varying(255),
+    origin_type character varying(255),
+    apollos_id character varying(255),
+    apollos_type character varying(255) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.prayer_request OWNER TO brxycailpjqogm;
+
+--
+-- Name: tag; Type: TABLE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TABLE public.tag (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    name text,
+    type text,
+    data jsonb,
+    origin_id character varying(255) NOT NULL,
+    origin_type character varying(255) NOT NULL,
+    apollos_id character varying(255),
+    apollos_type character varying(255) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.tag OWNER TO brxycailpjqogm;
+
+--
+-- Name: user_flag; Type: TABLE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TABLE public.user_flag (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    node_id text,
+    node_type text,
+    external_person_id text,
+    apollos_id character varying(255),
+    apollos_type character varying(255) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    person_id uuid
+);
+
+
+ALTER TABLE public.user_flag OWNER TO brxycailpjqogm;
+
+--
+-- Name: user_like; Type: TABLE; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE TABLE public.user_like (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    node_type text,
+    person_id uuid,
+    apollos_id character varying(255),
+    apollos_type character varying(255) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    node_id uuid
+);
+
+
+ALTER TABLE public.user_like OWNER TO brxycailpjqogm;
+
+--
+-- Name: SequelizeMeta SequelizeMeta_pkey; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public."SequelizeMeta"
+    ADD CONSTRAINT "SequelizeMeta_pkey" PRIMARY KEY (name);
+
+
+--
+-- Name: campus campuses_apollosId_key; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.campus
+    ADD CONSTRAINT "campuses_apollosId_key" UNIQUE (apollos_id);
+
+
+--
+-- Name: campus campuses_pkey; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.campus
+    ADD CONSTRAINT campuses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: comment comments_apollosId_key; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.comment
+    ADD CONSTRAINT "comments_apollosId_key" UNIQUE (apollos_id);
+
+
+--
+-- Name: comment comments_pkey; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.comment
+    ADD CONSTRAINT comments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: content_item_category contentItemCategories_apollosId_key; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.content_item_category
+    ADD CONSTRAINT "contentItemCategories_apollosId_key" UNIQUE (apollos_id);
+
+
+--
+-- Name: content_item_category contentItemCategories_pkey; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.content_item_category
+    ADD CONSTRAINT "contentItemCategories_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: content_item_connection contentItemsConnections_apollosId_key; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.content_item_connection
+    ADD CONSTRAINT "contentItemsConnections_apollosId_key" UNIQUE (apollos_id);
+
+
+--
+-- Name: content_item_connection contentItemsConnections_pkey; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.content_item_connection
+    ADD CONSTRAINT "contentItemsConnections_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: content_item contentItems_apollosId_key; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.content_item
+    ADD CONSTRAINT "contentItems_apollosId_key" UNIQUE (apollos_id);
+
+
+--
+-- Name: content_item contentItems_pkey; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.content_item
+    ADD CONSTRAINT "contentItems_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: content_tag content_tag_pkey; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.content_tag
+    ADD CONSTRAINT content_tag_pkey PRIMARY KEY (tag_id, content_item_id);
+
+
+--
+-- Name: feature features_apollosId_key; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.feature
+    ADD CONSTRAINT "features_apollosId_key" UNIQUE (apollos_id);
+
+
+--
+-- Name: feature features_pkey; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.feature
+    ADD CONSTRAINT features_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: follow follows_apollosId_key; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.follow
+    ADD CONSTRAINT "follows_apollosId_key" UNIQUE (apollos_id);
+
+
+--
+-- Name: follow follows_pkey; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.follow
+    ADD CONSTRAINT follows_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: interaction interaction_apollos_id_key; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.interaction
+    ADD CONSTRAINT interaction_apollos_id_key UNIQUE (apollos_id);
+
+
+--
+-- Name: interaction interaction_pkey; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.interaction
+    ADD CONSTRAINT interaction_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: media media_apollosId_uk; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.media
+    ADD CONSTRAINT "media_apollosId_uk" UNIQUE (apollos_id);
+
+
+--
+-- Name: media media_id_pk; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.media
+    ADD CONSTRAINT media_id_pk PRIMARY KEY (id);
+
+
+--
+-- Name: notification_preference notificationPreferences_apollosId_key; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.notification_preference
+    ADD CONSTRAINT "notificationPreferences_apollosId_key" UNIQUE (apollos_id);
+
+
+--
+-- Name: notification_preference notificationPreferences_pkey; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.notification_preference
+    ADD CONSTRAINT "notificationPreferences_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: notification notifications_apollosId_key; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.notification
+    ADD CONSTRAINT "notifications_apollosId_key" UNIQUE (apollos_id);
+
+
+--
+-- Name: notification notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.notification
+    ADD CONSTRAINT notifications_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: people people_apollosId_key; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.people
+    ADD CONSTRAINT "people_apollosId_key" UNIQUE (apollos_id);
+
+
+--
+-- Name: people people_pkey; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.people
+    ADD CONSTRAINT people_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: people_tag people_tag_pkey; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.people_tag
+    ADD CONSTRAINT people_tag_pkey PRIMARY KEY (tag_id, person_id);
+
+
+--
+-- Name: person_prayed_for person_prayed_for_pkey; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.person_prayed_for
+    ADD CONSTRAINT person_prayed_for_pkey PRIMARY KEY (person_id, prayer_request_id);
+
+
+--
+-- Name: prayer_request prayer_apollos_id_key; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.prayer_request
+    ADD CONSTRAINT prayer_apollos_id_key UNIQUE (apollos_id);
+
+
+--
+-- Name: prayer_request prayer_pkey; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.prayer_request
+    ADD CONSTRAINT prayer_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tag tags_apollosId_key; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.tag
+    ADD CONSTRAINT "tags_apollosId_key" UNIQUE (apollos_id);
+
+
+--
+-- Name: tag tags_pkey; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.tag
+    ADD CONSTRAINT tags_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_flag user_flags_apollosId_key; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.user_flag
+    ADD CONSTRAINT "user_flags_apollosId_key" UNIQUE (apollos_id);
+
+
+--
+-- Name: user_flag user_flags_pkey; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.user_flag
+    ADD CONSTRAINT user_flags_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_like user_likes_apollosId_key; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.user_like
+    ADD CONSTRAINT "user_likes_apollosId_key" UNIQUE (apollos_id);
+
+
+--
+-- Name: user_like user_likes_pkey; Type: CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.user_like
+    ADD CONSTRAINT user_likes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: campuses_origin_id_origin_type; Type: INDEX; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE UNIQUE INDEX campuses_origin_id_origin_type ON public.campus USING btree (origin_id, origin_type);
+
+
+--
+-- Name: content_item_active; Type: INDEX; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE INDEX content_item_active ON public.content_item USING btree (active);
+
+
+--
+-- Name: content_item_categories_origin_id_origin_type; Type: INDEX; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE UNIQUE INDEX content_item_categories_origin_id_origin_type ON public.content_item_category USING btree (origin_id, origin_type);
+
+
+--
+-- Name: content_item_expire_at; Type: INDEX; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE INDEX content_item_expire_at ON public.content_item USING btree (expire_at);
+
+
+--
+-- Name: content_item_publish_at; Type: INDEX; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE INDEX content_item_publish_at ON public.content_item USING btree (publish_at);
+
+
+--
+-- Name: content_items_connections_origin_id_origin_type; Type: INDEX; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE UNIQUE INDEX content_items_connections_origin_id_origin_type ON public.content_item_connection USING btree (origin_id, origin_type);
+
+
+--
+-- Name: content_items_origin_id_origin_type; Type: INDEX; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE UNIQUE INDEX content_items_origin_id_origin_type ON public.content_item USING btree (origin_id, origin_type);
+
+
+--
+-- Name: features_parent_id_type_data; Type: INDEX; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE UNIQUE INDEX features_parent_id_type_data ON public.feature USING btree (parent_id, type, data);
+
+
+--
+-- Name: in_people_firstName_and_lastName; Type: INDEX; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE INDEX "in_people_firstName_and_lastName" ON public.people USING gin (lower((((first_name)::text || ' '::text) || (last_name)::text)) public.gin_trgm_ops);
+
+
+--
+-- Name: media_origin_id_origin_type; Type: INDEX; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE UNIQUE INDEX media_origin_id_origin_type ON public.media USING btree (origin_id, origin_type);
+
+
+--
+-- Name: notification_preferences_person_id_notification_provider_type_n; Type: INDEX; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE UNIQUE INDEX notification_preferences_person_id_notification_provider_type_n ON public.notification_preference USING btree (person_id, notification_provider_type, notification_provider_id);
+
+
+--
+-- Name: people_origin_id_origin_type; Type: INDEX; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE UNIQUE INDEX people_origin_id_origin_type ON public.people USING btree (origin_id, origin_type);
+
+
+--
+-- Name: prayer_origin_id_origin_type; Type: INDEX; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE UNIQUE INDEX prayer_origin_id_origin_type ON public.prayer_request USING btree (origin_id, origin_type);
+
+
+--
+-- Name: tags_origin_id_origin_type; Type: INDEX; Schema: public; Owner: brxycailpjqogm
+--
+
+CREATE UNIQUE INDEX tags_origin_id_origin_type ON public.tag USING btree (origin_id, origin_type);
+
+
+--
+-- Name: campus campus_image_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.campus
+    ADD CONSTRAINT campus_image_id_fkey FOREIGN KEY (image_id) REFERENCES public.media(id);
+
+
+--
+-- Name: comment comments_personId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.comment
+    ADD CONSTRAINT "comments_personId_fkey" FOREIGN KEY (person_id) REFERENCES public.people(id);
+
+
+--
+-- Name: content_item_connection contentItemsConnections_childId_contentItems_fk; Type: FK CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.content_item_connection
+    ADD CONSTRAINT "contentItemsConnections_childId_contentItems_fk" FOREIGN KEY (child_id) REFERENCES public.content_item(id) ON DELETE CASCADE;
+
+
+--
+-- Name: content_item_connection contentItemsConnections_parentId_contentItems_fk; Type: FK CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.content_item_connection
+    ADD CONSTRAINT "contentItemsConnections_parentId_contentItems_fk" FOREIGN KEY (parent_id) REFERENCES public.content_item(id) ON DELETE CASCADE;
+
+
+--
+-- Name: content_item contentItems_contentItemCategoryId_contentItemCategories_fk; Type: FK CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.content_item
+    ADD CONSTRAINT "contentItems_contentItemCategoryId_contentItemCategories_fk" FOREIGN KEY (content_item_category_id) REFERENCES public.content_item_category(id);
+
+
+--
+-- Name: content_item contentItems_coverImageId_media_fk; Type: FK CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.content_item
+    ADD CONSTRAINT "contentItems_coverImageId_media_fk" FOREIGN KEY (cover_image_id) REFERENCES public.media(id) ON DELETE SET NULL;
+
+
+--
+-- Name: content_item contentItems_parentId_contentItems_fk; Type: FK CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.content_item
+    ADD CONSTRAINT "contentItems_parentId_contentItems_fk" FOREIGN KEY (parent_id) REFERENCES public.content_item(id) ON DELETE SET NULL;
+
+
+--
+-- Name: content_tag content_tag_contentItemId_contentItems_fk; Type: FK CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.content_tag
+    ADD CONSTRAINT "content_tag_contentItemId_contentItems_fk" FOREIGN KEY (content_item_id) REFERENCES public.content_item(id) ON DELETE CASCADE;
+
+
+--
+-- Name: content_tag content_tag_tagId_tags_fk; Type: FK CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.content_tag
+    ADD CONSTRAINT "content_tag_tagId_tags_fk" FOREIGN KEY (tag_id) REFERENCES public.tag(id) ON DELETE CASCADE;
+
+
+--
+-- Name: follow follows_followedPersonId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.follow
+    ADD CONSTRAINT "follows_followedPersonId_fkey" FOREIGN KEY (followed_person_id) REFERENCES public.people(id);
+
+
+--
+-- Name: follow follows_requestPersonId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.follow
+    ADD CONSTRAINT "follows_requestPersonId_fkey" FOREIGN KEY (request_person_id) REFERENCES public.people(id);
+
+
+--
+-- Name: interaction interaction_person_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.interaction
+    ADD CONSTRAINT interaction_person_id_fkey FOREIGN KEY (person_id) REFERENCES public.people(id);
+
+
+--
+-- Name: notification_preference notificationPreferences_personId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.notification_preference
+    ADD CONSTRAINT "notificationPreferences_personId_fkey" FOREIGN KEY (person_id) REFERENCES public.people(id);
+
+
+--
+-- Name: notification notifications_personId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.notification
+    ADD CONSTRAINT "notifications_personId_fkey" FOREIGN KEY (person_id) REFERENCES public.people(id);
+
+
+--
+-- Name: people people_campusId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.people
+    ADD CONSTRAINT "people_campusId_fkey" FOREIGN KEY (campus_id) REFERENCES public.campus(id);
+
+
+--
+-- Name: people_tag people_tag_personId_people_fk; Type: FK CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.people_tag
+    ADD CONSTRAINT "people_tag_personId_people_fk" FOREIGN KEY (person_id) REFERENCES public.people(id) ON DELETE CASCADE;
+
+
+--
+-- Name: people_tag people_tag_tagId_tags_fk; Type: FK CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.people_tag
+    ADD CONSTRAINT "people_tag_tagId_tags_fk" FOREIGN KEY (tag_id) REFERENCES public.tag(id) ON DELETE CASCADE;
+
+
+--
+-- Name: person_prayed_for person_prayed_for_person_id_people_fk; Type: FK CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.person_prayed_for
+    ADD CONSTRAINT person_prayed_for_person_id_people_fk FOREIGN KEY (person_id) REFERENCES public.people(id) ON DELETE CASCADE;
+
+
+--
+-- Name: person_prayed_for person_prayed_for_prayer_request_id_prayer_request_fk; Type: FK CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.person_prayed_for
+    ADD CONSTRAINT person_prayed_for_prayer_request_id_prayer_request_fk FOREIGN KEY (prayer_request_id) REFERENCES public.prayer_request(id) ON DELETE CASCADE;
+
+
+--
+-- Name: prayer_request prayer_person_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.prayer_request
+    ADD CONSTRAINT prayer_person_id_fkey FOREIGN KEY (person_id) REFERENCES public.people(id);
+
+
+--
+-- Name: user_flag user_flags_personId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: brxycailpjqogm
+--
+
+ALTER TABLE ONLY public.user_flag
+    ADD CONSTRAINT "user_flags_personId_fkey" FOREIGN KEY (person_id) REFERENCES public.people(id);
+
+
+--
+-- Name: SCHEMA public; Type: ACL; Schema: -; Owner: brxycailpjqogm
+--
+
+REVOKE ALL ON SCHEMA public FROM postgres;
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+GRANT ALL ON SCHEMA public TO brxycailpjqogm;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+--
+-- Name: LANGUAGE plpgsql; Type: ACL; Schema: -; Owner: postgres
+--
+
+GRANT ALL ON LANGUAGE plpgsql TO brxycailpjqogm;
+
+
+--
+-- PostgreSQL database dump complete
+--
+

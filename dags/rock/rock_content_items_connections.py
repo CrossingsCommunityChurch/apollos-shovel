@@ -1,7 +1,7 @@
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
 
-from utilities import get_delta_offset
+from rock.utilities import get_delta_offset
 import requests
 
 

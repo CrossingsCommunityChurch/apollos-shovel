@@ -1,7 +1,7 @@
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
 from PIL import ImageFile
-from utilities import (
+from rock.utilities import (
     safeget,
     get_delta_offset,
     get_delta_offset_with_content_attributes,

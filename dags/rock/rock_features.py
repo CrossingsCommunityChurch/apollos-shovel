@@ -1,6 +1,10 @@
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
-from utilities import safeget_no_case, safeget, get_delta_offset_with_content_attributes
+from rock.utilities import (
+    safeget_no_case,
+    safeget,
+    get_delta_offset_with_content_attributes,
+)
 from urllib.parse import unquote
 from psycopg2.extras import Json
 

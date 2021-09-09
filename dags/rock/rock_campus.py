@@ -1,7 +1,7 @@
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
 from apollos_type import apollos_id
-from utilities import safeget
+from rock.utilities import safeget
 import requests
 
 

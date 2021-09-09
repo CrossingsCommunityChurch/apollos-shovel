@@ -1,6 +1,6 @@
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
-from utilities import safeget, find_supported_fields
+from rock.utilities import safeget, find_supported_fields
 import requests
 
 
