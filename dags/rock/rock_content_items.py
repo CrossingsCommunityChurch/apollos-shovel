@@ -54,11 +54,11 @@ class ContentItem:
             "empty": {},
             "seperate": {},
             "attributes": {
-                **{
-                    "a": {"href", "target", "rel"},
-                    "img": {"src"},
-                },
                 **dict.fromkeys(html_allowed_tags, {"class", "style"}),
+                **{
+                    "a": {"class", "style", "href", "target", "rel"},
+                    "img": {"class", "style", "src"},
+                },
             },
         }
     )
