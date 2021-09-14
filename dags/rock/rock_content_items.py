@@ -171,10 +171,10 @@ class ContentItem:
 
         return "UniversalContentItem"
 
-    def get_status(self, contentItem):
+    def get_status(self, content_item):
         if (
-            contentItem["Status"] == 2
-            or not contentItem["ContentChannel"]["RequiresApproval"]
+            content_item["Status"] == 2
+            or not content_item["ContentChannel"]["RequiresApproval"]
         ):
             return True
         else:
@@ -266,7 +266,7 @@ def fetch_and_save_content_items(ds, *args, **kwargs):
     if "client" not in kwargs or kwargs["client"] is None:
         raise Exception("You must configure a client for this operator")
 
-    Klass = ContentItem if "klass" not in kwargs else kwargs["klass"]
+    Klass = ContentItem if "klass" not in kwargs else kwargs["klass"]  # noqa N806
 
     content_item_task = Klass(kwargs)
 

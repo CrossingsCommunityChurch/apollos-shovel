@@ -309,7 +309,7 @@ def fetch_and_save_features(ds, *args, **kwargs):
     if "client" not in kwargs or kwargs["client"] is None:
         raise Exception("You must configure a client for this operator")
 
-    Klass = Feature if "klass" not in kwargs else kwargs["klass"]
+    Klass = Feature if "klass" not in kwargs else kwargs["klass"]  # noqa N806
 
     feature_task = Klass(kwargs)
 

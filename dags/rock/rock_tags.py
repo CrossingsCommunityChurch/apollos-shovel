@@ -270,7 +270,7 @@ def fetch_and_save_persona_tags(ds, *args, **kwargs):
     if "client" not in kwargs or kwargs["client"] is None:
         raise Exception("You must configure a client for this operator")
 
-    Klass = Tag if "klass" not in kwargs else kwargs["klass"]
+    Klass = Tag if "klass" not in kwargs else kwargs["klass"]  # noqa: N806
     tag_task = Klass(kwargs)
 
     tag_task.run_fetch_and_save_persona_tags()
@@ -280,7 +280,7 @@ def attach_persona_tags_to_people(ds, *args, **kwargs):
     if "client" not in kwargs or kwargs["client"] is None:
         raise Exception("You must configure a client for this operator")
 
-    Klass = Tag if "klass" not in kwargs else kwargs["klass"]
+    Klass = Tag if "klass" not in kwargs else kwargs["klass"]  # noqa: N806
     tag_task = Klass(kwargs)
 
     tag_task.run_attach_persona_tags_to_people()
@@ -292,7 +292,7 @@ def attach_persona_tags_to_content(ds, *args, **kwargs):
     if "client" not in kwargs or kwargs["client"] is None:
         raise Exception("You must configure a client for this operator")
 
-    Klass = Tag if "klass" not in kwargs else kwargs["klass"]
+    Klass = Tag if "klass" not in kwargs else kwargs["klass"]  # noqa: N806
     tag_task = Klass(kwargs)
 
     tag_task.run_attach_persona_tags_to_content()

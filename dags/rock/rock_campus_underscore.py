@@ -79,7 +79,7 @@ def fetch_and_save_campuses(ds, *args, **kwargs):
     if "client" not in kwargs or kwargs["client"] is None:
         raise Exception("You must configure a client for this operator")
 
-    Klass = Campus if "klass" not in kwargs else kwargs["klass"]
+    Klass = Campus if "klass" not in kwargs else kwargs["klass"]  # noqa N806
 
     campus_task = Klass(kwargs)
 

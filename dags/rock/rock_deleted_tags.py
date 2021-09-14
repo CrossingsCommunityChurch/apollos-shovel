@@ -18,7 +18,7 @@ def remove_deleted_tags(ds, *args, **kwargs):
         keepalives_count=5,
     )
 
-    postgresTags = pg_hook.get_records("SELECT id, origin_id FROM tag")
+    postgres_tags = pg_hook.get_records("SELECT id, origin_id FROM tag")
 
     person_entity_id = requests.get(
         f"{Variable.get(kwargs['client'] + '_rock_api')}/EntityTypes",
@@ -40,25 +40,25 @@ def remove_deleted_tags(ds, *args, **kwargs):
         headers=headers,
     )
 
-    rockTags = list(map(lambda tag: tag["Id"], r.json()))
+    rock_tags = list(map(lambda tag: tag["Id"], r.json()))
 
-    deletedTags = list(
+    deleted_tags = list(
         map(
             lambda tag: tag[0],
-            filter(lambda tag: int(tag[1]) not in rockTags, postgresTags),
+            filter(lambda tag: int(tag[1]) not in rock_tags, postgres_tags),
         )
     )
 
-    if len(deletedTags) > 0:
+    if len(deleted_tags) > 0:
         pg_hook.run(
             """
             DELETE FROM tag
             WHERE id = ANY(%s::uuid[])
         """,
             True,
-            (deletedTags,),
+            (deleted_tags,),
         )
 
-        print("Tags Deleted: " + str(len(deletedTags)))
+        print("Tags Deleted: " + str(len(deleted_tags)))
     else:
         print("No Content Tags Deleted")
