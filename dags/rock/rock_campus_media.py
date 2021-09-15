@@ -55,7 +55,11 @@ class CampusMedia:
     def map_campuses_to_images(self, campuses):
         campuses_with_images = []
         for campus in campuses:
-            if "Location" in campus and "Image" in campus["Location"]:
+            if (
+                "Location" in campus
+                and "Image" in campus["Location"]
+                and campus["Location"]["Image"]
+            ):
                 url = self.parse_asset_url(campus["Location"]["Image"]["Guid"])
                 metadata = {}
                 image_dimensions = getsizes(url)
