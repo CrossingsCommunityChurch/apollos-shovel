@@ -4,6 +4,7 @@ from rock.utilities import (
     safeget_no_case,
     safeget,
     get_delta_offset_with_content_attributes,
+    find_supported_fields,
 )
 from urllib.parse import unquote
 from psycopg2.extras import Json
@@ -96,8 +97,10 @@ class Feature:
         # This is now the only way to add scripture and text features
         # We previously supported a textFeature and
 
-        key_value_features = self.parse_key_value_attribute(
-            safeget_no_case(content, "AttributeValues", "Features", "Value") or ""
+        key_value_features = list(
+            self.parse_key_value_attribute(
+                safeget_no_case(content, "AttributeValues", "Features", "Value") or ""
+            )
         )
 
         scriptures = safeget(content, "AttributeValues", "Scriptures", "Value")
@@ -208,16 +211,16 @@ class Feature:
 
     def map_feature_to_columns(self, obj):
 
-        return (
-            self.kwargs["execution_date"],
-            self.kwargs["execution_date"],
-            obj["type"] + "Feature",
-            Json(obj["data"]),
-            obj["type"],
-            obj["parent_id"],
-            "ContentItem",
-            obj["priority"],
-        )
+        return {
+            "created_at": self.kwargs["execution_date"],
+            "updated_at": self.kwargs["execution_date"],
+            "apollos_type": obj["type"] + "Feature",
+            "data": Json(obj["data"]),
+            "type": obj["type"],
+            "parent_id": obj["parent_id"],
+            "parent_type": "ContentItem",
+            "priority": obj["priority"],
+        }
 
     def run_fetch_and_save_features(self):
         fetched_all = False
@@ -269,28 +272,21 @@ class Feature:
             features_by_item = list(map(self.get_features, features_with_postgres_data))
             flat_features_list = [item for items in features_by_item for item in items]
 
-            # "created_at", "updated_at", "apollos_type", "data", "type", "parent_id", "parent_type"
-
             insert_features = list(map(self.map_feature_to_columns, flat_features_list))
 
-            columns = (
-                "created_at",
-                "updated_at",
-                "apollos_type",
-                "data",
-                "type",
-                "parent_id",
-                "parent_type",
-                "priority",
+            data_to_insert, columns = find_supported_fields(
+                pg_hook=self.pg_hook,
+                table_name="feature",
+                insert_data=insert_features,
             )
 
             self.pg_hook.insert_rows(
-                '"feature"',
-                list(insert_features),
+                "feature",
+                data_to_insert,
                 columns,
                 0,
                 True,
-                replace_index=('"parent_id"', '"type"', '"data"'),
+                replace_index=("parent_id", "type", "data"),
             )
 
             add_apollos_ids = """

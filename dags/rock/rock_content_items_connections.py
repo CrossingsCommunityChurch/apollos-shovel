@@ -136,14 +136,15 @@ class ContentItemConnection:
                   content_item_connection.child_id AS id
            FROM
              (SELECT c.id,
-              count(cc.child_id) AS parents_count
+              count(cc.child_id) AS parents_count,
+              p.id AS p_id
               FROM content_item c
               LEFT JOIN content_item_connection cc ON c.id = cc.child_id
               LEFT JOIN content_item p ON p.id = cc.parent_id
               LEFT JOIN content_item_category p_cat ON p.content_item_category_id = p_cat.id
               WHERE p_cat.origin_id IN ({series_parent_category_ids})
-              GROUP BY c.id) AS items_and_parents
-           INNER JOIN content_item_connection ON child_id = items_and_parents.id
+              GROUP BY c.id, p.id) AS items_and_parents
+           INNER JOIN content_item_connection ON child_id = items_and_parents.id AND parent_id = items_and_parents.p_id
            WHERE parents_count = 1)
         UPDATE content_item
         SET parent_id = rows_to_update.parent_id

@@ -15,7 +15,7 @@ import requests
 def getsizes(uri):
     # get file size *and* image size (None if not known)
     try:
-        file = urllib.request.urlopen(uri.replace(" ", ""))
+        file = urllib.request.urlopen(uri.replace(" ", "%20"))
         size = file.headers.get("content-length")
         if size:
             size = int(size)

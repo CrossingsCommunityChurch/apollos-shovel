@@ -165,7 +165,6 @@ class ContentItem:
             )
             > 0
         )
-        print(is_media_item)
         if is_media_item:
             return "MediaContentItem"
 
@@ -184,7 +183,7 @@ class ContentItem:
 
         fetched_all = False
         skip = 0
-        top = 10000
+        top = 1000
         retry_count = 0
 
         while not fetched_all:
@@ -224,7 +223,6 @@ class ContentItem:
                     raise Exception(f"Rock Error: {rock_objects}")
 
                 retry_count += 1
-                skip += top
                 continue
 
             skip += top
