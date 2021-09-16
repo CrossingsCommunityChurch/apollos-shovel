@@ -91,6 +91,7 @@ def create_content_item_dag(dag_name, start_date, schedule_interval, do_backfill
         max_active_runs=1,
         schedule_interval=schedule_interval,
         default_args=default_args,
+        tags=["newspring", "content"],
     )
 
     with dag:

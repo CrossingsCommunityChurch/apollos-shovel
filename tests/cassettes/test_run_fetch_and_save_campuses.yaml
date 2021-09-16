@@ -1,0 +1,50 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization-Token:
+      - ASZjZWdf3IqrbZX9sedtB4wb
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.25.1
+    method: GET
+    uri: https://rock.apollos.app/api/Campuses?%24top=100&%24expand=CampusTypeValue%2C+Location
+  response:
+    body:
+      string: '[{"Location":{"ParentLocationId":null,"Name":"Cincinnati, OH","IsActive":true,"LocationTypeValueId":181,"Street1":"120
+        E 8th St","Street2":"","City":"Cincinnati","County":"Hamilton","State":"OH","Country":"US","PostalCode":"45202-2118","Barcode":"452022118203","AssessorParcelId":null,"StandardizeAttemptedDateTime":"2020-09-22T14:29:54.64","StandardizeAttemptedServiceType":"Smarty
+        Streets","StandardizeAttemptedResult":"RecordType:S; DPV MatchCode:Y; Precision:Zip9","StandardizedDateTime":"2020-09-22T14:29:54.64","GeocodeAttemptedDateTime":"2020-09-22T14:29:54.64","GeocodeAttemptedServiceType":"Smarty
+        Streets","GeocodeAttemptedResult":"RecordType:S; DPV MatchCode:Y; Precision:Zip9","GeocodedDateTime":"2020-09-22T14:29:54.64","IsGeoPointLocked":false,"PrinterDeviceId":null,"ImageId":71,"SoftRoomThreshold":null,"FirmRoomThreshold":null,"Latitude":39.10501,"Longitude":-84.51138,"Distance":0.0,"CreatedDateTime":null,"ModifiedDateTime":"2020-09-22T14:30:02.08","CreatedByPersonAliasId":null,"ModifiedByPersonAliasId":10,"Id":2,"Guid":"d5171d44-c801-4b7d-9335-d23fb4ea0e60","ForeignId":null,"ForeignGuid":null,"ForeignKey":null},"CampusTypeValue":{"IsSystem":true,"DefinedTypeId":83,"Order":1,"Value":"Physical","Description":"","IsActive":true,"CreatedDateTime":null,"ModifiedDateTime":null,"CreatedByPersonAliasId":null,"ModifiedByPersonAliasId":null,"Id":776,"Guid":"5a61507b-79cb-4da2-af43-6f82260203b3","ForeignId":null,"ForeignGuid":null,"ForeignKey":""},"IsSystem":false,"Name":"Main
+        Campus","Description":null,"IsActive":true,"ShortCode":"MAIN","Url":null,"LocationId":2,"PhoneNumber":null,"LeaderPersonAliasId":null,"ServiceTimes":null,"Order":0,"TimeZoneId":null,"CampusStatusValueId":773,"CampusTypeValueId":776,"TeamGroupId":295,"CreatedDateTime":null,"ModifiedDateTime":null,"CreatedByPersonAliasId":null,"ModifiedByPersonAliasId":null,"Id":1,"Guid":"76882ae3-1ce8-42a6-a2b6-8c0b29cf8cf8","ForeignId":null,"ForeignGuid":null,"ForeignKey":null},{"Location":{"ParentLocationId":null,"Name":"Cincinnati,
+        OH","IsActive":true,"LocationTypeValueId":181,"Street1":"120 E 8th St","Street2":"","City":"Cincinnati","County":"Hamilton","State":"OH","Country":"US","PostalCode":"45202-2118","Barcode":"452022118203","AssessorParcelId":null,"StandardizeAttemptedDateTime":"2020-09-22T14:29:54.64","StandardizeAttemptedServiceType":"Smarty
+        Streets","StandardizeAttemptedResult":"RecordType:S; DPV MatchCode:Y; Precision:Zip9","StandardizedDateTime":"2020-09-22T14:29:54.64","GeocodeAttemptedDateTime":"2020-09-22T14:29:54.64","GeocodeAttemptedServiceType":"Smarty
+        Streets","GeocodeAttemptedResult":"RecordType:S; DPV MatchCode:Y; Precision:Zip9","GeocodedDateTime":"2020-09-22T14:29:54.64","IsGeoPointLocked":false,"PrinterDeviceId":null,"ImageId":71,"SoftRoomThreshold":null,"FirmRoomThreshold":null,"Latitude":39.10501,"Longitude":-84.51138,"Distance":0.0,"CreatedDateTime":null,"ModifiedDateTime":"2020-09-22T14:30:02.08","CreatedByPersonAliasId":null,"ModifiedByPersonAliasId":10,"Id":2,"Guid":"d5171d44-c801-4b7d-9335-d23fb4ea0e60","ForeignId":null,"ForeignGuid":null,"ForeignKey":null},"CampusTypeValue":{"IsSystem":true,"DefinedTypeId":83,"Order":1,"Value":"Physical","Description":"","IsActive":true,"CreatedDateTime":null,"ModifiedDateTime":null,"CreatedByPersonAliasId":null,"ModifiedByPersonAliasId":null,"Id":776,"Guid":"5a61507b-79cb-4da2-af43-6f82260203b3","ForeignId":null,"ForeignGuid":null,"ForeignKey":""},"IsSystem":false,"Name":"Cincinnati","Description":"","IsActive":true,"ShortCode":"","Url":"","LocationId":2,"PhoneNumber":"","LeaderPersonAliasId":null,"ServiceTimes":"","Order":1,"TimeZoneId":"","CampusStatusValueId":773,"CampusTypeValueId":776,"TeamGroupId":296,"CreatedDateTime":"2020-09-22T14:26:00.367","ModifiedDateTime":"2020-09-22T14:26:00.367","CreatedByPersonAliasId":10,"ModifiedByPersonAliasId":10,"Id":2,"Guid":"511f3d15-1c56-41ad-b8f0-2f77422574c5","ForeignId":null,"ForeignGuid":null,"ForeignKey":null},{"Location":{"ParentLocationId":null,"Name":"Portland,
+        OR","IsActive":true,"LocationTypeValueId":181,"Street1":"22 SW 3rd Ave","Street2":null,"City":"Portland","County":"Multnomah","State":"OR","Country":"US","PostalCode":"97204-2713","Barcode":"972042713221","AssessorParcelId":null,"StandardizeAttemptedDateTime":"2020-09-23T03:00:06.19","StandardizeAttemptedServiceType":"Smarty
+        Streets","StandardizeAttemptedResult":"RecordType:S; DPV MatchCode:Y; Precision:Zip9","StandardizedDateTime":"2020-09-23T03:00:06.19","GeocodeAttemptedDateTime":"2020-09-23T03:00:06.19","GeocodeAttemptedServiceType":"Smarty
+        Streets","GeocodeAttemptedResult":"RecordType:S; DPV MatchCode:Y; Precision:Zip9","GeocodedDateTime":"2020-09-23T03:00:06.19","IsGeoPointLocked":false,"PrinterDeviceId":null,"ImageId":73,"SoftRoomThreshold":null,"FirmRoomThreshold":null,"Latitude":45.52252,"Longitude":-122.67325,"Distance":0.0,"CreatedDateTime":"2020-09-22T14:31:38.407","ModifiedDateTime":"2020-09-23T03:00:06.237","CreatedByPersonAliasId":10,"ModifiedByPersonAliasId":null,"Id":14,"Guid":"45d95d3f-d00c-48cb-82ed-89a383941926","ForeignId":null,"ForeignGuid":null,"ForeignKey":null},"CampusTypeValue":{"IsSystem":true,"DefinedTypeId":83,"Order":1,"Value":"Physical","Description":"","IsActive":true,"CreatedDateTime":null,"ModifiedDateTime":null,"CreatedByPersonAliasId":null,"ModifiedByPersonAliasId":null,"Id":776,"Guid":"5a61507b-79cb-4da2-af43-6f82260203b3","ForeignId":null,"ForeignGuid":null,"ForeignKey":""},"IsSystem":false,"Name":"Portland","Description":"","IsActive":true,"ShortCode":"","Url":"","LocationId":14,"PhoneNumber":"","LeaderPersonAliasId":null,"ServiceTimes":"","Order":2,"TimeZoneId":"","CampusStatusValueId":773,"CampusTypeValueId":776,"TeamGroupId":297,"CreatedDateTime":"2020-09-22T14:26:39.287","ModifiedDateTime":"2020-09-23T10:25:22.513","CreatedByPersonAliasId":10,"ModifiedByPersonAliasId":10,"Id":3,"Guid":"cdd47791-9dba-43f0-984a-a69ecc3a4842","ForeignId":null,"ForeignGuid":null,"ForeignKey":null},{"Location":{"ParentLocationId":null,"Name":"Cincinnati,
+        OH","IsActive":true,"LocationTypeValueId":181,"Street1":"120 E 8th St","Street2":"","City":"Cincinnati","County":"Hamilton","State":"OH","Country":"US","PostalCode":"45202-2118","Barcode":"452022118203","AssessorParcelId":null,"StandardizeAttemptedDateTime":"2020-09-22T14:29:54.64","StandardizeAttemptedServiceType":"Smarty
+        Streets","StandardizeAttemptedResult":"RecordType:S; DPV MatchCode:Y; Precision:Zip9","StandardizedDateTime":"2020-09-22T14:29:54.64","GeocodeAttemptedDateTime":"2020-09-22T14:29:54.64","GeocodeAttemptedServiceType":"Smarty
+        Streets","GeocodeAttemptedResult":"RecordType:S; DPV MatchCode:Y; Precision:Zip9","GeocodedDateTime":"2020-09-22T14:29:54.64","IsGeoPointLocked":false,"PrinterDeviceId":null,"ImageId":71,"SoftRoomThreshold":null,"FirmRoomThreshold":null,"Latitude":39.10501,"Longitude":-84.51138,"Distance":0.0,"CreatedDateTime":null,"ModifiedDateTime":"2020-09-22T14:30:02.08","CreatedByPersonAliasId":null,"ModifiedByPersonAliasId":10,"Id":2,"Guid":"d5171d44-c801-4b7d-9335-d23fb4ea0e60","ForeignId":null,"ForeignGuid":null,"ForeignKey":null},"CampusTypeValue":{"IsSystem":true,"DefinedTypeId":83,"Order":0,"Value":"Online","Description":"","IsActive":true,"CreatedDateTime":null,"ModifiedDateTime":null,"CreatedByPersonAliasId":null,"ModifiedByPersonAliasId":null,"Id":775,"Guid":"10101010-2db4-4c95-b07d-c400e412289b","ForeignId":null,"ForeignGuid":null,"ForeignKey":""},"IsSystem":false,"Name":"Remote
+        Campus","Description":"","IsActive":true,"ShortCode":"","Url":"","LocationId":2,"PhoneNumber":"","LeaderPersonAliasId":null,"ServiceTimes":"","Order":3,"TimeZoneId":"","CampusStatusValueId":773,"CampusTypeValueId":775,"TeamGroupId":298,"CreatedDateTime":"2020-10-09T11:09:32.19","ModifiedDateTime":"2020-10-09T11:25:56.843","CreatedByPersonAliasId":10,"ModifiedByPersonAliasId":10,"Id":4,"Guid":"c07ec2fe-ce02-4511-ba91-38d48f37fa2c","ForeignId":null,"ForeignGuid":null,"ForeignKey":null}]'
+    headers:
+      Cache-Control:
+      - no-cache
+      Content-Length:
+      - '7941'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 08 Sep 2021 18:12:32 GMT
+      Expires:
+      - '-1'
+      Pragma:
+      - no-cache
+    status:
+      code: 200
+      message: OK
+version: 1

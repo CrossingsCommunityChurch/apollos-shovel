@@ -31,9 +31,9 @@ def algolia():
     categories = pg_hook.get_records(
         "select id from content_item_category where title in ('Sermons', 'Sermon Series')"
     )
-    categoryList = [f"'{category[0]}'" for category in categories]
+    category_list = [f"'{category[0]}'" for category in categories]
     items = pg_hook.get_records(
-        f"select * from content_item where content_item_category_id in ({','.join(categoryList)})"
+        f"select * from content_item where content_item_category_id in ({','.join(category_list)})"
     )
     media = pg_hook.get_records("select id, url from media")
     urls = {item[0]: item[1] for item in media}

@@ -3,3 +3,10 @@
 airflow_settings.yaml
 *.pyc
 .DS_Store
+
+# local airflow files
+airflow.cfg
+airflow.db
+logs/
+venv/
+webserver_config.py

@@ -2,7 +2,7 @@ from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
 import requests
 from rock.rock_media import is_media_image
-from utilities import get_delta_offset_with_content_attributes
+from rock.utilities import get_delta_offset_with_content_attributes
 
 
 class CoverImage:
@@ -22,38 +22,38 @@ class CoverImage:
         )
 
     def update_content_item_cover_image(self, args):
-        contentItemId = str(args["ContentItemId"])
-        coverImageId = str(args["CoverImageId"])
+        content_item_id = str(args["ContentItemId"])
+        cover_image_id = str(args["CoverImageId"])
 
         return self.pg_hook.run(
             "UPDATE content_item SET cover_image_id = %s WHERE origin_id::Integer = %s",
             True,
-            (coverImageId, contentItemId),
+            (cover_image_id, content_item_id),
         )
 
     def get_best_image_id(self, images, content_item):
-        imageId = None
+        image_id = None
         if len(images) > 1:
-            squareImages = list(
+            square_images = list(
                 filter(lambda attribute: "square" in attribute["Key"].lower(), images)
             )
-            if len(squareImages) > 0:
-                imageId = squareImages[0]["Id"]
+            if len(square_images) > 0:
+                image_id = square_images[0]["Id"]
             else:
-                imageId = images[0]["Id"]
+                image_id = images[0]["Id"]
         elif len(images) == 1:
-            imageId = images[0]["Id"]
+            image_id = images[0]["Id"]
 
-        if imageId:
-            concatImageId = str(content_item["Id"]) + "/" + str(imageId)
+        if image_id:
+            concat_image_id = str(content_item["Id"]) + "/" + str(image_id)
             try:
                 return self.pg_hook.get_first(
-                    "SELECT id FROM media WHERE origin_id = %s", (concatImageId,)
+                    "SELECT id FROM media WHERE origin_id = %s", (concat_image_id,)
                 )[0]
             except:  # noqa E722
                 print("Did not find media we were expecting")
                 print(
-                    f"Looking for media with ID {str(content_item['Id'])  + '/' + str(imageId)}"
+                    f"Looking for media with ID {str(content_item['Id'])  + '/' + str(image_id)}"
                 )
                 return None
 
@@ -167,7 +167,7 @@ def fetch_and_save_cover_image(ds, *args, **kwargs):
     if "client" not in kwargs or kwargs["client"] is None:
         raise Exception("You must configure a client for this operator")
 
-    Klass = CoverImage if "klass" not in kwargs else kwargs["klass"]
+    Klass = CoverImage if "klass" not in kwargs else kwargs["klass"]  # noqa N806
 
     cover_image_task = Klass(kwargs)
 

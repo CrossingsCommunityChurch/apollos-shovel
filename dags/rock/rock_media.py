@@ -1,7 +1,7 @@
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
 from PIL import ImageFile
-from utilities import (
+from rock.utilities import (
     safeget,
     get_delta_offset,
     get_delta_offset_with_content_attributes,
@@ -15,7 +15,7 @@ import requests
 def getsizes(uri):
     # get file size *and* image size (None if not known)
     try:
-        file = urllib.request.urlopen(uri.replace(" ", ""))
+        file = urllib.request.urlopen(uri.replace(" ", "%20"))
         size = file.headers.get("content-length")
         if size:
             size = int(size)
@@ -402,7 +402,8 @@ class Media:
 def fetch_and_save_media(ds, *args, **kwargs):
     if "client" not in kwargs or kwargs["client"] is None:
         raise Exception("You must configure a client for this operator")
-    Klass = Media if "klass" not in kwargs else kwargs["klass"]
+
+    Klass = Media if "klass" not in kwargs else kwargs["klass"]  # noqa N806
 
     media_task = Klass(kwargs)
 
@@ -415,7 +416,7 @@ def fetch_and_save_channel_image(ds, *args, **kwargs):
     if "client" not in kwargs or kwargs["client"] is None:
         raise Exception("You must configure a client for this operator")
 
-    Klass = Media if "klass" not in kwargs else kwargs["klass"]
+    Klass = Media if "klass" not in kwargs else kwargs["klass"]  # noqa N806
 
     media_task = Klass(kwargs)
 

@@ -1,6 +1,6 @@
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
-from utilities import safeget, get_delta_offset
+from rock.utilities import safeget, get_delta_offset
 
 import requests
 
@@ -156,7 +156,8 @@ class People:
 def fetch_and_save_people(ds, *args, **kwargs):
     if "client" not in kwargs or kwargs["client"] is None:
         raise Exception("You must configure a client for this operator")
-    Klass = People if "klass" not in kwargs else kwargs["klass"]
+
+    Klass = People if "klass" not in kwargs else kwargs["klass"]  # noqa N806
     people_task = Klass(kwargs)
 
     people_task.run_fetch_and_save_people()

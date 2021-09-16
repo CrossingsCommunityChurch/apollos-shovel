@@ -3,7 +3,7 @@ from airflow.hooks.postgres_hook import PostgresHook
 
 from html_sanitizer import Sanitizer
 import nltk
-from utilities import (
+from rock.utilities import (
     safeget,
     get_delta_offset_with_content_attributes,
     rock_timestamp_to_utc,
@@ -54,11 +54,11 @@ class ContentItem:
             "empty": {},
             "seperate": {},
             "attributes": {
-                **{
-                    "a": {"href", "target", "rel"},
-                    "img": {"src"},
-                },
                 **dict.fromkeys(html_allowed_tags, {"class", "style"}),
+                **{
+                    "a": {"class", "style", "href", "target", "rel"},
+                    "img": {"class", "style", "src"},
+                },
             },
         }
     )
@@ -163,16 +163,15 @@ class ContentItem:
             )
             > 0
         )
-        print(is_media_item)
         if is_media_item:
             return "MediaContentItem"
 
         return "UniversalContentItem"
 
-    def get_status(self, contentItem):
+    def get_status(self, content_item):
         if (
-            contentItem["Status"] == 2
-            or not contentItem["ContentChannel"]["RequiresApproval"]
+            content_item["Status"] == 2
+            or not content_item["ContentChannel"]["RequiresApproval"]
         ):
             return True
         else:
@@ -182,7 +181,7 @@ class ContentItem:
 
         fetched_all = False
         skip = 0
-        top = 10000
+        top = 1000
         retry_count = 0
 
         while not fetched_all:
@@ -222,7 +221,6 @@ class ContentItem:
                     raise Exception(f"Rock Error: {rock_objects}")
 
                 retry_count += 1
-                skip += top
                 continue
 
             skip += top
@@ -264,7 +262,7 @@ def fetch_and_save_content_items(ds, *args, **kwargs):
     if "client" not in kwargs or kwargs["client"] is None:
         raise Exception("You must configure a client for this operator")
 
-    Klass = ContentItem if "klass" not in kwargs else kwargs["klass"]
+    Klass = ContentItem if "klass" not in kwargs else kwargs["klass"]  # noqa N806
 
     content_item_task = Klass(kwargs)
 

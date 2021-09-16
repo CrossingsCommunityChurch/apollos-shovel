@@ -1,7 +1,7 @@
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
 
-from utilities import get_delta_offset
+from rock.utilities import get_delta_offset
 import requests
 
 
@@ -136,14 +136,15 @@ class ContentItemConnection:
                   content_item_connection.child_id AS id
            FROM
              (SELECT c.id,
-              count(cc.child_id) AS parents_count
+              count(cc.child_id) AS parents_count,
+              p.id AS p_id
               FROM content_item c
               LEFT JOIN content_item_connection cc ON c.id = cc.child_id
               LEFT JOIN content_item p ON p.id = cc.parent_id
               LEFT JOIN content_item_category p_cat ON p.content_item_category_id = p_cat.id
               WHERE p_cat.origin_id IN ({series_parent_category_ids})
-              GROUP BY c.id) AS items_and_parents
-           INNER JOIN content_item_connection ON child_id = items_and_parents.id
+              GROUP BY c.id, p.id) AS items_and_parents
+           INNER JOIN content_item_connection ON child_id = items_and_parents.id AND parent_id = items_and_parents.p_id
            WHERE parents_count = 1)
         UPDATE content_item
         SET parent_id = rows_to_update.parent_id
@@ -157,7 +158,10 @@ class ContentItemConnection:
 def fetch_and_save_content_items_connections(ds, *args, **kwargs):
     if "client" not in kwargs or kwargs["client"] is None:
         raise Exception("You must configure a client for this operator")
-    Klass = ContentItemConnection if "klass" not in kwargs else kwargs["klass"]
+
+    Klass = (  # noqa N806
+        ContentItemConnection if "klass" not in kwargs else kwargs["klass"]
+    )
 
     content_item_connection_task = Klass(kwargs)
 
@@ -167,7 +171,10 @@ def fetch_and_save_content_items_connections(ds, *args, **kwargs):
 def set_content_item_parent_id(ds, *args, **kwargs):
     if "client" not in kwargs or kwargs["client"] is None:
         raise Exception("You must configure a client for this operator")
-    Klass = ContentItemConnection if "klass" not in kwargs else kwargs["klass"]
+
+    Klass = (  # noqa N806
+        ContentItemConnection if "klass" not in kwargs else kwargs["klass"]
+    )
 
     content_item_connection_task = Klass(kwargs)
 

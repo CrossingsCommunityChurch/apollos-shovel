@@ -1,6 +1,6 @@
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
-from utilities import safeget, get_delta_offset
+from rock.utilities import safeget, get_delta_offset
 
 import requests
 
@@ -161,7 +161,9 @@ def fetch_and_save_content_item_categories(ds, *args, **kwargs):
     if "client" not in kwargs or kwargs["client"] is None:
         raise Exception("You must configure a client for this operator")
 
-    Klass = ContentItemCategory if "klass" not in kwargs else kwargs["klass"]
+    Klass = (  # noqa N806
+        ContentItemCategory if "klass" not in kwargs else kwargs["klass"]
+    )
 
     category_task = Klass(kwargs)
 
@@ -171,7 +173,10 @@ def fetch_and_save_content_item_categories(ds, *args, **kwargs):
 def attach_content_item_categories(ds, *args, **kwargs):
     if "client" not in kwargs or kwargs["client"] is None:
         raise Exception("You must configure a client for this operator")
-    Klass = ContentItemCategory if "klass" not in kwargs else kwargs["klass"]
+
+    Klass = (  # noqa N806
+        ContentItemCategory if "klass" not in kwargs else kwargs["klass"]
+    )
 
     category_task = Klass(kwargs)
 

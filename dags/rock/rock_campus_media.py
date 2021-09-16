@@ -55,7 +55,11 @@ class CampusMedia:
     def map_campuses_to_images(self, campuses):
         campuses_with_images = []
         for campus in campuses:
-            if "Location" in campus and "Image" in campus["Location"]:
+            if (
+                "Location" in campus
+                and "Image" in campus["Location"]
+                and campus["Location"]["Image"]
+            ):
                 url = self.parse_asset_url(campus["Location"]["Image"]["Guid"])
                 metadata = {}
                 image_dimensions = getsizes(url)
@@ -149,7 +153,7 @@ def fetch_and_save_campus_media(ds, *args, **kwargs):
     if "client" not in kwargs or kwargs["client"] is None:
         raise Exception("You must configure a client for this operator")
 
-    Klass = CampusMedia if "klass" not in kwargs else kwargs["klass"]
+    Klass = CampusMedia if "klass" not in kwargs else kwargs["klass"]  # noqa N806
 
     campus_task = Klass(kwargs)
 

@@ -8,7 +8,7 @@ def remove_deleted_content_items(ds, *args, **kwargs):
         raise Exception("You must configure a client for this operator")
 
     headers = {"Authorization-Token": Variable.get(kwargs["client"] + "_rock_token")}
-    contentItems = []
+    content_items = []
 
     pg_connection = kwargs["client"] + "_apollos_postgres"
     pg_hook = PostgresHook(
@@ -19,7 +19,9 @@ def remove_deleted_content_items(ds, *args, **kwargs):
         keepalives_count=5,
     )
 
-    postgresContentItems = pg_hook.get_records("SELECT id, origin_id FROM content_item")
+    postgres_content_items = pg_hook.get_records(
+        "SELECT id, origin_id FROM content_item"
+    )
 
     params = {
         "$select": "Id",
@@ -32,26 +34,26 @@ def remove_deleted_content_items(ds, *args, **kwargs):
         headers=headers,
     )
 
-    contentItems = list(map(lambda contentItem: contentItem["Id"], r.json()))
+    content_items = list(map(lambda contentItem: contentItem["Id"], r.json()))
 
-    deletedContentItems = list(
+    deleted_content_items = list(
         map(
             lambda contentItem: contentItem[0],
             filter(
-                lambda contentItem: int(contentItem[1]) not in contentItems,
-                postgresContentItems,
+                lambda contentItem: int(contentItem[1]) not in content_items,
+                postgres_content_items,
             ),
         )
     )
 
-    if len(deletedContentItems) > 0:
+    if len(deleted_content_items) > 0:
         pg_hook.run(
             """
             DELETE FROM content_item
             WHERE id = ANY(%s::uuid[])
         """,
             True,
-            (deletedContentItems,),
+            (deleted_content_items,),
         )
 
         pg_hook.run(
@@ -60,8 +62,8 @@ def remove_deleted_content_items(ds, *args, **kwargs):
             WHERE "node_id" = ANY(%s::uuid[])
         """,
             True,
-            (deletedContentItems,),
+            (deleted_content_items,),
         )
-        print("Content Items Deleted: " + str(len(deletedContentItems)))
+        print("Content Items Deleted: " + str(len(deleted_content_items)))
     else:
         print("No Content Items Deleted")
