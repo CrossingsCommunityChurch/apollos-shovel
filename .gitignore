@@ -10,3 +10,4 @@ airflow.db
 logs/
 venv/
 webserver_config.py
+.vscode/settings.json

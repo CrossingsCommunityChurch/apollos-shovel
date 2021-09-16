@@ -12,6 +12,8 @@ def safeget(dct, *keys):
             return None
         except TypeError:
             return None
+        except IndexError:
+            return None
     return dct
 
 
