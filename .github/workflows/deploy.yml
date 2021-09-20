@@ -13,7 +13,7 @@ jobs:
       run: which openssl
     - name: symlink ssl?
       run: |
-        mkdir /usr/local/opt/openssl@1.1/bin/
+        mkdir -p /usr/local/opt/openssl@1.1/bin/
         ln -s $(which openssl) /usr/local/opt/openssl@1.1/bin/openssl
     - name: Setup ENV variables in Dockerfile
       run: ./add_variables_to_dockerfile.sh
