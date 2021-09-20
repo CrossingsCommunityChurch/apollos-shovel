@@ -1,5 +1,6 @@
 .git
 .env
+.env.shared
 airflow_settings.yaml
 *.pyc
 .DS_Store

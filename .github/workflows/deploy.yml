@@ -9,6 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
+    - name: Setup ENV variables in Dockerfile
+      run: ./add_variables_to_dockerfile.sh
+      env:
+        ENV_SECRET: ${{ secrets.ENV_SECRET }}
     - name: Push to registry
       uses: elgohr/Publish-Docker-Github-Action@2.6
       if: github.ref == 'refs/heads/master'
