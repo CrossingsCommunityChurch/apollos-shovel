@@ -277,6 +277,23 @@ class Feature:
                 }
             )
 
+        complete_button_feature = (
+            content["AttributeValues"].get("CompleteButtonText", {}).get("Value")
+        )
+        if complete_button_feature:
+            features.append(
+                {
+                    "type": "Button",
+                    "data": {
+                        "title": content["AttributeValues"]["CompleteButtonText"][
+                            "Value"
+                        ],
+                        "action": "COMPLETE_NODE",
+                    },
+                    "parent_id": content["node_id"],
+                }
+            )
+
         features_with_priority = list(
             map(self.map_feature_priority, enumerate(features))
         )
@@ -376,7 +393,7 @@ class Feature:
                 "$skip": skip,
                 "loadAttributes": "expanded",
                 "$orderby": "ModifiedDateTime desc",
-                "attributeKeys": "features, comments, buttontext, buttonlink, Scriptures",
+                "attributeKeys": "features, comments, buttontext, buttonlink, completeButtonText, scriptures",
             }
 
             if not self.kwargs["do_backfill"]:
