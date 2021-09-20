@@ -277,6 +277,23 @@ class Feature:
                 }
             )
 
+        complete_button_feature = (
+            content["AttributeValues"].get("CompleteButtonText", {}).get("Value")
+        )
+        if complete_button_feature:
+            features.append(
+                {
+                    "type": "Button",
+                    "data": {
+                        "title": content["AttributeValues"]["CompleteButtonText"][
+                            "Value"
+                        ],
+                        "action": "COMPLETE_NODE",
+                    },
+                    "parent_id": content["node_id"],
+                }
+            )
+
         features_with_priority = list(
             map(self.map_feature_priority, enumerate(features))
         )
