@@ -9,12 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-    - name: openssl?
-      run: which openssl
-    - name: symlink ssl?
-      run: |
-        mkdir -p /usr/local/opt/openssl@1.1/bin/
-        ln -s $(which openssl) /usr/local/opt/openssl@1.1/bin/openssl
     - name: Setup ENV variables in Dockerfile
       run: ./add_variables_to_dockerfile.sh
       env:

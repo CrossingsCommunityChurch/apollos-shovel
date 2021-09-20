@@ -1,4 +1,4 @@
-npx @apollosproject/npx @apollosproject/apollos-cli secrets -d $ENV_SECRET
+openssl enc -d -aes-256-cbc -pbkdf2 -iter 20000 -in .env.shared.enc -out .env.shared -k $ENV_SECRET
 
 # Prepends the needed `ENV` docker command
 sed -i -e 's/^./ENV &/' .env.shared
