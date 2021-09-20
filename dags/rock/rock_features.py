@@ -393,7 +393,7 @@ class Feature:
                 "$skip": skip,
                 "loadAttributes": "expanded",
                 "$orderby": "ModifiedDateTime desc",
-                "attributeKeys": "features, comments, buttontext, buttonlink, Scriptures",
+                "attributeKeys": "features, comments, buttontext, buttonlink, completeButtonText, scriptures",
             }
 
             if not self.kwargs["do_backfill"]:
