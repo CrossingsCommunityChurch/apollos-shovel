@@ -13,7 +13,7 @@ interactions:
       User-Agent:
       - python-requests/2.26.0
     method: GET
-    uri: https://rock.apollos.app/api/ContentChannelItems?%24top=10000&%24skip=0&loadAttributes=expanded&%24orderby=ModifiedDateTime+desc&attributeKeys=features%2C+comments%2C+buttontext%2C+buttonlink%2C+Scriptures
+    uri: https://rock.apollos.app/api/ContentChannelItems?%24top=10000&%24skip=0&loadAttributes=expanded&%24orderby=ModifiedDateTime+desc&attributeKeys=features%2C+comments%2C+buttontext%2C+buttonlink%2C+completeButtonText%2C+scriptures
   response:
     body:
       string: '[{
@@ -66,7 +66,7 @@ interactions:
          "IsPublic":false,
          "IsActive":true,
          "CategoryIds":[
-            
+
          ],
          "QualifierValues":{
             "ispassword":{
@@ -93,69 +93,10 @@ interactions:
             "Administrate":"The roles and/or users that have access to administrate."
          },
          "AttributeValues":{
-            
+
          },
          "Id":5393,
          "Guid":"1885877f-8529-4095-931c-657b36df99e6"
-      },
-      "scriptures":{
-         "IsSystem":false,
-         "FieldTypeId":1,
-         "EntityTypeId":208,
-         "EntityTypeQualifierColumn":"ContentChannelId",
-         "EntityTypeQualifierValue":"7",
-         "Key":"scriptures",
-         "Name":"scriptures",
-         "Description":"",
-         "Order":1000,
-         "IconCssClass":"",
-         "IsGridColumn":false,
-         "DefaultValue":"",
-         "IsMultiValue":false,
-         "IsRequired":false,
-         "AllowSearch":false,
-         "IsIndexEnabled":false,
-         "IsAnalytic":false,
-         "IsAnalyticHistory":false,
-         "EnableHistory":false,
-         "PreHtml":"",
-         "PostHtml":"",
-         "AbbreviatedName":"scriptures",
-         "ShowOnBulk":false,
-         "IsPublic":false,
-         "IsActive":true,
-         "CategoryIds":[
-            
-         ],
-         "QualifierValues":{
-            "ispassword":{
-               "Name":null,
-               "Description":null,
-               "Value":"False"
-            },
-            "maxcharacters":{
-               "Name":null,
-               "Description":null,
-               "Value":""
-            },
-            "showcountdown":{
-               "Name":null,
-               "Description":null,
-               "Value":"False"
-            }
-         },
-         "TypeId":49,
-         "TypeName":"Rock.Model.Attribute",
-         "SupportedActions":{
-            "View":"The roles and/or users that have access to view.",
-            "Edit":"The roles and/or users that have access to edit.",
-            "Administrate":"The roles and/or users that have access to administrate."
-         },
-         "AttributeValues":{
-            
-         },
-         "Id":4264,
-         "Guid":"5fc3c378-32c8-4c8d-a990-850219e51780"
       },
       "Features":{
          "IsSystem":false,
@@ -184,7 +125,7 @@ interactions:
          "IsPublic":false,
          "IsActive":true,
          "CategoryIds":[
-            
+
          ],
          "QualifierValues":{
             "allowhtml":{
@@ -226,7 +167,7 @@ interactions:
             "Administrate":"The roles and/or users that have access to administrate."
          },
          "AttributeValues":{
-            
+
          },
          "Id":4346,
          "Guid":"d5ea99d1-d7e9-474c-b457-16347b48854d"

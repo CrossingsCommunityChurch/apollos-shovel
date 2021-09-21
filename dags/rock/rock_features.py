@@ -351,7 +351,7 @@ class Feature:
                         "type": feature["type"],
                         "data": Json(feature["data"]),
                         "apollos_type": f"{feature['type']}Feature",
-                        "apollos_id": f"{feature['type']}:{feature['postgres_id']}",
+                        "apollos_id": f"{feature['type']}Feature:{feature['postgres_id']}",
                         "priority": feature["priority"],
                         "postgres_id": feature["postgres_id"],
                     },
