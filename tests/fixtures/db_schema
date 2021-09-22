@@ -850,7 +850,7 @@ CREATE UNIQUE INDEX content_items_origin_id_origin_type ON public.content_item U
 -- Name: features_parent_id_type_data; Type: INDEX; Schema: public; Owner: brxycailpjqogm
 --
 
-CREATE UNIQUE INDEX features_parent_id_type_data ON public.feature USING btree (parent_id, type, data);
+CREATE UNIQUE INDEX features_parent_id_priority_type_data ON public.feature USING btree (parent_id, priority, type, data);
 
 
 --

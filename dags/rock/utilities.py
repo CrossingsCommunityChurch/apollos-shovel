@@ -12,6 +12,8 @@ def safeget(dct, *keys):
             return None
         except TypeError:
             return None
+        except IndexError:
+            return None
     return dct
 
 
@@ -129,7 +131,7 @@ def get_delta_offset_with_content_attributes(kwargs):
 
 def get_delta_offset(kwargs):
     local_zone = pytz.timezone(
-        Variable.get(kwargs["client"] + "_rock_tz", default_var="EST")
+        Variable.get(kwargs["client"] + "_rock_tz", default_var="America/New_York")
     )
     execution_date_string = (
         kwargs["execution_date"].astimezone(local_zone).strftime("%Y-%m-%dT%H:%M:%S")

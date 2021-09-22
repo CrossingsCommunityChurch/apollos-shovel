@@ -1,0 +1,218 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization-Token:
+      - ASZjZWdf3IqrbZX9sedtB4wb
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.26.0
+    method: GET
+    uri: https://rock.apollos.app/api/ContentChannelItems?%24top=10000&%24skip=0&loadAttributes=expanded&%24orderby=ModifiedDateTime+desc&attributeKeys=features%2C+comments%2C+buttontext%2C+buttonlink%2C+completeButtonText%2C+scriptures
+  response:
+    body:
+      string: '[{
+   "ContentChannelId":7,
+   "ContentChannelTypeId":3,
+   "Title":"A Daily Reading",
+   "Content":"<p>Today''s reading is meant to be read.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>",
+   "StructuredContent":null,
+   "Priority":0,
+   "Status":1,
+   "ApprovedByPersonAliasId":null,
+   "ApprovedDateTime":null,
+   "StartDateTime":"2020-12-02T13:31:00",
+   "ExpireDateTime":null,
+   "Permalink":null,
+   "Order":0,
+   "ItemGlobalKey":"a-daily-reading",
+   "ContentChannel":null,
+   "ContentChannelType":null,
+   "CreatedDateTime":"2020-12-02T13:31:58.743",
+   "ModifiedDateTime":"2020-12-02T13:31:58.743",
+   "CreatedByPersonAliasId":10,
+   "ModifiedByPersonAliasId":10,
+   "ModifiedAuditValuesAlreadyUpdated":false,
+   "Attributes":{
+      "Scriptures":{
+         "IsSystem":false,
+         "FieldTypeId":1,
+         "EntityTypeId":208,
+         "EntityTypeQualifierColumn":"ContentChannelTypeId",
+         "EntityTypeQualifierValue":"3",
+         "Key":"Scriptures",
+         "Name":"Scripture",
+         "Description":"",
+         "Order":3,
+         "IconCssClass":"",
+         "IsGridColumn":false,
+         "DefaultValue":"",
+         "IsMultiValue":false,
+         "IsRequired":false,
+         "AllowSearch":false,
+         "IsIndexEnabled":false,
+         "IsAnalytic":false,
+         "IsAnalyticHistory":false,
+         "EnableHistory":false,
+         "PreHtml":"",
+         "PostHtml":"",
+         "AbbreviatedName":"Scripture",
+         "ShowOnBulk":false,
+         "IsPublic":false,
+         "IsActive":true,
+         "CategoryIds":[
+
+         ],
+         "QualifierValues":{
+            "ispassword":{
+               "Name":null,
+               "Description":null,
+               "Value":"False"
+            },
+            "maxcharacters":{
+               "Name":null,
+               "Description":null,
+               "Value":""
+            },
+            "showcountdown":{
+               "Name":null,
+               "Description":null,
+               "Value":"False"
+            }
+         },
+         "TypeId":49,
+         "TypeName":"Rock.Model.Attribute",
+         "SupportedActions":{
+            "View":"The roles and/or users that have access to view.",
+            "Edit":"The roles and/or users that have access to edit.",
+            "Administrate":"The roles and/or users that have access to administrate."
+         },
+         "AttributeValues":{
+
+         },
+         "Id":5393,
+         "Guid":"1885877f-8529-4095-931c-657b36df99e6"
+      },
+      "Features":{
+         "IsSystem":false,
+         "FieldTypeId":34,
+         "EntityTypeId":208,
+         "EntityTypeQualifierColumn":"ContentChannelId",
+         "EntityTypeQualifierValue":"7",
+         "Key":"Features",
+         "Name":"Features",
+         "Description":"",
+         "Order":1001,
+         "IconCssClass":"",
+         "IsGridColumn":false,
+         "DefaultValue":"",
+         "IsMultiValue":false,
+         "IsRequired":false,
+         "AllowSearch":false,
+         "IsIndexEnabled":false,
+         "IsAnalytic":false,
+         "IsAnalyticHistory":false,
+         "EnableHistory":false,
+         "PreHtml":"",
+         "PostHtml":"",
+         "AbbreviatedName":"Features",
+         "ShowOnBulk":false,
+         "IsPublic":false,
+         "IsActive":true,
+         "CategoryIds":[
+
+         ],
+         "QualifierValues":{
+            "allowhtml":{
+               "Name":null,
+               "Description":null,
+               "Value":"False"
+            },
+            "customvalues":{
+               "Name":null,
+               "Description":null,
+               "Value":""
+            },
+            "definedtype":{
+               "Name":null,
+               "Description":null,
+               "Value":""
+            },
+            "displayvaluefirst":{
+               "Name":null,
+               "Description":null,
+               "Value":"False"
+            },
+            "keyprompt":{
+               "Name":null,
+               "Description":null,
+               "Value":""
+            },
+            "valueprompt":{
+               "Name":null,
+               "Description":null,
+               "Value":""
+            }
+         },
+         "TypeId":49,
+         "TypeName":"Rock.Model.Attribute",
+         "SupportedActions":{
+            "View":"The roles and/or users that have access to view.",
+            "Edit":"The roles and/or users that have access to edit.",
+            "Administrate":"The roles and/or users that have access to administrate."
+         },
+         "AttributeValues":{
+
+         },
+         "Id":4346,
+         "Guid":"d5ea99d1-d7e9-474c-b457-16347b48854d"
+      }
+   },
+   "AttributeValues":{
+      "Scriptures":{
+         "AttributeId":5393,
+         "EntityId":54,
+         "Value":"1 John 3:16-18",
+         "ValueFormatted":"1 John 3:16-18"
+      },
+      "scriptures":{
+         "AttributeId":4264,
+         "EntityId":54,
+         "Value":"1 John 3:16-18",
+         "ValueFormatted":"1 John 3:16-18"
+      },
+      "Features":{
+         "AttributeId":4346,
+         "EntityId":54,
+         "Value":"button^here here|text^Some great text|scripture^gen 3%2C gen 5|scripture^gen 4|text^here here",
+         "ValueFormatted":"button: here here, text: Some great text, scripture: gen 3, gen 5, scripture: gen 4, text: here here"
+      }
+   },
+   "Id":54,
+   "Guid":"c283851c-7c13-45e7-8c41-be79efea6ca6",
+   "ForeignId":null,
+   "ForeignGuid":null,
+   "ForeignKey":null
+}]'
+    headers:
+      Cache-Control:
+      - no-cache
+      Content-Length:
+      - '179118'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Thu, 16 Sep 2021 14:01:21 GMT
+      Expires:
+      - '-1'
+      Pragma:
+      - no-cache
+    status:
+      code: 200
+      message: OK
+version: 1

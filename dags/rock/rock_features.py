@@ -8,6 +8,7 @@ from rock.utilities import (
 )
 from urllib.parse import unquote
 from psycopg2.extras import Json
+from functools import reduce
 
 import requests
 
@@ -29,6 +30,32 @@ class Feature:
         )
 
         self.rock_content_cache = {}
+        self.all_postgres_features = []
+
+    def fetch_all_postgres_features(self):
+        allpostgres_features = self.pg_hook.get_records(
+            """
+                SELECT content_item.origin_id, array_to_json(array_agg(fo)) AS features
+                FROM   content_item
+                INNER JOIN (SELECT feature.*,
+                                content_item.origin_id AS origin_id
+                        FROM   content_item
+                                INNER JOIN feature
+                                        ON feature.parent_id = content_item.id
+                        WHERE  feature IS NOT NULL
+                ) AS fo
+                    ON fo.parent_id = content_item.id
+                GROUP  BY ( content_item.origin_id );
+            """
+        )
+
+        def sort_features(features):
+            features.sort(key=lambda feature: feature["priority"])
+            return features
+
+        self.all_postgres_features = {
+            f"{id}": sort_features(features) for id, features in allpostgres_features
+        }
 
     def get_rock_content_item(self, origin_id):
         if origin_id in self.rock_content_cache:
@@ -49,6 +76,7 @@ class Feature:
         return r.json()
 
     def add_postgres_data_to_rock_features(self, features):
+
         if len(features) == 0:
             return []
 
@@ -81,13 +109,61 @@ class Feature:
             k, v = s.split("^")
             return {"key": k, "value": unquote(v)}
 
-        return map(string_to_dict, entries)
+        return list(map(string_to_dict, entries))
 
     # map feature priority from index
     def map_feature_priority(self, feature):
         index = feature[0]
         obj = feature[1]
         return {**obj, "priority": index}
+
+    def check_postgres_features(self, rock_content_item_features, content_item_id):
+        added_features = []
+        updated_features = []
+        deleted_features = []
+
+        pg_content_item_features = safeget(
+            self.all_postgres_features, str(content_item_id)
+        )
+
+        if pg_content_item_features:
+            pg_feature_count = len(pg_content_item_features)
+            rock_feature_count = len(rock_content_item_features)
+
+            # Get deleted features
+            if pg_feature_count > rock_feature_count:
+                deleted_slice = slice(rock_feature_count, pg_feature_count)
+                for feature in pg_content_item_features[deleted_slice]:
+                    deleted_features.append(feature["id"])
+
+            # Get added features
+            if pg_feature_count < rock_feature_count:
+                added_slice = slice(pg_feature_count, rock_feature_count)
+                for feature in rock_content_item_features[added_slice]:
+                    added_features.append(feature)
+
+            # Get updated features
+            for index, rock_feature in enumerate(rock_content_item_features):
+                postgres_feature = safeget(pg_content_item_features, index)
+                if postgres_feature and (
+                    safeget(rock_feature, "type") != safeget(postgres_feature, "type")
+                    or safeget(rock_feature, "data")
+                    != safeget(postgres_feature, "data")
+                    or safeget(rock_feature, "priority")
+                    != safeget(postgres_feature, "priority")
+                ):
+                    updated_features.append(
+                        {**rock_feature, "postgres_id": postgres_feature["id"]}
+                    )
+        else:
+            for feature in rock_content_item_features:
+                added_features.append(feature)
+
+        return {
+            "added_features": added_features,
+            "updated_features": updated_features,
+            "deleted_features": deleted_features,
+        }
 
     # def get_
     def get_features(self, content):
@@ -97,10 +173,8 @@ class Feature:
         # This is now the only way to add scripture and text features
         # We previously supported a textFeature and
 
-        key_value_features = list(
-            self.parse_key_value_attribute(
-                safeget_no_case(content, "AttributeValues", "Features", "Value") or ""
-            )
+        key_value_features = self.parse_key_value_attribute(
+            safeget_no_case(content, "AttributeValues", "Features", "Value") or ""
         )
 
         scriptures = safeget(content, "AttributeValues", "Scriptures", "Value")
@@ -203,17 +277,34 @@ class Feature:
                 }
             )
 
+        complete_button_feature = (
+            content["AttributeValues"].get("CompleteButtonText", {}).get("Value")
+        )
+        if complete_button_feature:
+            features.append(
+                {
+                    "type": "Button",
+                    "data": {
+                        "title": content["AttributeValues"]["CompleteButtonText"][
+                            "Value"
+                        ],
+                        "action": "COMPLETE_NODE",
+                    },
+                    "parent_id": content["node_id"],
+                }
+            )
+
         features_with_priority = list(
             map(self.map_feature_priority, enumerate(features))
         )
 
-        return features_with_priority
+        return self.check_postgres_features(features_with_priority, content["Id"])
 
-    def map_feature_to_columns(self, obj):
+    def map_feature_to_object(self, obj):
 
         return {
-            "created_at": self.kwargs["execution_date"],
             "updated_at": self.kwargs["execution_date"],
+            "created_at": self.kwargs["execution_date"],
             "apollos_type": obj["type"] + "Feature",
             "data": Json(obj["data"]),
             "type": obj["type"],
@@ -222,23 +313,87 @@ class Feature:
             "priority": obj["priority"],
         }
 
+    def get_action_features(self, feature_action_arrays, features):
+        for action, action_features in features.items():
+            if len(action_features) > 0:
+                for feature in action_features:
+                    feature_action_arrays[action].append(feature)
+        return feature_action_arrays
+
+    def delete_features(self, deleted_features):
+        print(f"Deleted Features: {len(deleted_features)}")
+        if len(deleted_features) > 0:
+            self.pg_hook.run(
+                """
+                    DELETE FROM feature
+                    WHERE feature.id = ANY(%s::uuid[])
+                """,
+                True,
+                (deleted_features,),
+            )
+
+    def update_features(self, updated_features):
+        print(f"Updated Features: {len(updated_features)}")
+        if len(updated_features) > 0:
+            for feature in updated_features:
+                self.pg_hook.run(
+                    """
+                    UPDATE feature
+                    SET type = %(type)s,
+                        data = %(data)s,
+                        apollos_type = %(apollos_type)s,
+                        apollos_id = %(apollos_id)s,
+                        priority = %(priority)s
+                    WHERE feature.id = %(postgres_id)s;
+                """,
+                    True,
+                    {
+                        "type": feature["type"],
+                        "data": Json(feature["data"]),
+                        "apollos_type": f"{feature['type']}Feature",
+                        "apollos_id": f"{feature['type']}Feature:{feature['postgres_id']}",
+                        "priority": feature["priority"],
+                        "postgres_id": feature["postgres_id"],
+                    },
+                )
+
+    def insert_features(self, added_features):
+        print(f"Added Features: {len(added_features)}")
+        if len(added_features) > 0:
+            # "created_at", "updated_at", "apollos_type", "data", "type", "parent_id", "parent_type"
+            insert_features = list(map(self.map_feature_to_object, added_features))
+
+            data_to_insert, columns = find_supported_fields(
+                pg_hook=self.pg_hook,
+                table_name="feature",
+                insert_data=insert_features,
+            )
+
+            self.pg_hook.insert_rows(
+                '"feature"',
+                data_to_insert,
+                columns,
+                0,
+                True,
+                replace_index=('"parent_id"', '"type"', '"data"', '"priority"'),
+            )
+
     def run_fetch_and_save_features(self):
         fetched_all = False
         skip = 0
         top = 10000
-
         retry_count = 0
 
-        while not fetched_all:
-            # Fetch people records from Rock.
+        self.fetch_all_postgres_features()
 
+        while not fetched_all:
+            # Fetch content item records from Rock.
             params = {
                 "$top": top,
                 "$skip": skip,
-                # "$select": "Id,Content",
                 "loadAttributes": "expanded",
                 "$orderby": "ModifiedDateTime desc",
-                "attributeKeys": "features, comments, buttontext, buttonlink, Scriptures",
+                "attributeKeys": "features, comments, buttontext, buttonlink, completeButtonText, scriptures",
             }
 
             if not self.kwargs["do_backfill"]:
@@ -269,36 +424,29 @@ class Feature:
             features_with_postgres_data = self.add_postgres_data_to_rock_features(
                 rock_objects
             )
-            features_by_item = list(map(self.get_features, features_with_postgres_data))
-            flat_features_list = [item for items in features_by_item for item in items]
 
-            insert_features = list(map(self.map_feature_to_columns, flat_features_list))
+            all_features = list(map(self.get_features, features_with_postgres_data))
 
-            data_to_insert, columns = find_supported_fields(
-                pg_hook=self.pg_hook,
-                table_name="feature",
-                insert_data=insert_features,
+            action_features = reduce(
+                self.get_action_features,
+                all_features,
+                {"added_features": [], "updated_features": [], "deleted_features": []},
             )
 
-            self.pg_hook.insert_rows(
-                "feature",
-                data_to_insert,
-                columns,
-                0,
-                True,
-                replace_index=("parent_id", "type", "data"),
-            )
+            self.insert_features(action_features["added_features"])
+            self.update_features(action_features["updated_features"])
+            self.delete_features(action_features["deleted_features"])
 
-            add_apollos_ids = """
+            skip += top
+            fetched_all = len(rock_objects) < top
+
+        add_apollos_ids = """
             UPDATE feature
             SET apollos_id = apollos_type || ':' || id::varchar
             WHERE apollos_id IS NULL
             """
 
-            self.pg_hook.run(add_apollos_ids)
-
-            skip += top
-            fetched_all = len(rock_objects) < top
+        self.pg_hook.run(add_apollos_ids)
 
 
 def fetch_and_save_features(ds, *args, **kwargs):
