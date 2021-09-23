@@ -1,0 +1,1596 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization-Token:
+      - ASZjZWdf3IqrbZX9sedtB4wb
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.26.0
+    method: GET
+    uri: https://rock.apollos.app/api/ContentChannelItems?%24top=1000&%24skip=0&%24expand=ContentChannel&loadAttributes=expanded&%24orderby=ModifiedDateTime+desc
+  response:
+    body:
+      string: '[
+      {
+          "ContentChannel": {
+              "ContentChannelTypeId": 6,
+              "Name": "Message Series",
+              "Description": "Channel to store information about the podcast series.",
+              "IconCssClass": "fa fa-archive",
+              "RequiresApproval": false,
+              "ItemsManuallyOrdered": false,
+              "ChildItemsManuallyOrdered": false,
+              "EnableRss": false,
+              "ChannelUrl": "",
+              "ItemUrl": "",
+              "TimeToLive": 0,
+              "ContentControlType": 0,
+              "RootImageDirectory": null,
+              "IsIndexEnabled": false,
+              "IsTaggingEnabled": false,
+              "ItemTagCategoryId": null,
+              "IsStructuredContent": false,
+              "StructuredContentToolValueId": null,
+              "CreatedDateTime": null,
+              "ModifiedDateTime": null,
+              "CreatedByPersonAliasId": null,
+              "ModifiedByPersonAliasId": null,
+              "Id": 4,
+              "Guid": "e2c598f1-d299-1baa-4873-8b679e3c1998",
+              "ForeignId": null,
+              "ForeignGuid": null,
+              "ForeignKey": null
+          },
+          "ContentChannelId": 4,
+          "ContentChannelTypeId": 6,
+          "Title": "Better Together",
+          "Content": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed dignissim euismod arcu, volutpat feugiat tortor luctus vitae. Suspendisse efficitur faucibus ante at facilisis. Phasellus in velit suscipit lectus tempus dapibus vitae eu quam. Fusce venenatis mauris non ante scelerisque, sit amet blandit odio ultricies. In sed lacinia dui, eu blandit metus. Ut ante enim, facilisis sed pretium et, posuere vitae felis. Phasellus ornare mauris mauris, eget pretium nibh imperdiet ac. Integer eleifend dui ut nisl sagittis mattis. Nunc consectetur consequat tristique. Pellentesque luctus tortor nec quam pulvinar iaculis.<br></p>",
+          "StructuredContent": null,
+          "Priority": 0,
+          "Status": 1,
+          "ApprovedByPersonAliasId": null,
+          "ApprovedDateTime": null,
+          "StartDateTime": "2016-05-15T00:00:00",
+          "ExpireDateTime": "2016-05-22T00:00:00",
+          "Permalink": null,
+          "Order": 0,
+          "ItemGlobalKey": null,
+          "CreatedDateTime": null,
+          "ModifiedDateTime": null,
+          "CreatedByPersonAliasId": null,
+          "ModifiedByPersonAliasId": null,
+          "Id": 32,
+          "Guid": "d4908cec-59c6-4dd1-ba3e-cb31587bbc5e",
+          "ForeignId": null,
+          "ForeignGuid": null,
+          "ForeignKey": null,
+          "Attributes": {},
+          "AttributeValues": {}
+      },
+      {
+        "ContentChannel": {
+            "ContentChannelTypeId": 5,
+            "Name": "Messages",
+            "Description": "Channel to store information about the podcast messages.",
+            "IconCssClass": "fa fa-video-camera",
+            "RequiresApproval": false,
+            "ItemsManuallyOrdered": false,
+            "ChildItemsManuallyOrdered": false,
+            "EnableRss": false,
+            "ChannelUrl": "",
+            "ItemUrl": "",
+            "TimeToLive": 0,
+            "ContentControlType": 0,
+            "RootImageDirectory": "",
+            "IsIndexEnabled": false,
+            "IsTaggingEnabled": false,
+            "ItemTagCategoryId": null,
+            "IsStructuredContent": false,
+            "StructuredContentToolValueId": null,
+            "CreatedDateTime": null,
+            "ModifiedDateTime": "2020-10-15T11:19:38.897",
+            "CreatedByPersonAliasId": null,
+            "ModifiedByPersonAliasId": 10,
+            "Id": 5,
+            "Guid": "0a63a427-e6b5-2284-45b3-789b293c02ea",
+            "ForeignId": null,
+            "ForeignGuid": null,
+            "ForeignKey": null
+        },
+        "ContentChannelId": 5,
+        "ContentChannelTypeId": 5,
+        "Title": "How To Make Your Marriage Better Today",
+        "Content": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed dignissim euismod arcu, volutpat feugiat tortor luctus vitae. Suspendisse efficitur faucibus ante at facilisis. Phasellus in velit suscipit lectus tempus dapibus vitae eu quam. Fusce venenatis mauris non ante scelerisque, sit amet blandit odio ultricies. In sed lacinia dui, eu blandit metus. Ut ante enim, facilisis sed pretium et, posuere vitae felis. Phasellus ornare mauris mauris, eget pretium nibh imperdiet ac. Integer eleifend dui ut nisl sagittis mattis. Nunc consectetur consequat tristique. Pellentesque luctus tortor nec quam pulvinar iaculis.<br></p>",
+        "StructuredContent": null,
+        "Priority": 0,
+        "Status": 1,
+        "ApprovedByPersonAliasId": null,
+        "ApprovedDateTime": null,
+        "StartDateTime": "2016-05-15T00:00:00",
+        "ExpireDateTime": null,
+        "Permalink": null,
+        "Order": 0,
+        "ItemGlobalKey": "how-to-make-your-marriage-better-today-1",
+        "CreatedDateTime": null,
+        "ModifiedDateTime": "2020-10-15T11:19:39.077",
+        "CreatedByPersonAliasId": null,
+        "ModifiedByPersonAliasId": 10,
+        "Id": 50,
+        "Guid": "213a0c03-981f-4d14-834b-871cd59a98e1",
+        "ForeignId": null,
+        "ForeignGuid": null,
+        "ForeignKey": null,
+        "Attributes": {
+            "comments": {
+                "IsSystem": false,
+                "FieldTypeId": 3,
+                "EntityTypeId": 208,
+                "EntityTypeQualifierColumn": "ContentChannelTypeId",
+                "EntityTypeQualifierValue": "5",
+                "Key": "comments",
+                "Name": "Comments",
+                "Description": "",
+                "Order": 0,
+                "IconCssClass": "",
+                "IsGridColumn": false,
+                "DefaultValue": "True",
+                "IsMultiValue": false,
+                "IsRequired": false,
+                "AllowSearch": false,
+                "IsIndexEnabled": false,
+                "IsAnalytic": false,
+                "IsAnalyticHistory": false,
+                "EnableHistory": false,
+                "PreHtml": "",
+                "PostHtml": "",
+                "AbbreviatedName": "Comments",
+                "ShowOnBulk": false,
+                "IsPublic": false,
+                "IsActive": true,
+                "CategoryIds": [],
+                "QualifierValues": {
+                    "BooleanControlType": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "0"
+                    },
+                    "falsetext": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "No"
+                    },
+                    "truetext": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "Yes"
+                    }
+                },
+                "TypeId": 49,
+                "TypeName": "Rock.Model.Attribute",
+                "SupportedActions": {
+                    "View": "The roles and/or users that have access to view.",
+                    "Edit": "The roles and/or users that have access to edit.",
+                    "Administrate": "The roles and/or users that have access to administrate."
+                },
+                "AttributeValues": {},
+                "Id": 4268,
+                "Guid": "3cd57f2b-df65-4d28-9de8-581444ebca77"
+            },
+            "initialPrompt": {
+                "IsSystem": false,
+                "FieldTypeId": 1,
+                "EntityTypeId": 208,
+                "EntityTypeQualifierColumn": "ContentChannelTypeId",
+                "EntityTypeQualifierValue": "5",
+                "Key": "initialPrompt",
+                "Name": "Initial Prompt",
+                "Description": "",
+                "Order": 1,
+                "IconCssClass": "",
+                "IsGridColumn": false,
+                "DefaultValue": "Write something...",
+                "IsMultiValue": false,
+                "IsRequired": false,
+                "AllowSearch": false,
+                "IsIndexEnabled": false,
+                "IsAnalytic": false,
+                "IsAnalyticHistory": false,
+                "EnableHistory": false,
+                "PreHtml": "",
+                "PostHtml": "",
+                "AbbreviatedName": "Initial Prompt",
+                "ShowOnBulk": false,
+                "IsPublic": false,
+                "IsActive": true,
+                "CategoryIds": [],
+                "QualifierValues": {
+                    "ispassword": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "False"
+                    },
+                    "maxcharacters": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": ""
+                    },
+                    "showcountdown": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "False"
+                    }
+                },
+                "TypeId": 49,
+                "TypeName": "Rock.Model.Attribute",
+                "SupportedActions": {
+                    "View": "The roles and/or users that have access to view.",
+                    "Edit": "The roles and/or users that have access to edit.",
+                    "Administrate": "The roles and/or users that have access to administrate."
+                },
+                "AttributeValues": {},
+                "Id": 4269,
+                "Guid": "f7614789-b475-46c6-85e1-0655bbefcc65"
+            },
+            "AudioLink": {
+                "IsSystem": false,
+                "FieldTypeId": 1,
+                "EntityTypeId": 208,
+                "EntityTypeQualifierColumn": "ContentChannelId",
+                "EntityTypeQualifierValue": "5",
+                "Key": "AudioLink",
+                "Name": "Audio Link",
+                "Description": "",
+                "Order": 1000,
+                "IsGridColumn": false,
+                "DefaultValue": "",
+                "IsMultiValue": false,
+                "IsRequired": false,
+                "AllowSearch": false,
+                "IsIndexEnabled": false,
+                "IsAnalytic": false,
+                "IsAnalyticHistory": false,
+                "EnableHistory": false,
+                "AbbreviatedName": "Audio Link",
+                "ShowOnBulk": false,
+                "IsPublic": false,
+                "IsActive": true,
+                "CategoryIds": [],
+                "QualifierValues": {},
+                "TypeId": 49,
+                "TypeName": "Rock.Model.Attribute",
+                "SupportedActions": {
+                    "View": "The roles and/or users that have access to view.",
+                    "Edit": "The roles and/or users that have access to edit.",
+                    "Administrate": "The roles and/or users that have access to administrate."
+                },
+                "AttributeValues": {},
+                "Id": 1925,
+                "Guid": "b9ed0214-752e-f289-43b6-9cda40c1aba9"
+            },
+            "Speaker": {
+                "IsSystem": false,
+                "FieldTypeId": 1,
+                "EntityTypeId": 208,
+                "EntityTypeQualifierColumn": "ContentChannelId",
+                "EntityTypeQualifierValue": "5",
+                "Key": "Speaker",
+                "Name": "Speaker",
+                "Description": "",
+                "Order": 1001,
+                "IsGridColumn": false,
+                "DefaultValue": "",
+                "IsMultiValue": false,
+                "IsRequired": false,
+                "AllowSearch": false,
+                "IsIndexEnabled": false,
+                "IsAnalytic": false,
+                "IsAnalyticHistory": false,
+                "EnableHistory": false,
+                "AbbreviatedName": "Speaker",
+                "ShowOnBulk": false,
+                "IsPublic": false,
+                "IsActive": true,
+                "CategoryIds": [],
+                "QualifierValues": {},
+                "TypeId": 49,
+                "TypeName": "Rock.Model.Attribute",
+                "SupportedActions": {
+                    "View": "The roles and/or users that have access to view.",
+                    "Edit": "The roles and/or users that have access to edit.",
+                    "Administrate": "The roles and/or users that have access to administrate."
+                },
+                "AttributeValues": {},
+                "Id": 1923,
+                "Guid": "9293638a-a176-d7a0-4916-b57e6cde94d2"
+            },
+            "VideoLink": {
+                "IsSystem": false,
+                "FieldTypeId": 1,
+                "EntityTypeId": 208,
+                "EntityTypeQualifierColumn": "ContentChannelId",
+                "EntityTypeQualifierValue": "5",
+                "Key": "VideoLink",
+                "Name": "Video Link",
+                "Description": "",
+                "Order": 1002,
+                "IsGridColumn": false,
+                "DefaultValue": "",
+                "IsMultiValue": false,
+                "IsRequired": false,
+                "AllowSearch": false,
+                "IsIndexEnabled": false,
+                "IsAnalytic": false,
+                "IsAnalyticHistory": false,
+                "EnableHistory": false,
+                "AbbreviatedName": "Video Link",
+                "ShowOnBulk": false,
+                "IsPublic": false,
+                "IsActive": true,
+                "CategoryIds": [],
+                "QualifierValues": {},
+                "TypeId": 49,
+                "TypeName": "Rock.Model.Attribute",
+                "SupportedActions": {
+                    "View": "The roles and/or users that have access to view.",
+                    "Edit": "The roles and/or users that have access to edit.",
+                    "Administrate": "The roles and/or users that have access to administrate."
+                },
+                "AttributeValues": {},
+                "Id": 1924,
+                "Guid": "dd8b4442-ca91-2780-4ffe-c3d97e95dfa4"
+            },
+            "VideoEmbed": {
+                "IsSystem": false,
+                "FieldTypeId": 51,
+                "EntityTypeId": 208,
+                "EntityTypeQualifierColumn": "ContentChannelId",
+                "EntityTypeQualifierValue": "5",
+                "Key": "VideoEmbed",
+                "Name": "VideoEmbed",
+                "Description": "",
+                "Order": 1003,
+                "IsGridColumn": false,
+                "DefaultValue": "",
+                "IsMultiValue": false,
+                "IsRequired": false,
+                "AllowSearch": false,
+                "IsIndexEnabled": false,
+                "IsAnalytic": false,
+                "IsAnalyticHistory": false,
+                "EnableHistory": false,
+                "AbbreviatedName": "VideoEmbed",
+                "ShowOnBulk": false,
+                "IsPublic": false,
+                "IsActive": true,
+                "CategoryIds": [],
+                "QualifierValues": {
+                    "editorHeight": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "200"
+                    },
+                    "editorMode": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "2"
+                    },
+                    "editorTheme": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "0"
+                    }
+                },
+                "TypeId": 49,
+                "TypeName": "Rock.Model.Attribute",
+                "SupportedActions": {
+                    "View": "The roles and/or users that have access to view.",
+                    "Edit": "The roles and/or users that have access to edit.",
+                    "Administrate": "The roles and/or users that have access to administrate."
+                },
+                "AttributeValues": {},
+                "Id": 1926,
+                "Guid": "0a7c6ae7-7236-029c-4487-4413921b21ee"
+            },
+            "Features": {
+                "IsSystem": false,
+                "FieldTypeId": 34,
+                "EntityTypeId": 208,
+                "EntityTypeQualifierColumn": "ContentChannelId",
+                "EntityTypeQualifierValue": "5",
+                "Key": "Features",
+                "Name": "Features",
+                "Description": "",
+                "Order": 1004,
+                "IconCssClass": "",
+                "IsGridColumn": false,
+                "DefaultValue": "",
+                "IsMultiValue": false,
+                "IsRequired": false,
+                "AllowSearch": false,
+                "IsIndexEnabled": false,
+                "IsAnalytic": false,
+                "IsAnalyticHistory": false,
+                "EnableHistory": false,
+                "PreHtml": "",
+                "PostHtml": "",
+                "AbbreviatedName": "Features",
+                "ShowOnBulk": false,
+                "IsPublic": false,
+                "IsActive": true,
+                "CategoryIds": [],
+                "QualifierValues": {
+                    "allowhtml": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "False"
+                    },
+                    "customvalues": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": ""
+                    },
+                    "definedtype": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": ""
+                    },
+                    "displayvaluefirst": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "False"
+                    },
+                    "keyprompt": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": ""
+                    },
+                    "valueprompt": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": ""
+                    }
+                },
+                "TypeId": 49,
+                "TypeName": "Rock.Model.Attribute",
+                "SupportedActions": {
+                    "View": "The roles and/or users that have access to view.",
+                    "Edit": "The roles and/or users that have access to edit.",
+                    "Administrate": "The roles and/or users that have access to administrate."
+                },
+                "AttributeValues": {},
+                "Id": 4258,
+                "Guid": "3065a0a4-de6a-49d3-956c-113e703757ac"
+            },
+            "Summary": {
+                "IsSystem": false,
+                "FieldTypeId": 1,
+                "EntityTypeId": 208,
+                "EntityTypeQualifierColumn": "ContentChannelId",
+                "EntityTypeQualifierValue": "5",
+                "Key": "Summary",
+                "Name": "Summary",
+                "Description": "",
+                "Order": 1005,
+                "IconCssClass": "",
+                "IsGridColumn": false,
+                "DefaultValue": "",
+                "IsMultiValue": false,
+                "IsRequired": false,
+                "AllowSearch": false,
+                "IsIndexEnabled": false,
+                "IsAnalytic": false,
+                "IsAnalyticHistory": false,
+                "EnableHistory": false,
+                "PreHtml": "",
+                "PostHtml": "",
+                "AbbreviatedName": "Summary",
+                "ShowOnBulk": false,
+                "IsPublic": false,
+                "IsActive": true,
+                "CategoryIds": [],
+                "QualifierValues": {
+                    "ispassword": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "False"
+                    },
+                    "maxcharacters": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": ""
+                    },
+                    "showcountdown": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "False"
+                    }
+                },
+                "TypeId": 49,
+                "TypeName": "Rock.Model.Attribute",
+                "SupportedActions": {
+                    "View": "The roles and/or users that have access to view.",
+                    "Edit": "The roles and/or users that have access to edit.",
+                    "Administrate": "The roles and/or users that have access to administrate."
+                },
+                "AttributeValues": {},
+                "Id": 4353,
+                "Guid": "5b2ec38d-894f-4ac5-88ba-2ebec1a7dcc0"
+            }
+        },
+        "AttributeValues": {
+            "comments": {
+                "AttributeId": 4268,
+                "EntityId": 50,
+                "Value": "True",
+                "ValueFormatted": "Yes"
+            },
+            "initialPrompt": {
+                "AttributeId": 4269,
+                "EntityId": 50,
+                "Value": "Write something...",
+                "ValueFormatted": "Write something..."
+            },
+            "AudioLink": {
+                "AttributeId": 1925,
+                "EntityId": 50,
+                "Value": "https://rockrms.blob.core.windows.net/sampledata/podcasting/sample.mp3",
+                "ValueFormatted": "https://rockrms.blob.core.windows.net/sampledata/podcasting/sample.mp3"
+            },
+            "Speaker": {
+                "AttributeId": 1923,
+                "EntityId": 50,
+                "Value": "Pete Foster",
+                "ValueFormatted": "Pete Foster"
+            },
+            "VideoLink": {
+                "AttributeId": 1924,
+                "EntityId": 50,
+                "Value": "https://rockrms.blob.core.windows.net/sampledata/podcasting/better-together.mp4",
+                "ValueFormatted": "https://rockrms.blob.core.windows.net/sampledata/podcasting/better-together.mp4"
+            },
+            "VideoEmbed": {
+                "AttributeId": 1926,
+                "EntityId": 50,
+                "Value": "<script src=\"//fast.wistia.com/embed/medias/f6izy21kgo.jsonp\" async></script><script src=\"//fast.wistia.com/assets/external/E-v1.js\" async></script><div class=\"wistia_responsive_padding\" style=\"padding:56.25% 0 0 0;position:relative;\"><div class=\"wistia_responsive_wrapper\" style=\"height:100%;left:0;position:absolute;top:0;width:100%;\"><div class=\"wistia_embed wistia_async_f6izy21kgo videoFoam=true\" style=\"height:100%;width:100%\">&nbsp;</div></div></div>",
+                "ValueFormatted": "<script src=\"//fast.wistia.com/embed/medias/f6izy21kgo.jsonp\" async></script><script src=\"//fast.wistia.com/assets/external/E-v1.js\" async></script><div class=\"wistia_responsive_padding\" style=\"padding:56.25% 0 0 0;position:relative;\"><div class=\"wistia_responsive_wrapper\" style=\"height:100%;left:0;position:absolute;top:0;width:100%;\"><div class=\"wistia_embed wistia_async_f6izy21kgo videoFoam=true\" style=\"height:100%;width:100%\">&nbsp;</div></div></div>"
+            },
+            "Features": {
+                "AttributeId": 4258,
+                "EntityId": 50,
+                "Value": "",
+                "ValueFormatted": ""
+            },
+            "Summary": {
+                "AttributeId": 4353,
+                "EntityId": 50,
+                "Value": "",
+                "ValueFormatted": ""
+            }
+        }
+      },
+      {
+        "ContentChannel": {
+            "ContentChannelTypeId": 5,
+            "Name": "Messages",
+            "Description": "Channel to store information about the podcast messages.",
+            "IconCssClass": "fa fa-video-camera",
+            "RequiresApproval": false,
+            "ItemsManuallyOrdered": false,
+            "ChildItemsManuallyOrdered": false,
+            "EnableRss": false,
+            "ChannelUrl": "",
+            "ItemUrl": "",
+            "TimeToLive": 0,
+            "ContentControlType": 0,
+            "RootImageDirectory": "",
+            "IsIndexEnabled": false,
+            "IsTaggingEnabled": false,
+            "ItemTagCategoryId": null,
+            "IsStructuredContent": false,
+            "StructuredContentToolValueId": null,
+            "CreatedDateTime": null,
+            "ModifiedDateTime": "2020-10-15T11:19:38.897",
+            "CreatedByPersonAliasId": null,
+            "ModifiedByPersonAliasId": 10,
+            "Id": 5,
+            "Guid": "0a63a427-e6b5-2284-45b3-789b293c02ea",
+            "ForeignId": null,
+            "ForeignGuid": null,
+            "ForeignKey": null
+        },
+        "ContentChannelId": 5,
+        "ContentChannelTypeId": 5,
+        "Title": "The Secret That Could Cost You Your Marriage",
+        "Content": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed dignissim euismod arcu, volutpat feugiat tortor luctus vitae. Suspendisse efficitur faucibus ante at facilisis. Phasellus in velit suscipit lectus tempus dapibus vitae eu quam. Fusce venenatis mauris non ante scelerisque, sit amet blandit odio ultricies. In sed lacinia dui, eu blandit metus. Ut ante enim, facilisis sed pretium et, posuere vitae felis. Phasellus ornare mauris mauris, eget pretium nibh imperdiet ac. Integer eleifend dui ut nisl sagittis mattis. Nunc consectetur consequat tristique. Pellentesque luctus tortor nec quam pulvinar iaculis.<br></p>",
+        "StructuredContent": null,
+        "Priority": 0,
+        "Status": 1,
+        "ApprovedByPersonAliasId": null,
+        "ApprovedDateTime": null,
+        "StartDateTime": "2016-05-22T00:00:00",
+        "ExpireDateTime": null,
+        "Permalink": null,
+        "Order": 0,
+        "ItemGlobalKey": "the-secret-that-could-cost-you-your-marriage-1",
+        "CreatedDateTime": null,
+        "ModifiedDateTime": "2020-10-15T11:19:39.077",
+        "CreatedByPersonAliasId": null,
+        "ModifiedByPersonAliasId": 10,
+        "Id": 51,
+        "Guid": "0caa1ba9-c7d8-46a1-9891-e69653775f8e",
+        "ForeignId": null,
+        "ForeignGuid": null,
+        "ForeignKey": null,
+        "Attributes": {
+            "comments": {
+                "IsSystem": false,
+                "FieldTypeId": 3,
+                "EntityTypeId": 208,
+                "EntityTypeQualifierColumn": "ContentChannelTypeId",
+                "EntityTypeQualifierValue": "5",
+                "Key": "comments",
+                "Name": "Comments",
+                "Description": "",
+                "Order": 0,
+                "IconCssClass": "",
+                "IsGridColumn": false,
+                "DefaultValue": "True",
+                "IsMultiValue": false,
+                "IsRequired": false,
+                "AllowSearch": false,
+                "IsIndexEnabled": false,
+                "IsAnalytic": false,
+                "IsAnalyticHistory": false,
+                "EnableHistory": false,
+                "PreHtml": "",
+                "PostHtml": "",
+                "AbbreviatedName": "Comments",
+                "ShowOnBulk": false,
+                "IsPublic": false,
+                "IsActive": true,
+                "CategoryIds": [],
+                "QualifierValues": {
+                    "BooleanControlType": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "0"
+                    },
+                    "falsetext": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "No"
+                    },
+                    "truetext": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "Yes"
+                    }
+                },
+                "TypeId": 49,
+                "TypeName": "Rock.Model.Attribute",
+                "SupportedActions": {
+                    "View": "The roles and/or users that have access to view.",
+                    "Edit": "The roles and/or users that have access to edit.",
+                    "Administrate": "The roles and/or users that have access to administrate."
+                },
+                "AttributeValues": {},
+                "Id": 4268,
+                "Guid": "3cd57f2b-df65-4d28-9de8-581444ebca77"
+            },
+            "initialPrompt": {
+                "IsSystem": false,
+                "FieldTypeId": 1,
+                "EntityTypeId": 208,
+                "EntityTypeQualifierColumn": "ContentChannelTypeId",
+                "EntityTypeQualifierValue": "5",
+                "Key": "initialPrompt",
+                "Name": "Initial Prompt",
+                "Description": "",
+                "Order": 1,
+                "IconCssClass": "",
+                "IsGridColumn": false,
+                "DefaultValue": "Write something...",
+                "IsMultiValue": false,
+                "IsRequired": false,
+                "AllowSearch": false,
+                "IsIndexEnabled": false,
+                "IsAnalytic": false,
+                "IsAnalyticHistory": false,
+                "EnableHistory": false,
+                "PreHtml": "",
+                "PostHtml": "",
+                "AbbreviatedName": "Initial Prompt",
+                "ShowOnBulk": false,
+                "IsPublic": false,
+                "IsActive": true,
+                "CategoryIds": [],
+                "QualifierValues": {
+                    "ispassword": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "False"
+                    },
+                    "maxcharacters": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": ""
+                    },
+                    "showcountdown": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "False"
+                    }
+                },
+                "TypeId": 49,
+                "TypeName": "Rock.Model.Attribute",
+                "SupportedActions": {
+                    "View": "The roles and/or users that have access to view.",
+                    "Edit": "The roles and/or users that have access to edit.",
+                    "Administrate": "The roles and/or users that have access to administrate."
+                },
+                "AttributeValues": {},
+                "Id": 4269,
+                "Guid": "f7614789-b475-46c6-85e1-0655bbefcc65"
+            },
+            "AudioLink": {
+                "IsSystem": false,
+                "FieldTypeId": 1,
+                "EntityTypeId": 208,
+                "EntityTypeQualifierColumn": "ContentChannelId",
+                "EntityTypeQualifierValue": "5",
+                "Key": "AudioLink",
+                "Name": "Audio Link",
+                "Description": "",
+                "Order": 1000,
+                "IsGridColumn": false,
+                "DefaultValue": "",
+                "IsMultiValue": false,
+                "IsRequired": false,
+                "AllowSearch": false,
+                "IsIndexEnabled": false,
+                "IsAnalytic": false,
+                "IsAnalyticHistory": false,
+                "EnableHistory": false,
+                "AbbreviatedName": "Audio Link",
+                "ShowOnBulk": false,
+                "IsPublic": false,
+                "IsActive": true,
+                "CategoryIds": [],
+                "QualifierValues": {},
+                "TypeId": 49,
+                "TypeName": "Rock.Model.Attribute",
+                "SupportedActions": {
+                    "View": "The roles and/or users that have access to view.",
+                    "Edit": "The roles and/or users that have access to edit.",
+                    "Administrate": "The roles and/or users that have access to administrate."
+                },
+                "AttributeValues": {},
+                "Id": 1925,
+                "Guid": "b9ed0214-752e-f289-43b6-9cda40c1aba9"
+            },
+            "Speaker": {
+                "IsSystem": false,
+                "FieldTypeId": 1,
+                "EntityTypeId": 208,
+                "EntityTypeQualifierColumn": "ContentChannelId",
+                "EntityTypeQualifierValue": "5",
+                "Key": "Speaker",
+                "Name": "Speaker",
+                "Description": "",
+                "Order": 1001,
+                "IsGridColumn": false,
+                "DefaultValue": "",
+                "IsMultiValue": false,
+                "IsRequired": false,
+                "AllowSearch": false,
+                "IsIndexEnabled": false,
+                "IsAnalytic": false,
+                "IsAnalyticHistory": false,
+                "EnableHistory": false,
+                "AbbreviatedName": "Speaker",
+                "ShowOnBulk": false,
+                "IsPublic": false,
+                "IsActive": true,
+                "CategoryIds": [],
+                "QualifierValues": {},
+                "TypeId": 49,
+                "TypeName": "Rock.Model.Attribute",
+                "SupportedActions": {
+                    "View": "The roles and/or users that have access to view.",
+                    "Edit": "The roles and/or users that have access to edit.",
+                    "Administrate": "The roles and/or users that have access to administrate."
+                },
+                "AttributeValues": {},
+                "Id": 1923,
+                "Guid": "9293638a-a176-d7a0-4916-b57e6cde94d2"
+            },
+            "VideoLink": {
+                "IsSystem": false,
+                "FieldTypeId": 1,
+                "EntityTypeId": 208,
+                "EntityTypeQualifierColumn": "ContentChannelId",
+                "EntityTypeQualifierValue": "5",
+                "Key": "VideoLink",
+                "Name": "Video Link",
+                "Description": "",
+                "Order": 1002,
+                "IsGridColumn": false,
+                "DefaultValue": "",
+                "IsMultiValue": false,
+                "IsRequired": false,
+                "AllowSearch": false,
+                "IsIndexEnabled": false,
+                "IsAnalytic": false,
+                "IsAnalyticHistory": false,
+                "EnableHistory": false,
+                "AbbreviatedName": "Video Link",
+                "ShowOnBulk": false,
+                "IsPublic": false,
+                "IsActive": true,
+                "CategoryIds": [],
+                "QualifierValues": {},
+                "TypeId": 49,
+                "TypeName": "Rock.Model.Attribute",
+                "SupportedActions": {
+                    "View": "The roles and/or users that have access to view.",
+                    "Edit": "The roles and/or users that have access to edit.",
+                    "Administrate": "The roles and/or users that have access to administrate."
+                },
+                "AttributeValues": {},
+                "Id": 1924,
+                "Guid": "dd8b4442-ca91-2780-4ffe-c3d97e95dfa4"
+            },
+            "VideoEmbed": {
+                "IsSystem": false,
+                "FieldTypeId": 51,
+                "EntityTypeId": 208,
+                "EntityTypeQualifierColumn": "ContentChannelId",
+                "EntityTypeQualifierValue": "5",
+                "Key": "VideoEmbed",
+                "Name": "VideoEmbed",
+                "Description": "",
+                "Order": 1003,
+                "IsGridColumn": false,
+                "DefaultValue": "",
+                "IsMultiValue": false,
+                "IsRequired": false,
+                "AllowSearch": false,
+                "IsIndexEnabled": false,
+                "IsAnalytic": false,
+                "IsAnalyticHistory": false,
+                "EnableHistory": false,
+                "AbbreviatedName": "VideoEmbed",
+                "ShowOnBulk": false,
+                "IsPublic": false,
+                "IsActive": true,
+                "CategoryIds": [],
+                "QualifierValues": {
+                    "editorHeight": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "200"
+                    },
+                    "editorMode": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "2"
+                    },
+                    "editorTheme": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "0"
+                    }
+                },
+                "TypeId": 49,
+                "TypeName": "Rock.Model.Attribute",
+                "SupportedActions": {
+                    "View": "The roles and/or users that have access to view.",
+                    "Edit": "The roles and/or users that have access to edit.",
+                    "Administrate": "The roles and/or users that have access to administrate."
+                },
+                "AttributeValues": {},
+                "Id": 1926,
+                "Guid": "0a7c6ae7-7236-029c-4487-4413921b21ee"
+            },
+            "Features": {
+                "IsSystem": false,
+                "FieldTypeId": 34,
+                "EntityTypeId": 208,
+                "EntityTypeQualifierColumn": "ContentChannelId",
+                "EntityTypeQualifierValue": "5",
+                "Key": "Features",
+                "Name": "Features",
+                "Description": "",
+                "Order": 1004,
+                "IconCssClass": "",
+                "IsGridColumn": false,
+                "DefaultValue": "",
+                "IsMultiValue": false,
+                "IsRequired": false,
+                "AllowSearch": false,
+                "IsIndexEnabled": false,
+                "IsAnalytic": false,
+                "IsAnalyticHistory": false,
+                "EnableHistory": false,
+                "PreHtml": "",
+                "PostHtml": "",
+                "AbbreviatedName": "Features",
+                "ShowOnBulk": false,
+                "IsPublic": false,
+                "IsActive": true,
+                "CategoryIds": [],
+                "QualifierValues": {
+                    "allowhtml": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "False"
+                    },
+                    "customvalues": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": ""
+                    },
+                    "definedtype": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": ""
+                    },
+                    "displayvaluefirst": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "False"
+                    },
+                    "keyprompt": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": ""
+                    },
+                    "valueprompt": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": ""
+                    }
+                },
+                "TypeId": 49,
+                "TypeName": "Rock.Model.Attribute",
+                "SupportedActions": {
+                    "View": "The roles and/or users that have access to view.",
+                    "Edit": "The roles and/or users that have access to edit.",
+                    "Administrate": "The roles and/or users that have access to administrate."
+                },
+                "AttributeValues": {},
+                "Id": 4258,
+                "Guid": "3065a0a4-de6a-49d3-956c-113e703757ac"
+            },
+            "Summary": {
+                "IsSystem": false,
+                "FieldTypeId": 1,
+                "EntityTypeId": 208,
+                "EntityTypeQualifierColumn": "ContentChannelId",
+                "EntityTypeQualifierValue": "5",
+                "Key": "Summary",
+                "Name": "Summary",
+                "Description": "",
+                "Order": 1005,
+                "IconCssClass": "",
+                "IsGridColumn": false,
+                "DefaultValue": "",
+                "IsMultiValue": false,
+                "IsRequired": false,
+                "AllowSearch": false,
+                "IsIndexEnabled": false,
+                "IsAnalytic": false,
+                "IsAnalyticHistory": false,
+                "EnableHistory": false,
+                "PreHtml": "",
+                "PostHtml": "",
+                "AbbreviatedName": "Summary",
+                "ShowOnBulk": false,
+                "IsPublic": false,
+                "IsActive": true,
+                "CategoryIds": [],
+                "QualifierValues": {
+                    "ispassword": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "False"
+                    },
+                    "maxcharacters": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": ""
+                    },
+                    "showcountdown": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "False"
+                    }
+                },
+                "TypeId": 49,
+                "TypeName": "Rock.Model.Attribute",
+                "SupportedActions": {
+                    "View": "The roles and/or users that have access to view.",
+                    "Edit": "The roles and/or users that have access to edit.",
+                    "Administrate": "The roles and/or users that have access to administrate."
+                },
+                "AttributeValues": {},
+                "Id": 4353,
+                "Guid": "5b2ec38d-894f-4ac5-88ba-2ebec1a7dcc0"
+            }
+        },
+        "AttributeValues": {
+            "comments": {
+                "AttributeId": 4268,
+                "EntityId": 51,
+                "Value": "True",
+                "ValueFormatted": "Yes"
+            },
+            "initialPrompt": {
+                "AttributeId": 4269,
+                "EntityId": 51,
+                "Value": "Write something...",
+                "ValueFormatted": "Write something..."
+            },
+            "AudioLink": {
+                "AttributeId": 1925,
+                "EntityId": 51,
+                "Value": "https://rockrms.blob.core.windows.net/sampledata/podcasting/sample.mp3",
+                "ValueFormatted": "https://rockrms.blob.core.windows.net/sampledata/podcasting/sample.mp3"
+            },
+            "Speaker": {
+                "AttributeId": 1923,
+                "EntityId": 51,
+                "Value": "Pete Foster",
+                "ValueFormatted": "Pete Foster"
+            },
+            "VideoLink": {
+                "AttributeId": 1924,
+                "EntityId": 51,
+                "Value": "https://rockrms.blob.core.windows.net/sampledata/podcasting/better-together.mp4",
+                "ValueFormatted": "https://rockrms.blob.core.windows.net/sampledata/podcasting/better-together.mp4"
+            },
+            "VideoEmbed": {
+                "AttributeId": 1926,
+                "EntityId": 51,
+                "Value": "<script src=\"//fast.wistia.com/embed/medias/f6izy21kgo.jsonp\" async></script><script src=\"//fast.wistia.com/assets/external/E-v1.js\" async></script><div class=\"wistia_responsive_padding\" style=\"padding:56.25% 0 0 0;position:relative;\"><div class=\"wistia_responsive_wrapper\" style=\"height:100%;left:0;position:absolute;top:0;width:100%;\"><div class=\"wistia_embed wistia_async_f6izy21kgo videoFoam=true\" style=\"height:100%;width:100%\">&nbsp;</div></div></div>",
+                "ValueFormatted": "<script src=\"//fast.wistia.com/embed/medias/f6izy21kgo.jsonp\" async></script><script src=\"//fast.wistia.com/assets/external/E-v1.js\" async></script><div class=\"wistia_responsive_padding\" style=\"padding:56.25% 0 0 0;position:relative;\"><div class=\"wistia_responsive_wrapper\" style=\"height:100%;left:0;position:absolute;top:0;width:100%;\"><div class=\"wistia_embed wistia_async_f6izy21kgo videoFoam=true\" style=\"height:100%;width:100%\">&nbsp;</div></div></div>"
+            },
+            "Features": {
+                "AttributeId": 4258,
+                "EntityId": 51,
+                "Value": "",
+                "ValueFormatted": ""
+            },
+            "Summary": {
+                "AttributeId": 4353,
+                "EntityId": 51,
+                "Value": "",
+                "ValueFormatted": ""
+            }
+        }
+      },
+      {
+        "ContentChannel": {
+            "ContentChannelTypeId": 5,
+            "Name": "Messages",
+            "Description": "Channel to store information about the podcast messages.",
+            "IconCssClass": "fa fa-video-camera",
+            "RequiresApproval": false,
+            "ItemsManuallyOrdered": false,
+            "ChildItemsManuallyOrdered": false,
+            "EnableRss": false,
+            "ChannelUrl": "",
+            "ItemUrl": "",
+            "TimeToLive": 0,
+            "ContentControlType": 0,
+            "RootImageDirectory": "",
+            "IsIndexEnabled": false,
+            "IsTaggingEnabled": false,
+            "ItemTagCategoryId": null,
+            "IsStructuredContent": false,
+            "StructuredContentToolValueId": null,
+            "CreatedDateTime": null,
+            "ModifiedDateTime": "2020-10-15T11:19:38.897",
+            "CreatedByPersonAliasId": null,
+            "ModifiedByPersonAliasId": 10,
+            "Id": 5,
+            "Guid": "0a63a427-e6b5-2284-45b3-789b293c02ea",
+            "ForeignId": null,
+            "ForeignGuid": null,
+            "ForeignKey": null
+        },
+        "ContentChannelId": 5,
+        "ContentChannelTypeId": 5,
+        "Title": "The Lord Speaks",
+        "Content": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed dignissim euismod arcu, volutpat feugiat tortor luctus vitae. Suspendisse efficitur faucibus ante at facilisis. Phasellus in velit suscipit lectus tempus dapibus vitae eu quam. Fusce venenatis mauris non ante scelerisque, sit amet blandit odio ultricies. In sed lacinia dui, eu blandit metus. Ut ante enim, facilisis sed pretium et, posuere vitae felis. Phasellus ornare mauris mauris, eget pretium nibh imperdiet ac. Integer eleifend dui ut nisl sagittis mattis. Nunc consectetur consequat tristique. Pellentesque luctus tortor nec quam pulvinar iaculis.<br></p>",
+        "StructuredContent": null,
+        "Priority": 0,
+        "Status": 1,
+        "ApprovedByPersonAliasId": null,
+        "ApprovedDateTime": null,
+        "StartDateTime": "2020-11-16T00:00:00",
+        "ExpireDateTime": null,
+        "Permalink": null,
+        "Order": 0,
+        "ItemGlobalKey": "the-lord-speaks",
+        "CreatedDateTime": "2020-11-16T14:54:35.633",
+        "ModifiedDateTime": "2020-11-16T14:54:35.633",
+        "CreatedByPersonAliasId": 10,
+        "ModifiedByPersonAliasId": 10,
+        "Id": 53,
+        "Guid": "edcd743d-c571-46ae-9f24-dd8122b3f41a",
+        "ForeignId": null,
+        "ForeignGuid": null,
+        "ForeignKey": null,
+        "Attributes": {
+            "comments": {
+                "IsSystem": false,
+                "FieldTypeId": 3,
+                "EntityTypeId": 208,
+                "EntityTypeQualifierColumn": "ContentChannelTypeId",
+                "EntityTypeQualifierValue": "5",
+                "Key": "comments",
+                "Name": "Comments",
+                "Description": "",
+                "Order": 0,
+                "IconCssClass": "",
+                "IsGridColumn": false,
+                "DefaultValue": "True",
+                "IsMultiValue": false,
+                "IsRequired": false,
+                "AllowSearch": false,
+                "IsIndexEnabled": false,
+                "IsAnalytic": false,
+                "IsAnalyticHistory": false,
+                "EnableHistory": false,
+                "PreHtml": "",
+                "PostHtml": "",
+                "AbbreviatedName": "Comments",
+                "ShowOnBulk": false,
+                "IsPublic": false,
+                "IsActive": true,
+                "CategoryIds": [],
+                "QualifierValues": {
+                    "BooleanControlType": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "0"
+                    },
+                    "falsetext": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "No"
+                    },
+                    "truetext": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "Yes"
+                    }
+                },
+                "TypeId": 49,
+                "TypeName": "Rock.Model.Attribute",
+                "SupportedActions": {
+                    "View": "The roles and/or users that have access to view.",
+                    "Edit": "The roles and/or users that have access to edit.",
+                    "Administrate": "The roles and/or users that have access to administrate."
+                },
+                "AttributeValues": {},
+                "Id": 4268,
+                "Guid": "3cd57f2b-df65-4d28-9de8-581444ebca77"
+            },
+            "initialPrompt": {
+                "IsSystem": false,
+                "FieldTypeId": 1,
+                "EntityTypeId": 208,
+                "EntityTypeQualifierColumn": "ContentChannelTypeId",
+                "EntityTypeQualifierValue": "5",
+                "Key": "initialPrompt",
+                "Name": "Initial Prompt",
+                "Description": "",
+                "Order": 1,
+                "IconCssClass": "",
+                "IsGridColumn": false,
+                "DefaultValue": "Write something...",
+                "IsMultiValue": false,
+                "IsRequired": false,
+                "AllowSearch": false,
+                "IsIndexEnabled": false,
+                "IsAnalytic": false,
+                "IsAnalyticHistory": false,
+                "EnableHistory": false,
+                "PreHtml": "",
+                "PostHtml": "",
+                "AbbreviatedName": "Initial Prompt",
+                "ShowOnBulk": false,
+                "IsPublic": false,
+                "IsActive": true,
+                "CategoryIds": [],
+                "QualifierValues": {
+                    "ispassword": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "False"
+                    },
+                    "maxcharacters": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": ""
+                    },
+                    "showcountdown": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "False"
+                    }
+                },
+                "TypeId": 49,
+                "TypeName": "Rock.Model.Attribute",
+                "SupportedActions": {
+                    "View": "The roles and/or users that have access to view.",
+                    "Edit": "The roles and/or users that have access to edit.",
+                    "Administrate": "The roles and/or users that have access to administrate."
+                },
+                "AttributeValues": {},
+                "Id": 4269,
+                "Guid": "f7614789-b475-46c6-85e1-0655bbefcc65"
+            },
+            "AudioLink": {
+                "IsSystem": false,
+                "FieldTypeId": 1,
+                "EntityTypeId": 208,
+                "EntityTypeQualifierColumn": "ContentChannelId",
+                "EntityTypeQualifierValue": "5",
+                "Key": "AudioLink",
+                "Name": "Audio Link",
+                "Description": "",
+                "Order": 1000,
+                "IsGridColumn": false,
+                "DefaultValue": "",
+                "IsMultiValue": false,
+                "IsRequired": false,
+                "AllowSearch": false,
+                "IsIndexEnabled": false,
+                "IsAnalytic": false,
+                "IsAnalyticHistory": false,
+                "EnableHistory": false,
+                "AbbreviatedName": "Audio Link",
+                "ShowOnBulk": false,
+                "IsPublic": false,
+                "IsActive": true,
+                "CategoryIds": [],
+                "QualifierValues": {},
+                "TypeId": 49,
+                "TypeName": "Rock.Model.Attribute",
+                "SupportedActions": {
+                    "View": "The roles and/or users that have access to view.",
+                    "Edit": "The roles and/or users that have access to edit.",
+                    "Administrate": "The roles and/or users that have access to administrate."
+                },
+                "AttributeValues": {},
+                "Id": 1925,
+                "Guid": "b9ed0214-752e-f289-43b6-9cda40c1aba9"
+            },
+            "Speaker": {
+                "IsSystem": false,
+                "FieldTypeId": 1,
+                "EntityTypeId": 208,
+                "EntityTypeQualifierColumn": "ContentChannelId",
+                "EntityTypeQualifierValue": "5",
+                "Key": "Speaker",
+                "Name": "Speaker",
+                "Description": "",
+                "Order": 1001,
+                "IsGridColumn": false,
+                "DefaultValue": "",
+                "IsMultiValue": false,
+                "IsRequired": false,
+                "AllowSearch": false,
+                "IsIndexEnabled": false,
+                "IsAnalytic": false,
+                "IsAnalyticHistory": false,
+                "EnableHistory": false,
+                "AbbreviatedName": "Speaker",
+                "ShowOnBulk": false,
+                "IsPublic": false,
+                "IsActive": true,
+                "CategoryIds": [],
+                "QualifierValues": {},
+                "TypeId": 49,
+                "TypeName": "Rock.Model.Attribute",
+                "SupportedActions": {
+                    "View": "The roles and/or users that have access to view.",
+                    "Edit": "The roles and/or users that have access to edit.",
+                    "Administrate": "The roles and/or users that have access to administrate."
+                },
+                "AttributeValues": {},
+                "Id": 1923,
+                "Guid": "9293638a-a176-d7a0-4916-b57e6cde94d2"
+            },
+            "VideoLink": {
+                "IsSystem": false,
+                "FieldTypeId": 1,
+                "EntityTypeId": 208,
+                "EntityTypeQualifierColumn": "ContentChannelId",
+                "EntityTypeQualifierValue": "5",
+                "Key": "VideoLink",
+                "Name": "Video Link",
+                "Description": "",
+                "Order": 1002,
+                "IsGridColumn": false,
+                "DefaultValue": "",
+                "IsMultiValue": false,
+                "IsRequired": false,
+                "AllowSearch": false,
+                "IsIndexEnabled": false,
+                "IsAnalytic": false,
+                "IsAnalyticHistory": false,
+                "EnableHistory": false,
+                "AbbreviatedName": "Video Link",
+                "ShowOnBulk": false,
+                "IsPublic": false,
+                "IsActive": true,
+                "CategoryIds": [],
+                "QualifierValues": {},
+                "TypeId": 49,
+                "TypeName": "Rock.Model.Attribute",
+                "SupportedActions": {
+                    "View": "The roles and/or users that have access to view.",
+                    "Edit": "The roles and/or users that have access to edit.",
+                    "Administrate": "The roles and/or users that have access to administrate."
+                },
+                "AttributeValues": {},
+                "Id": 1924,
+                "Guid": "dd8b4442-ca91-2780-4ffe-c3d97e95dfa4"
+            },
+            "VideoEmbed": {
+                "IsSystem": false,
+                "FieldTypeId": 51,
+                "EntityTypeId": 208,
+                "EntityTypeQualifierColumn": "ContentChannelId",
+                "EntityTypeQualifierValue": "5",
+                "Key": "VideoEmbed",
+                "Name": "VideoEmbed",
+                "Description": "",
+                "Order": 1003,
+                "IsGridColumn": false,
+                "DefaultValue": "",
+                "IsMultiValue": false,
+                "IsRequired": false,
+                "AllowSearch": false,
+                "IsIndexEnabled": false,
+                "IsAnalytic": false,
+                "IsAnalyticHistory": false,
+                "EnableHistory": false,
+                "AbbreviatedName": "VideoEmbed",
+                "ShowOnBulk": false,
+                "IsPublic": false,
+                "IsActive": true,
+                "CategoryIds": [],
+                "QualifierValues": {
+                    "editorHeight": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "200"
+                    },
+                    "editorMode": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "2"
+                    },
+                    "editorTheme": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "0"
+                    }
+                },
+                "TypeId": 49,
+                "TypeName": "Rock.Model.Attribute",
+                "SupportedActions": {
+                    "View": "The roles and/or users that have access to view.",
+                    "Edit": "The roles and/or users that have access to edit.",
+                    "Administrate": "The roles and/or users that have access to administrate."
+                },
+                "AttributeValues": {},
+                "Id": 1926,
+                "Guid": "0a7c6ae7-7236-029c-4487-4413921b21ee"
+            },
+            "Features": {
+                "IsSystem": false,
+                "FieldTypeId": 34,
+                "EntityTypeId": 208,
+                "EntityTypeQualifierColumn": "ContentChannelId",
+                "EntityTypeQualifierValue": "5",
+                "Key": "Features",
+                "Name": "Features",
+                "Description": "",
+                "Order": 1004,
+                "IconCssClass": "",
+                "IsGridColumn": false,
+                "DefaultValue": "",
+                "IsMultiValue": false,
+                "IsRequired": false,
+                "AllowSearch": false,
+                "IsIndexEnabled": false,
+                "IsAnalytic": false,
+                "IsAnalyticHistory": false,
+                "EnableHistory": false,
+                "PreHtml": "",
+                "PostHtml": "",
+                "AbbreviatedName": "Features",
+                "ShowOnBulk": false,
+                "IsPublic": false,
+                "IsActive": true,
+                "CategoryIds": [],
+                "QualifierValues": {
+                    "allowhtml": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "False"
+                    },
+                    "customvalues": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": ""
+                    },
+                    "definedtype": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": ""
+                    },
+                    "displayvaluefirst": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "False"
+                    },
+                    "keyprompt": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": ""
+                    },
+                    "valueprompt": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": ""
+                    }
+                },
+                "TypeId": 49,
+                "TypeName": "Rock.Model.Attribute",
+                "SupportedActions": {
+                    "View": "The roles and/or users that have access to view.",
+                    "Edit": "The roles and/or users that have access to edit.",
+                    "Administrate": "The roles and/or users that have access to administrate."
+                },
+                "AttributeValues": {},
+                "Id": 4258,
+                "Guid": "3065a0a4-de6a-49d3-956c-113e703757ac"
+            },
+            "Summary": {
+                "IsSystem": false,
+                "FieldTypeId": 1,
+                "EntityTypeId": 208,
+                "EntityTypeQualifierColumn": "ContentChannelId",
+                "EntityTypeQualifierValue": "5",
+                "Key": "Summary",
+                "Name": "Summary",
+                "Description": "",
+                "Order": 1005,
+                "IconCssClass": "",
+                "IsGridColumn": false,
+                "DefaultValue": "",
+                "IsMultiValue": false,
+                "IsRequired": false,
+                "AllowSearch": false,
+                "IsIndexEnabled": false,
+                "IsAnalytic": false,
+                "IsAnalyticHistory": false,
+                "EnableHistory": false,
+                "PreHtml": "",
+                "PostHtml": "",
+                "AbbreviatedName": "Summary",
+                "ShowOnBulk": false,
+                "IsPublic": false,
+                "IsActive": true,
+                "CategoryIds": [],
+                "QualifierValues": {
+                    "ispassword": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "False"
+                    },
+                    "maxcharacters": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": ""
+                    },
+                    "showcountdown": {
+                        "Name": null,
+                        "Description": null,
+                        "Value": "False"
+                    }
+                },
+                "TypeId": 49,
+                "TypeName": "Rock.Model.Attribute",
+                "SupportedActions": {
+                    "View": "The roles and/or users that have access to view.",
+                    "Edit": "The roles and/or users that have access to edit.",
+                    "Administrate": "The roles and/or users that have access to administrate."
+                },
+                "AttributeValues": {},
+                "Id": 4353,
+                "Guid": "5b2ec38d-894f-4ac5-88ba-2ebec1a7dcc0"
+            }
+        },
+        "AttributeValues": {
+            "comments": {
+                "AttributeId": 4268,
+                "EntityId": 53,
+                "Value": "True",
+                "ValueFormatted": "Yes"
+            },
+            "initialPrompt": {
+                "AttributeId": 4269,
+                "EntityId": 53,
+                "Value": "Enter your comment",
+                "ValueFormatted": "Enter your comment"
+            },
+            "AudioLink": {
+                "AttributeId": 1925,
+                "EntityId": 53,
+                "Value": "https://rockrms.blob.core.windows.net/sampledata/podcasting/sample.mp3",
+                "ValueFormatted": "https://rockrms.blob.core.windows.net/sampledata/podcasting/sample.mp3"
+            },
+            "Speaker": {
+                "AttributeId": 1923,
+                "EntityId": 53,
+                "Value": "Pete Foster",
+                "ValueFormatted": "Pete Foster"
+            },
+            "VideoLink": {
+                "AttributeId": 1924,
+                "EntityId": 53,
+                "Value": "",
+                "ValueFormatted": ""
+            },
+            "VideoEmbed": {
+                "AttributeId": 1926,
+                "EntityId": 53,
+                "Value": "",
+                "ValueFormatted": ""
+            },
+            "Features": {
+                "AttributeId": 4258,
+                "EntityId": 53,
+                "Value": "",
+                "ValueFormatted": ""
+            },
+            "Summary": {
+                "AttributeId": 4353,
+                "EntityId": 53,
+                "Value": "",
+                "ValueFormatted": ""
+            }
+        }
+      }
+    ]'  
+    headers:
+      Cache-Control:
+      - no-cache
+      Content-Length:
+      - '552443'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 22 Sep 2021 15:28:37 GMT
+      Expires:
+      - '-1'
+      Pragma:
+      - no-cache
+    status:
+      code: 200
+      message: OK
+version: 1

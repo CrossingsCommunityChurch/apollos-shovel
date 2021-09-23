@@ -70,7 +70,7 @@ def test_run_fetch_and_save_features(monkeypatch):
     with vcr.use_cassette("tests/cassettes/features/initial_features.yaml"):
         feature.run_fetch_and_save_features()
 
-        conn = db_connect()
+    conn = db_connect()
     with conn:
         with conn.cursor() as curs:
             # Check that initial features are correct
