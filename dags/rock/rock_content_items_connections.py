@@ -1,7 +1,6 @@
+from dags.rock.utilities import get_delta_offset
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
-
-from rock.utilities import get_delta_offset
 import requests
 
 
@@ -56,8 +55,7 @@ class ContentItemConnection:
         top = 10000
 
         while not fetched_all:
-            # Fetch people records from Rock.
-
+            # Fetch content item connections records from Rock.
             params = {
                 "$top": top,
                 "$skip": skip,
@@ -154,16 +152,79 @@ class ContentItemConnection:
 
         self.pg_hook.run(add_apollos_parents)
 
+    def run_delete_content_item_connections(self):
+        fetched_all = False
+        skip = 0
+        top = 10000
+        rock_content_item_connection_ids = []
+
+        while not fetched_all:
+            # Fetch content item connections records from Rock.
+            params = {
+                "$top": top,
+                "$skip": skip,
+                # "$expand": "Photo",
+                "$select": "Id,ChildContentChannelItemId,ContentChannelItemId",
+                "$orderby": "ModifiedDateTime desc",
+            }
+
+            print(params)
+
+            r = requests.get(
+                f"{Variable.get(self.kwargs['client'] + '_rock_api')}/ContentChannelItemAssociations",
+                params=params,
+                headers=self.headers,
+            )
+            rock_objects = r.json()
+
+            if not isinstance(rock_objects, list):
+                print(rock_objects)
+                print("oh uh, we might have made a bad request")
+                print("top: {top}")
+                print("skip: {skip}")
+                skip += top
+                continue
+
+            # Create object of parent items with rock children connection ids
+            for content_item_connection in rock_objects:
+                rock_content_item_connection_ids.append(
+                    str(content_item_connection["Id"])
+                )
+
+            skip += top
+            fetched_all = len(rock_objects) < top
+
+        postgres_content_item_connection_ids = list(
+            map(
+                lambda x: x[0],
+                self.pg_hook.get_records(
+                    "SELECT origin_id FROM content_item_connection"
+                ),
+            )
+        )
+        deleted_content_item_connection_ids = []
+
+        for postgres_origin_id in postgres_content_item_connection_ids:
+            if postgres_origin_id not in rock_content_item_connection_ids:
+                deleted_content_item_connection_ids.append(postgres_origin_id)
+
+        if len(deleted_content_item_connection_ids) > 0:
+            self.pg_hook.run(
+                "DELETE FROM content_item_connection WHERE content_item_connection.origin_id = ANY(%s)",
+                True,
+                (deleted_content_item_connection_ids,),
+            )
+
 
 def fetch_and_save_content_items_connections(ds, *args, **kwargs):
     if "client" not in kwargs or kwargs["client"] is None:
         raise Exception("You must configure a client for this operator")
 
-    Klass = (  # noqa N806
-        ContentItemConnection if "klass" not in kwargs else kwargs["klass"]
+    content_item_connection_task = (
+        ContentItemConnection(kwargs)
+        if "klass" not in kwargs
+        else kwargs["klass"](kwargs)
     )
-
-    content_item_connection_task = Klass(kwargs)
 
     content_item_connection_task.run_fetch_and_save_content_items_connections()
 
@@ -172,10 +233,23 @@ def set_content_item_parent_id(ds, *args, **kwargs):
     if "client" not in kwargs or kwargs["client"] is None:
         raise Exception("You must configure a client for this operator")
 
-    Klass = (  # noqa N806
-        ContentItemConnection if "klass" not in kwargs else kwargs["klass"]
+    content_item_connection_task = (
+        ContentItemConnection(kwargs)
+        if "klass" not in kwargs
+        else kwargs["klass"](kwargs)
     )
 
-    content_item_connection_task = Klass(kwargs)
-
     content_item_connection_task.run_set_content_item_parent_id()
+
+
+def delete_content_item_connections(ds, *args, **kwargs):
+    if "client" not in kwargs or kwargs["client"] is None:
+        raise Exception("You must configure a client for this operator")
+
+    content_item_connection_task = (
+        ContentItemConnection(kwargs)
+        if "klass" not in kwargs
+        else kwargs["klass"](kwargs)
+    )
+
+    content_item_connection_task.run_delete_content_item_connections()

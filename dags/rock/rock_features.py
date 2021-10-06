@@ -9,6 +9,7 @@ from rock.utilities import (
 from urllib.parse import unquote
 from psycopg2.extras import Json
 from functools import reduce
+import json
 
 import requests
 
@@ -92,6 +93,7 @@ class Feature:
         postgres_records_by_origin_id = {
             f[2]: {"node_id": f[0], "parent_origin_id": f[1]} for f in postgres_records
         }
+
         rock_with_postgres_features = [
             {**feature, **postgres_records_by_origin_id.get(str(feature["Id"]))}
             for feature in features
@@ -165,13 +167,22 @@ class Feature:
             "deleted_features": deleted_features,
         }
 
-    # def get_
+    def get_attribute_matrix_field_type_id(self):
+        if hasattr(self, "attribute_matrix_id"):
+            return self.attribute_matrix_id
+        # We'll use this when parsing features.
+        self.attribute_matrix_id = requests.get(
+            f"{Variable.get(self.kwargs['client'] + '_rock_api')}/FieldTypes",
+            params={
+                "$filter": "Class eq 'Rock.Field.Types.MatrixFieldType'",
+                "$select": "Id",
+            },
+            headers=self.headers,
+        ).json()[0]["Id"]
+        return self.attribute_matrix_id
+
     def get_features(self, content):
         features = []
-
-        # Add features from a key value list
-        # This is now the only way to add scripture and text features
-        # We previously supported a textFeature and
 
         key_value_features = self.parse_key_value_attribute(
             safeget_no_case(content, "AttributeValues", "Features", "Value") or ""
@@ -180,8 +191,38 @@ class Feature:
         scriptures = safeget(content, "AttributeValues", "Scriptures", "Value")
 
         if scriptures:
-            for scripture in scriptures.split(","):
-                key_value_features.append({"key": "scripture", "value": scripture})
+            scripture_field_type = safeget(
+                content, "Attributes", "Scriptures", "FieldTypeId"
+            )
+
+            # If the attribute is a matrix.
+            if scripture_field_type == self.get_attribute_matrix_field_type_id():
+                # Get the formated vaule field (JSON string of the matrix)
+                formatted_value = safeget(
+                    content, "AttributeValues", "Scriptures", "ValueFormatted"
+                )
+                # If there is indeed a matrix
+                if formatted_value:
+                    try:
+                        # Parse the formatted value
+                        parsed_matrix = json.loads(formatted_value)
+                        if "Attributes" in parsed_matrix:
+                            # And then for each row, create a feature.
+                            for ref in parsed_matrix["Attributes"]:
+                                key_value_features.append(
+                                    {
+                                        "key": "scripture",
+                                        "value": f"{ref['Book']} {ref['Reference']}",
+                                    }
+                                )
+                    except ValueError:
+                        print("Error parsing")
+                        print(formatted_value)
+                        print(content)
+
+            else:
+                for scripture in scriptures.split(","):
+                    key_value_features.append({"key": "scripture", "value": scripture})
 
         for kv in key_value_features:
             feature_type = kv["key"]

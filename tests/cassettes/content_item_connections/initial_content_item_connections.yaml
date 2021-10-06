@@ -1,0 +1,55 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization-Token:
+      - ASZjZWdf3IqrbZX9sedtB4wb
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.26.0
+    method: GET
+    uri: https://rock.apollos.app/api/ContentChannelItemAssociations?%24top=10000&%24skip=0&%24select=Id%2CChildContentChannelItemId%2CContentChannelItemId%2COrder&%24orderby=ModifiedDateTime+desc
+  response:
+    body:
+      string: '[
+        {
+            "Order": 0,
+            "ContentChannelItemId": 32,
+            "ChildContentChannelItemId": 53,
+            "Id": 20
+        },
+        {
+            "Order": 0,
+            "ContentChannelItemId": 32,
+            "ChildContentChannelItemId": 50,
+            "Id": 18
+        },
+        {
+            "Order": 0,
+            "ContentChannelItemId": 32,
+            "ChildContentChannelItemId": 51,
+            "Id": 19
+        }
+      ]'
+    headers:
+      Cache-Control:
+      - no-cache
+      Content-Length:
+      - '1994'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 22 Sep 2021 16:30:47 GMT
+      Expires:
+      - '-1'
+      Pragma:
+      - no-cache
+    status:
+      code: 200
+      message: OK
+version: 1

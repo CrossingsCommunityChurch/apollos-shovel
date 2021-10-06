@@ -44,6 +44,7 @@ class People:
         return string
 
     def map_people_to_columns(self, obj):
+
         return (
             self.kwargs["execution_date"],
             self.kwargs["execution_date"],
@@ -74,6 +75,7 @@ class People:
         fetched_all = False
         skip = 0
         top = 10000
+        deleted_people = []
 
         while not fetched_all:
             # Fetch people records from Rock.
@@ -81,8 +83,8 @@ class People:
             params = {
                 "$top": top,
                 "$skip": skip,
-                "$expand": "Photo",
-                "$select": "Id,NickName,LastName,Gender,BirthDate,PrimaryCampusId,Email,Photo/Path",
+                "$expand": "Photo,RecordStatusValue",
+                "$select": "Id,NickName,LastName,Gender,BirthDate,PrimaryCampusId,Email,Photo/Path,RecordStatusValue",
                 "$orderby": "ModifiedDateTime desc",
             }
 
@@ -108,6 +110,10 @@ class People:
 
             skip += top
             fetched_all = len(rock_objects) < top
+
+            for person in rock_objects:
+                if person["RecordStatusValue"]["Value"] == "Inactive":
+                    deleted_people.append(str(person["Id"]))
 
             people_to_insert = list(map(self.map_people_to_columns, rock_objects))
             columns = (
@@ -141,6 +147,16 @@ class People:
             """
 
             self.pg_hook.run(add_apollos_ids)
+
+        if len(deleted_people) > 0:
+            self.pg_hook.run(
+                """
+                    DELETE FROM people
+                    WHERE people.origin_id = ANY(%s)
+                """,
+                True,
+                (deleted_people,),
+            )
 
 
 def fetch_and_save_people(ds, *args, **kwargs):

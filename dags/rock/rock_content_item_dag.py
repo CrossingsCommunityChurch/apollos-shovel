@@ -6,6 +6,7 @@ from rock.rock_media import fetch_and_save_media
 from rock.rock_content_items_connections import (
     fetch_and_save_content_items_connections,
     set_content_item_parent_id,
+    delete_content_item_connections,
 )
 from rock.rock_cover_image import fetch_and_save_cover_image
 from rock.rock_content_item_categories import (
@@ -55,6 +56,12 @@ def create_rock_content_item_dag(church, start_date, schedule_interval, do_backf
             op_kwargs={"client": church, "do_backfill": do_backfill},
         )
 
+        delete_connections = PythonOperator(
+            task_id="delete_content_item_connections",
+            python_callable=delete_content_item_connections,  # make sure you don't include the () of the function
+            op_kwargs={"client": church},
+        )
+
         media = PythonOperator(
             task_id="fetch_and_save_media",
             python_callable=fetch_and_save_media,  # make sure you don't include the () of the function
@@ -102,7 +109,7 @@ def create_rock_content_item_dag(church, start_date, schedule_interval, do_backf
 
         media >> set_cover_image
 
-        connections >> set_parent_id >> features
+        connections >> [delete_connections, set_parent_id] >> features
 
         deleted_content_items
 
