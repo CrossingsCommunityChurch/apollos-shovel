@@ -1,6 +1,6 @@
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
-from rock.utilities import safeget, get_delta_offset
+from rock.utilities import safeget, get_delta_offset, find_supported_fields
 
 import requests
 
@@ -44,21 +44,21 @@ class People:
         return string
 
     def map_people_to_columns(self, obj):
-
-        return (
-            self.kwargs["execution_date"],
-            self.kwargs["execution_date"],
-            obj["Id"],
-            "rock",
-            "Person",
-            self.clean_string(obj["NickName"]),
-            self.clean_string(obj["LastName"]),
-            self.gender_map[obj["Gender"]],
-            obj["BirthDate"],
-            self.campus_map[str(obj["PrimaryCampusId"])],
-            self.clean_string(obj["Email"]),
-            self.photo_url(safeget(obj, "Photo", "Path")),
-        )
+        return {
+            "created_at": self.kwargs["execution_date"],
+            "updated_at": self.kwargs["execution_date"],
+            "origin_id": obj["Id"],
+            "origin_type": "rock",
+            "apollos_type": "Person",
+            "first_name": self.clean_string(obj["NickName"]),
+            "last_name": self.clean_string(obj["LastName"]),
+            "gender": self.gender_map[obj["Gender"]],
+            "birth_date": obj["BirthDate"],
+            "campus_id": self.campus_map[str(obj["PrimaryCampusId"])],
+            "email": self.clean_string(obj["Email"]),
+            "profile_image_url": self.photo_url(safeget(obj, "Photo", "Path")),
+            "church_id": self.kwargs["client"],
+        }
 
     def photo_url(self, path):
         if path is None:
@@ -115,29 +115,19 @@ class People:
                 if person["RecordStatusValue"]["Value"] == "Inactive":
                     deleted_people.append(str(person["Id"]))
 
-            people_to_insert = list(map(self.map_people_to_columns, rock_objects))
-            columns = (
-                "created_at",
-                "updated_at",
-                "origin_id",
-                "origin_type",
-                "apollos_type",
-                "first_name",
-                "last_name",
-                "gender",
-                "birth_date",
-                "campus_id",
-                "email",
-                "profile_image_url",
+            data_to_insert, columns = find_supported_fields(
+                pg_hook=self.pg_hook,
+                table_name="people",
+                insert_data=list(map(self.map_people_to_columns, rock_objects)),
             )
 
             self.pg_hook.insert_rows(
                 "people",
-                people_to_insert,
+                data_to_insert,
                 columns,
                 0,
                 True,
-                replace_index=("origin_id", '"origin_type"'),
+                replace_index=("origin_id", "origin_type"),
             )
 
             add_apollos_ids = """
