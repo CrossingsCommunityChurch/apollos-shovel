@@ -183,6 +183,54 @@ class Feature:
 
     def get_features(self, content):
         features = []
+        # Add features from a key value list
+        # This is now the only way to add scripture and text features
+        # We previously supported a textFeature and
+
+        location_feature = safeget_no_case(
+            content, "AttributeValues", "Location", "Value"
+        )
+
+        if location_feature:
+            params = {"$filter": f"Guid eq guid'{location_feature}'"}
+
+            location_obj = requests.get(
+                f"{Variable.get(self.kwargs['client'] + '_rock_api')}/Locations",
+                params=params,
+                headers=self.headers,
+            ).json()
+
+            if isinstance(location_obj, list):
+                location_obj = location_obj[0]
+
+                features.append(
+                    {
+                        "type": "Location",
+                        "data": {
+                            "name": location_obj["Name"],
+                            "street": location_obj["Street1"],
+                            "city": location_obj["City"],
+                            "state": location_obj["State"],
+                            "zip": location_obj["PostalCode"],
+                            "lat": location_obj["Latitude"],
+                            "long": location_obj["Longitude"],
+                        },
+                        "parent_id": content["node_id"],
+                    }
+                )
+
+        event_date_feature = safeget_no_case(
+            content, "AttributeValues", "EventDate", "Value"
+        )
+
+        if event_date_feature:
+            features.append(
+                {
+                    "type": "EventDate",
+                    "data": {"date": event_date_feature},
+                    "parent_id": content["node_id"],
+                }
+            )
 
         key_value_features = self.parse_key_value_attribute(
             safeget_no_case(content, "AttributeValues", "Features", "Value") or ""
@@ -434,7 +482,7 @@ class Feature:
                 "$skip": skip,
                 "loadAttributes": "expanded",
                 "$orderby": "ModifiedDateTime desc",
-                "attributeKeys": "features, comments, buttontext, buttonlink, completeButtonText, scriptures",
+                "attributeKeys": "features, comments, buttontext, buttonlink, completeButtonText, scriptures, location, eventdate",
             }
 
             if not self.kwargs["do_backfill"]:

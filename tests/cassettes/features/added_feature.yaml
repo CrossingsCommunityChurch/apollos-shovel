@@ -13,7 +13,7 @@ interactions:
       User-Agent:
       - python-requests/2.26.0
     method: GET
-    uri: https://rock.apollos.app/api/ContentChannelItems?%24top=10000&%24skip=0&loadAttributes=expanded&%24orderby=ModifiedDateTime+desc&attributeKeys=features%2C+comments%2C+buttontext%2C+buttonlink%2C+completeButtonText%2C+scriptures
+    uri: https://rock.apollos.app/api/ContentChannelItems?%24top=10000&%24skip=0&loadAttributes=expanded&%24orderby=ModifiedDateTime+desc&attributeKeys=features%2C+comments%2C+buttontext%2C+buttonlink%2C+completeButtonText%2C+scriptures%2C+location%2C+eventdate
   response:
     body:
       string: '[{ "ContentChannelId":7, "ContentChannelTypeId":3, "Title":"A Daily
