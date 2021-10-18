@@ -6,7 +6,7 @@ from airflow.models import Variable
 from algoliasearch.search_client import SearchClient
 
 
-start_date = datetime(2021, 8, 31)
+start_date = datetime(2021, 10, 18)
 
 default_args = {
     "owner": "airflow",
