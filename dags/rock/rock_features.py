@@ -292,6 +292,43 @@ class Feature:
                     }
                 )
 
+        button_link_feature = safeget_no_case(
+            content, "AttributeValues", "ButtonText", "Value"
+        )
+        if button_link_feature:
+            features.append(
+                {
+                    "type": "Button",
+                    "data": {
+                        "title": safeget_no_case(
+                            content, "AttributeValues", "ButtonText", "Value"
+                        ),
+                        "url": safeget_no_case(
+                            content, "AttributeValues", "ButtonLink", "Value"
+                        ),
+                        "action": "OPEN_AUTHENTICATED_URL",
+                    },
+                    "parent_id": content["node_id"],
+                }
+            )
+
+        complete_button_feature = (
+            content["AttributeValues"].get("CompleteButtonText", {}).get("Value")
+        )
+        if complete_button_feature:
+            features.append(
+                {
+                    "type": "Button",
+                    "data": {
+                        "title": content["AttributeValues"]["CompleteButtonText"][
+                            "Value"
+                        ],
+                        "action": "COMPLETE_NODE",
+                    },
+                    "parent_id": content["node_id"],
+                }
+            )
+
         comment_feature = (
             safeget_no_case(content, "AttributeValues", "comments", "value") or "False"
         )
@@ -345,43 +382,6 @@ class Feature:
                         "parent_id": content["node_id"],
                     }
                 )
-
-        button_link_feature = safeget_no_case(
-            content, "AttributeValues", "ButtonText", "Value"
-        )
-        if button_link_feature:
-            features.append(
-                {
-                    "type": "Button",
-                    "data": {
-                        "title": safeget_no_case(
-                            content, "AttributeValues", "ButtonText", "Value"
-                        ),
-                        "url": safeget_no_case(
-                            content, "AttributeValues", "ButtonLink", "Value"
-                        ),
-                        "action": "OPEN_AUTHENTICATED_URL",
-                    },
-                    "parent_id": content["node_id"],
-                }
-            )
-
-        complete_button_feature = (
-            content["AttributeValues"].get("CompleteButtonText", {}).get("Value")
-        )
-        if complete_button_feature:
-            features.append(
-                {
-                    "type": "Button",
-                    "data": {
-                        "title": content["AttributeValues"]["CompleteButtonText"][
-                            "Value"
-                        ],
-                        "action": "COMPLETE_NODE",
-                    },
-                    "parent_id": content["node_id"],
-                }
-            )
 
         features_with_priority = list(
             map(self.map_feature_priority, enumerate(features))
