@@ -80,7 +80,7 @@ class PrayerRequest:
 
             prayer_requests = list(map(self.map_prayer_requests, rock_objects))
 
-            data_to_insert, columns = find_supported_fields(
+            data_to_insert, columns, constraints = find_supported_fields(
                 pg_hook=self.pg_hook,
                 table_name="prayer_request",
                 insert_data=prayer_requests,
@@ -92,7 +92,7 @@ class PrayerRequest:
                 columns,
                 0,
                 True,
-                replace_index=('"origin_id"', '"origin_type"'),
+                replace_index=constraints,
             )
 
             add_apollos_ids = """

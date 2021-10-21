@@ -1,7 +1,7 @@
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
 from psycopg2.extras import Json
-
+from rock.utilities import find_supported_fields
 from functools import reduce
 import requests
 import pytz
@@ -40,16 +40,16 @@ class Tag:
         ).json()[0]["Id"]
 
     def map_dataview_to_tag(self, obj):
-        return (
-            self.kwargs["execution_date"],
-            self.kwargs["execution_date"],
-            obj["Id"],
-            "rock",
-            "Tag",
-            obj["Name"],
-            Json({"guid": obj["Guid"]}),
-            "Persona",
-        )
+        return {
+            "created_at": self.kwargs["execution_date"],
+            "updated_at": self.kwargs["execution_date"],
+            "origin_id": obj["Id"],
+            "origin_type": "rock",
+            "apollos_type": "Tag",
+            "name": obj["Name"],
+            "data": Json({"guid": obj["Guid"]}),
+            "type": "Persona",
+        }
 
     def run_fetch_and_save_persona_tags(self):
         fetched_all = False
@@ -96,15 +96,11 @@ class Tag:
             # "created_at","updated_at", "origin_id", "origin_type", "apollos_type", "name", "data", "type"
 
             tags_to_insert = list(map(self.map_dataview_to_tag, rock_objects))
-            columns = (
-                "created_at",
-                "updated_at",
-                "origin_id",
-                "origin_type",
-                "apollos_type",
-                "name",
-                "data",
-                "type",
+
+            data_to_insert, columns, constraints = find_supported_fields(
+                pg_hook=self.pg_hook,
+                table_name="tag",
+                insert_data=tags_to_insert,
             )
 
             self.pg_hook.insert_rows(
@@ -113,7 +109,7 @@ class Tag:
                 columns,
                 0,
                 True,
-                replace_index=('"origin_id"', '"origin_type"'),
+                replace_index=constraints,
             )
 
             add_apollos_ids = """

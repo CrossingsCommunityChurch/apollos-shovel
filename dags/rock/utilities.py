@@ -23,8 +23,25 @@ def find_supported_fields(pg_hook, insert_data, table_name):
     # Get a list of columns by table name.
     cursor.execute(f"select * from {table_name} limit 0;")
     colnames = set([desc[0] for desc in cursor.description])
-    conn.close()
     cursor.close()
+
+    # Get a list of unique indexes.
+    cursor = conn.cursor()
+    cursor.execute(
+        f"""
+        select idx.relname as index_name
+        from pg_index pgi
+          join pg_class idx on idx.oid = pgi.indexrelid
+          join pg_namespace insp on insp.oid = idx.relnamespace
+          join pg_class tbl on tbl.oid = pgi.indrelid
+          join pg_namespace tnsp on tnsp.oid = tbl.relnamespace
+        where pgi.indisunique
+          and tbl.relname = '{table_name}'
+    """
+    )
+    unique_indexes = [k[0] for k in cursor.fetchall()]
+    cursor.close()
+    conn.close()
 
     if insert_data:
         print("Omitting the following columns")
@@ -58,8 +75,16 @@ def find_supported_fields(pg_hook, insert_data, table_name):
     if sorted_insert_data:
         col_names_to_insert = sorted_insert_data[0].keys()
 
+    # Identify what set of keys we should use for constraints.
+    use_church_id = any("church_id" in idx for idx in unique_indexes)
+    constraint = (
+        ("church_id", "origin_id", "origin_type")
+        if use_church_id
+        else ("origin_id", "origin_type")
+    )
+
     # Return the data to insert and our (sorted) list.
-    return (insert_data_as_list, sorted(list(col_names_to_insert)))
+    return (insert_data_as_list, sorted(list(col_names_to_insert)), constraint)
 
 
 def safeget_no_case(dct, *keys):

@@ -452,7 +452,7 @@ class Feature:
             # "created_at", "updated_at", "apollos_type", "data", "type", "parent_id", "parent_type"
             insert_features = list(map(self.map_feature_to_object, added_features))
 
-            data_to_insert, columns = find_supported_fields(
+            data_to_insert, columns, _ = find_supported_fields(
                 pg_hook=self.pg_hook,
                 table_name="feature",
                 insert_data=insert_features,

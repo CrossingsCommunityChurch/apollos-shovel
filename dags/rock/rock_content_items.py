@@ -7,6 +7,7 @@ from rock.utilities import (
     safeget,
     get_delta_offset_with_content_attributes,
     rock_timestamp_to_utc,
+    find_supported_fields,
 )
 from rock.rock_media import is_media_video, is_media_audio
 
@@ -82,18 +83,18 @@ class ContentItem:
 
     # "created_at","updated_at", "origin_id", "origin_type", "apollos_type", "summary", "htmlContent", "title", "publish_at", "active"
     def map_content_to_columns(self, obj):
-        return (
-            self.kwargs["execution_date"],
-            self.kwargs["execution_date"],
-            obj["Id"],
-            "rock",
-            self.get_typename(obj, self.config),
-            self.create_summary(obj),
-            self.create_html_content(obj),
-            obj["Title"],
-            self.get_start_date(obj),
-            self.get_status(obj),
-        )
+        return {
+            "created_at": self.kwargs["execution_date"],
+            "updated_at": self.kwargs["execution_date"],
+            "origin_id": obj["Id"],
+            "origin_type": "rock",
+            "apollos_type": self.get_typename(obj, self.config),
+            "summary": self.create_summary(obj),
+            "html_content": self.create_html_content(obj),
+            "title": obj["Title"],
+            "publish_at": self.get_start_date(obj),
+            "active": self.get_status(obj),
+        }
 
     def get_start_date(self, item):
         if not item["StartDateTime"]:
@@ -229,27 +230,21 @@ class ContentItem:
             skip += top
             fetched_all = len(rock_objects) < top
 
-            content_to_insert = list(map(self.map_content_to_columns, rock_objects))
-            columns = (
-                "created_at",
-                "updated_at",
-                "origin_id",
-                "origin_type",
-                "apollos_type",
-                "summary",
-                "html_content",
-                "title",
-                "publish_at",
-                "active",
+            insert_data = list(map(self.map_content_to_columns, rock_objects))
+
+            content_to_insert, columns, constraint = find_supported_fields(
+                pg_hook=self.pg_hook,
+                table_name="content_item",
+                insert_data=insert_data,
             )
 
             self.pg_hook.insert_rows(
-                '"content_item"',
+                "content_item",
                 content_to_insert,
                 columns,
                 0,
                 True,
-                replace_index=('"origin_id"', '"origin_type"'),
+                replace_index=constraint,
             )
 
             add_apollos_ids = """

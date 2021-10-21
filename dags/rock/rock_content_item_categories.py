@@ -1,6 +1,6 @@
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
-from rock.utilities import safeget, get_delta_offset
+from rock.utilities import safeget, get_delta_offset, find_supported_fields
 
 import requests
 
@@ -21,14 +21,14 @@ class ContentItemCategory:
         )
 
     def map_content_channel_to_category(self, obj):
-        return (
-            self.kwargs["execution_date"],
-            self.kwargs["execution_date"],
-            obj["Id"],
-            "rock",
-            "ContentChannel",
-            obj["Name"],
-        )
+        return {
+            "created_at": self.kwargs["execution_date"],
+            "updated_at": self.kwargs["execution_date"],
+            "origin_id": obj["Id"],
+            "origin_type": "rock",
+            "apollos_type": "ContentChannel",
+            "title": obj["Name"],
+        }
 
     def set_content_item_category_query(self, obj):
         return """
@@ -124,28 +124,21 @@ class ContentItemCategory:
             skip += top
             fetched_all = len(rock_objects) < top
 
-            # "create_aAt","updated_at", "origin_id", "origin_type", "apollos_type", "title"
+            insert_data = list(map(self.map_content_channel_to_category, rock_objects))
 
-            content_to_insert = list(
-                map(self.map_content_channel_to_category, rock_objects)
-            )
-
-            columns = (
-                "created_at",
-                "updated_at",
-                "origin_id",
-                "origin_type",
-                "apollos_type",
-                "title",
+            content_to_insert, columns, constraint = find_supported_fields(
+                pg_hook=self.pg_hook,
+                table_name="content_item_category",
+                insert_data=insert_data,
             )
 
             self.pg_hook.insert_rows(
-                '"content_item_category"',
+                "content_item_category",
                 content_to_insert,
                 columns,
                 0,
                 True,
-                replace_index=('"origin_id"', '"origin_type"'),
+                replace_index=constraint,
             )
 
             add_apollos_ids = """

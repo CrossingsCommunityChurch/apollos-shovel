@@ -115,7 +115,7 @@ class People:
                 if person["RecordStatusValue"]["Value"] == "Inactive":
                     deleted_people.append(str(person["Id"]))
 
-            data_to_insert, columns = find_supported_fields(
+            data_to_insert, columns, constraints = find_supported_fields(
                 pg_hook=self.pg_hook,
                 table_name="people",
                 insert_data=list(map(self.map_people_to_columns, rock_objects)),
@@ -127,7 +127,7 @@ class People:
                 columns,
                 0,
                 True,
-                replace_index=("origin_id", "origin_type"),
+                replace_index=constraints,
             )
 
             add_apollos_ids = """

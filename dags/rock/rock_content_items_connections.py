@@ -1,4 +1,4 @@
-from dags.rock.utilities import get_delta_offset
+from dags.rock.utilities import get_delta_offset, find_supported_fields
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
 import requests
@@ -38,16 +38,16 @@ class ContentItemConnection:
         child_id, parent_id = self.get_child_and_parent(
             obj["ChildContentChannelItemId"], obj["ContentChannelItemId"]
         )
-        return (
-            self.kwargs["execution_date"],
-            self.kwargs["execution_date"],
-            obj["Id"],
-            "rock",
-            "ContentItemsConnection",
-            child_id,
-            parent_id,
-            obj["Order"],
-        )
+        return {
+            "created_at": self.kwargs["execution_date"],
+            "updated_at": self.kwargs["execution_date"],
+            "origin_id": obj["Id"],
+            "origin_type": "rock",
+            "apollos_type": "ContentItemsConnection",
+            "child_id": child_id,
+            "parent_id": parent_id,
+            '"order"': obj["Order"],
+        }
 
     def run_fetch_and_save_content_items_connections(self):
         fetched_all = False
@@ -89,27 +89,23 @@ class ContentItemConnection:
 
             # "created_at","updated_at", "origin_id", "origin_type", "apollos_type", "child_id", "parent_id", "order"
 
-            content_to_insert = list(
+            insert_data = list(
                 map(self.map_rock_connection_to_postgres_connection, rock_objects)
             )
-            columns = (
-                "created_at",
-                "updated_at",
-                "origin_id",
-                "origin_type",
-                "apollos_type",
-                "child_id",
-                "parent_id",
-                '"order"',
+
+            content_to_insert, columns, constraint = find_supported_fields(
+                pg_hook=self.pg_hook,
+                table_name="content_item_connection",
+                insert_data=insert_data,
             )
 
             self.pg_hook.insert_rows(
-                '"content_item_connection"',
+                "content_item_connection",
                 content_to_insert,
                 columns,
                 0,
                 True,
-                replace_index=("origin_id", "origin_type"),
+                replace_index=constraint,
             )
 
             add_apollos_ids = """
