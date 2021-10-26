@@ -335,20 +335,22 @@ class Feature:
         if comment_feature == "True":
             features.append(
                 {
-                    "type": "AddComment",
+                    "type": "CommentList",
                     "data": {
-                        "initialPrompt": "Write Something...",
-                        "addPrompt": "What stands out to you?",
+                        "prompt": safeget_no_case(
+                            content, "AttributeValues", "initialPrompt", "value"
+                        )
                     },
                     "parent_id": content["node_id"],
                 }
             )
             features.append(
                 {
-                    "type": "CommentList",
+                    "type": "AddComment",
                     "data": {
-                        "initialPrompt": "Write Something...",
-                        "addPrompt": "What stands out to you?",
+                        "prompt": safeget_no_case(
+                            content, "AttributeValues", "initialPrompt", "value"
+                        )
                     },
                     "parent_id": content["node_id"],
                 }
@@ -364,20 +366,22 @@ class Feature:
             if parent_comment_feature == "True":
                 features.append(
                     {
-                        "type": "AddComment",
+                        "type": "CommentList",
                         "data": {
-                            "initialPrompt": "Write Something...",
-                            "addPrompt": "What stands out to you?",
+                            "prompt": safeget_no_case(
+                                content, "AttributeValues", "initalPrompt", "value"
+                            )
                         },
                         "parent_id": content["node_id"],
                     }
                 )
                 features.append(
                     {
-                        "type": "CommentList",
+                        "type": "AddComment",
                         "data": {
-                            "initialPrompt": "Write Something...",
-                            "addPrompt": "What stands out to you?",
+                            "prompt": safeget_no_case(
+                                content, "AttributeValues", "initialPrompt", "value"
+                            )
                         },
                         "parent_id": content["node_id"],
                     }
@@ -482,7 +486,7 @@ class Feature:
                 "$skip": skip,
                 "loadAttributes": "expanded",
                 "$orderby": "ModifiedDateTime desc",
-                "attributeKeys": "features, comments, buttontext, buttonlink, completeButtonText, scriptures, location, eventdate",
+                "attributeKeys": "features, comments, initialPrompt, buttontext, buttonlink, completeButtonText, scriptures, location, eventdate",
             }
 
             if not self.kwargs["do_backfill"]:
