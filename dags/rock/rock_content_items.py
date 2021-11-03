@@ -94,12 +94,18 @@ class ContentItem:
             "title": obj["Title"],
             "publish_at": self.get_start_date(obj),
             "active": self.get_status(obj),
+            "expire_at": self.get_expiration_date(obj),
         }
 
     def get_start_date(self, item):
         if not item["StartDateTime"]:
             return None
         return rock_timestamp_to_utc(item["StartDateTime"], self.kwargs)
+
+    def get_expiration_date(self, item):
+        if not item["ExpireDateTime"]:
+            return None
+        return rock_timestamp_to_utc(item["ExpireDateTime"], self.kwargs)
 
     def create_summary(self, item):
         summary_value = safeget(item, "AttributeValues", "Summary", "Value")
