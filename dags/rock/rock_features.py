@@ -76,29 +76,35 @@ class Feature:
         self.rock_content_cache[origin_id] = r.json()
         return r.json()
 
-    def add_postgres_data_to_rock_features(self, features):
+    def add_postgres_data_to_rock_content(self, rock_content):
 
-        if len(features) == 0:
+        if len(rock_content) == 0:
             return []
 
-        origin_ids = ", ".join(map(lambda r: f"'{str(r['Id'])}'", features))
-        postgres_records = self.pg_hook.get_records(
+        all_origin_ids = ", ".join(map(lambda r: f"'{str(r['Id'])}'", rock_content))
+        postgres_content = self.pg_hook.get_records(
             f"""
             SELECT content_item.id, parent_item.origin_id, content_item.origin_id
             FROM content_item
             LEFT OUTER JOIN content_item AS parent_item ON parent_item.id = content_item.parent_id
-            WHERE content_item.origin_id in ({origin_ids})
+            WHERE content_item.origin_id in ({all_origin_ids})
             """
         )
-        postgres_records_by_origin_id = {
-            f[2]: {"node_id": f[0], "parent_origin_id": f[1]} for f in postgres_records
+        postgres_data = {
+            row[2]: {"node_id": row[0], "parent_origin_id": row[1]}
+            for row in postgres_content
         }
 
-        rock_with_postgres_features = [
-            {**feature, **postgres_records_by_origin_id.get(str(feature["Id"]))}
-            for feature in features
+        content_with_postgres_data = [
+            {
+                "Id": item["Id"],
+                "AttributeValues": item["AttributeValues"],
+                **postgres_data.get(str(item["Id"])),
+            }
+            for item in rock_content
+            if str(item["Id"]) in postgres_data.keys()
         ]
-        return rock_with_postgres_features
+        return content_with_postgres_data
 
     # Rock transports { foo: 'bar', baz: 'bat' } as 'foo^bar|baz^bat`
     def parse_key_value_attribute(self, value):
@@ -514,15 +520,15 @@ class Feature:
                 skip += top
                 continue
 
-            features_with_postgres_data = self.add_postgres_data_to_rock_features(
+            content_with_postgres_data = self.add_postgres_data_to_rock_content(
                 rock_objects
             )
 
-            all_features = list(map(self.get_features, features_with_postgres_data))
+            features = list(map(self.get_features, content_with_postgres_data))
 
             action_features = reduce(
                 self.get_action_features,
-                all_features,
+                features,
                 {"added_features": [], "updated_features": [], "deleted_features": []},
             )
 
