@@ -1,4 +1,4 @@
-from dags.rock.utilities import get_delta_offset, find_supported_fields
+from rock.utilities import get_delta_offset, find_supported_fields
 from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
 import requests
