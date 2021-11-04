@@ -57,7 +57,6 @@ class People:
             "campus_id": self.campus_map[str(obj["PrimaryCampusId"])],
             "email": self.clean_string(obj["Email"]),
             "profile_image_url": self.photo_url(safeget(obj, "Photo", "Path")),
-            "church_id": self.kwargs["client"],
         }
 
     def photo_url(self, path):

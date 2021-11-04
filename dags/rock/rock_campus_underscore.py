@@ -52,7 +52,6 @@ class Campus:
                     "active": obj["IsActive"],
                     "created_at": self.kwargs["execution_date"],
                     "updated_at": self.kwargs["execution_date"],
-                    "church_id": self.kwargs["client"],
                 }
                 for obj in rock_objects
             ],

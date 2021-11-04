@@ -25,13 +25,13 @@ def test_find_support_fields_constraints(monkeypatch):
         with conn.cursor() as curs:
             curs.execute(
                 """
-                ALTER TABLE "public"."content_item" ADD COLUMN "church_id" text DEFAULT CURRENT_USER;
+                ALTER TABLE "public"."content_item" ADD COLUMN "church_slug" text DEFAULT CURRENT_USER;
                 DROP INDEX public."content_items_origin_id_origin_type";
-                CREATE UNIQUE INDEX "content_items_church_id_origin_id_origin_type" ON "public"."content_item"("church_id","origin_id","origin_type");
+                CREATE UNIQUE INDEX "content_items_church_slug_origin_id_origin_type" ON "public"."content_item"("church_slug","origin_id","origin_type");
                 """
             )
 
     conn.close()
 
     _, _, constraints = find_supported_fields(pg_hook, [], "content_item")
-    assert constraints == ("church_id", "origin_id", "origin_type")
+    assert constraints == ("church_slug", "origin_id", "origin_type")
