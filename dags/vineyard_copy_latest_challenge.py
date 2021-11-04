@@ -1,7 +1,7 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.hooks.postgres_hook import PostgresHook
-from datetime import timedelta, datetime
+from datetime import datetime
 
 
 def copy_latest_challenge():
@@ -45,7 +45,7 @@ with DAG(
     "vineyard_copy_latest_challenge",
     default_args={"owner": "airflow"},
     description="Copies the next challenge over to the DB as a new content item so it is not completed by anyone",
-    schedule_interval=timedelta(days=1),
+    schedule_interval="@daily",
     start_date=datetime(2021, 1, 1),
     catchup=False,
 ) as dag:
