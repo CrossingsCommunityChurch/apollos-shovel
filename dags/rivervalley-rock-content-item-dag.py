@@ -15,6 +15,7 @@ from rock.rock_content_item_categories import (
 from rock.rock_features import fetch_and_save_features
 from rock.rock_deleted_content_items_dag import remove_deleted_content_items
 from misc.hopestream import set_hopestream_urls
+from river_valley_rock_feature_backfill import create_daily_rock_feature_backfill
 
 
 start_date = datetime(2021, 8, 12)
@@ -190,3 +191,9 @@ dag, dag_name = create_rock_content_item_dag(
 )
 
 globals()[dag_name] = dag
+
+feature_backfill_dag, feature_backfill_dag_name = create_daily_rock_feature_backfill(
+    "rivervalley", start_date, "@daily", True
+)
+
+globals()[feature_backfill_dag_name] = feature_backfill_dag
