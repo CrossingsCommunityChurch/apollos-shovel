@@ -5,6 +5,7 @@ from rock.utilities import (
     safeget,
     get_delta_offset,
     get_delta_offset_with_content_attributes,
+    find_supported_fields,
 )
 import urllib
 import json
@@ -153,18 +154,18 @@ class Media:
                     print(media_value)
 
         if media_value:
-            return (
-                "Media",
-                self.kwargs["execution_date"],
-                self.kwargs["execution_date"],
-                node_id,
-                "ContentItem",
-                media_type,
-                media_value,
-                attribute_value_id,
-                "rock",
-                json.dumps(metadata),
-            )
+            return {
+                "apollos_type": "Media",
+                "created_at": self.kwargs["execution_date"],
+                "updated_at": self.kwargs["execution_date"],
+                "node_id": node_id,
+                "node_type": "ContentItem",
+                "type": media_type,
+                "url": media_value,
+                "origin_id": attribute_value_id,
+                "origin_type": "rock",
+                "metadata": json.dumps(metadata),
+            }
 
         return None
 
@@ -242,18 +243,18 @@ class Media:
                     print(image_attribute_value)
                     print(image_url)
 
-            return (
-                "Media",
-                self.kwargs["execution_date"],
-                self.kwargs["execution_date"],
-                node_id,
-                "ContentItemCategory",
-                "IMAGE",
-                image_url,
-                attribute_value_id,
-                "rock",
-                json.dumps(metadata),
-            )
+            return {
+                "apollos_type": "Media",
+                "created_at": self.kwargs["execution_date"],
+                "updated_at": self.kwargs["execution_date"],
+                "node_id": node_id,
+                "node_type": "ContentItemCategory",
+                "type": "IMAGE",
+                "url": image_url,
+                "origin_id": attribute_value_id,
+                "origin_type": "rock",
+                "metadata": json.dumps(metadata),
+            }
         else:
             return None
 
@@ -277,30 +278,21 @@ class Media:
             channels,
         )
 
-        channels_with_image_values = filter(
-            lambda channel: channel, channels_with_images
-        )
+        insert_data = list(filter(lambda channel: channel, channels_with_images))
 
-        columns = (
-            "apollos_type",
-            "created_at",
-            "updated_at",
-            "node_id",
-            "node_type",
-            "type",
-            "url",
-            "origin_id",
-            "origin_type",
-            "metadata",
+        content_to_insert, columns, constraint = find_supported_fields(
+            pg_hook=self.pg_hook,
+            table_name="media",
+            insert_data=insert_data,
         )
 
         self.pg_hook.insert_rows(
             "media",
-            list(channels_with_image_values),
+            content_to_insert,
             columns,
             0,
             True,
-            replace_index=("origin_id", "origin_type"),
+            replace_index=constraint,
         )
 
         add_apollos_ids = """
@@ -363,28 +355,22 @@ class Media:
                 for sublist in media_attribute_lists
                 for media_attribute in sublist
             ]
-            columns = (
-                "apollos_type",
-                "created_at",
-                "updated_at",
-                "node_id",
-                "node_type",
-                "type",
-                "url",
-                "origin_id",
-                "origin_type",
-                "metadata",
-            )
 
             print("Media Items Added: ")
 
+            content_to_insert, columns, constraint = find_supported_fields(
+                pg_hook=self.pg_hook,
+                table_name="media",
+                insert_data=list(media_attributes),
+            )
+
             self.pg_hook.insert_rows(
-                '"media"',
-                list(media_attributes),
+                "media",
+                content_to_insert,
                 columns,
                 0,
                 True,
-                replace_index=('"origin_id"', '"origin_type"'),
+                replace_index=constraint,
             )
 
             add_apollos_ids = """

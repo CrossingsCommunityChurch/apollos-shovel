@@ -31,7 +31,7 @@ class Campus:
             headers=self.headers,
         ).json()
 
-        data_to_insert, columns = find_supported_fields(
+        data_to_insert, columns, constraints = find_supported_fields(
             pg_hook=self.pg_hook,
             table_name="campus",
             insert_data=[
@@ -63,7 +63,7 @@ class Campus:
             columns,
             0,
             True,
-            replace_index=('"origin_id"', '"origin_type"'),
+            replace_index=constraints,
         )
 
         add_apollos_ids = """

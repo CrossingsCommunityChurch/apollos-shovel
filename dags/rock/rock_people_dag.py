@@ -43,7 +43,11 @@ def create_rock_people_dag(
         max_active_runs=1,
         schedule_interval=schedule_interval,
         default_args=default_args,
-        tags=tags
+        tags=tags,
+        # Let tasks run no more than three times longer than the schedule interval.
+        dagrun_timeout=(
+            schedule_interval * 3 if type(schedule_interval) is not str else None
+        ),
         # catchup=False # enable if you don't want historical dag runs to run
     )
 

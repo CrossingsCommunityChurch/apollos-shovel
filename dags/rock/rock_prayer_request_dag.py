@@ -31,6 +31,10 @@ def create_prayer_request_dag(church, start_date, schedule_interval, do_backfill
         schedule_interval=schedule_interval,
         default_args=default_args,
         tags=tags,
+        # Let tasks run no more than three times longer than the schedule interval.
+        dagrun_timeout=(
+            schedule_interval * 3 if type(schedule_interval) is not str else None
+        ),
     )
 
     with dag:

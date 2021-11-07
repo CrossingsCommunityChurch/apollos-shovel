@@ -68,7 +68,7 @@ def test_run_fetch_and_save_features(monkeypatch):
     with vcr.use_cassette("tests/cassettes/features/content_items.yaml"):
         content_item.run_fetch_and_save_content_items()
     with vcr.use_cassette(
-        "tests/cassettes/features/initial_features.yaml", record_mode="new_episodes"
+        "tests/cassettes/features/initial_features.yaml",
     ):
         feature.run_fetch_and_save_features()
 
@@ -82,14 +82,35 @@ def test_run_fetch_and_save_features(monkeypatch):
                 """
             )
             initial_features = curs.fetchall()
-            print(initial_features)
-            assert len(initial_features) == 5
+            assert len(initial_features) == 13
             expected = [
+                ("ContentItem", "CommentList", {"prompt": "Write something..."}, 0),
+                ("ContentItem", "CommentList", {"prompt": "Enter your comment"}, 0),
                 ("ContentItem", "Text", {"text": "Some great text"}, 0),
+                ("ContentItem", "CommentList", {"prompt": "Write something..."}, 0),
+                ("ContentItem", "AddComment", {"prompt": "Write something..."}, 1),
                 ("ContentItem", "Scripture", {"reference": "gen 3, gen 5"}, 1),
+                ("ContentItem", "AddComment", {"prompt": "Enter your comment"}, 1),
+                ("ContentItem", "AddComment", {"prompt": "Write something..."}, 1),
                 ("ContentItem", "Scripture", {"reference": "gen 4"}, 2),
                 ("ContentItem", "Text", {"text": "here here"}, 3),
                 ("ContentItem", "Scripture", {"reference": "1 John 3:16-18"}, 4),
+                (
+                    "ContentItem",
+                    "Button",
+                    {
+                        "url": "https://google.com",
+                        "title": "Check out Google!",
+                        "action": "OPEN_AUTHENTICATED_URL",
+                    },
+                    5,
+                ),
+                (
+                    "ContentItem",
+                    "Button",
+                    {"title": "I completed this!", "action": "COMPLETE_NODE"},
+                    6,
+                ),
             ]
 
             i = 0
@@ -100,7 +121,6 @@ def test_run_fetch_and_save_features(monkeypatch):
             # Add feature in the middle
             with vcr.use_cassette(
                 "tests/cassettes/features/added_feature.yaml",
-                record_mode="new_episodes",
             ):
                 feature.run_fetch_and_save_features()
 
@@ -111,12 +131,34 @@ def test_run_fetch_and_save_features(monkeypatch):
             )
             added_features = curs.fetchall()
             expected = [
-                ("ContentItem", "Text", {"text": "Some great text"}, 0),
-                ("ContentItem", "Scripture", {"reference": "gen 3, gen 5"}, 1),
-                ("ContentItem", "Text", {"text": "added text feature"}, 2),
+                ("ContentItem", "CommentList", {"prompt": "Write something..."}, 0),
+                ("ContentItem", "CommentList", {"prompt": "Write something..."}, 0),
+                ("ContentItem", "Text", {"text": "added feature"}, 0),
+                ("ContentItem", "CommentList", {"prompt": "Enter your comment"}, 0),
+                ("ContentItem", "Text", {"text": "Some great text"}, 1),
+                ("ContentItem", "AddComment", {"prompt": "Enter your comment"}, 1),
+                ("ContentItem", "AddComment", {"prompt": "Write something..."}, 1),
+                ("ContentItem", "AddComment", {"prompt": "Write something..."}, 1),
+                ("ContentItem", "Scripture", {"reference": "gen 3, gen 5"}, 2),
                 ("ContentItem", "Scripture", {"reference": "gen 4"}, 3),
                 ("ContentItem", "Text", {"text": "here here"}, 4),
                 ("ContentItem", "Scripture", {"reference": "1 John 3:16-18"}, 5),
+                (
+                    "ContentItem",
+                    "Button",
+                    {
+                        "url": "https://google.com",
+                        "title": "Check out Google!",
+                        "action": "OPEN_AUTHENTICATED_URL",
+                    },
+                    6,
+                ),
+                (
+                    "ContentItem",
+                    "Button",
+                    {"title": "I completed this!", "action": "COMPLETE_NODE"},
+                    7,
+                ),
             ]
 
             i = 0
@@ -127,7 +169,6 @@ def test_run_fetch_and_save_features(monkeypatch):
             # Delete feature
             with vcr.use_cassette(
                 "tests/cassettes/features/delete_feature.yaml",
-                record_mode="new_episodes",
             ):
                 feature.run_fetch_and_save_features()
 
@@ -138,11 +179,33 @@ def test_run_fetch_and_save_features(monkeypatch):
             )
             deleted_features = curs.fetchall()
             expected = [
+                ("ContentItem", "CommentList", {"prompt": "Enter your comment"}, 0),
+                ("ContentItem", "CommentList", {"prompt": "Write something..."}, 0),
+                ("ContentItem", "CommentList", {"prompt": "Write something..."}, 0),
                 ("ContentItem", "Text", {"text": "Some great text"}, 0),
-                ("ContentItem", "Text", {"text": "added text feature"}, 1),
+                ("ContentItem", "AddComment", {"prompt": "Enter your comment"}, 1),
+                ("ContentItem", "AddComment", {"prompt": "Write something..."}, 1),
+                ("ContentItem", "AddComment", {"prompt": "Write something..."}, 1),
+                ("ContentItem", "Scripture", {"reference": "gen 3, gen 5"}, 1),
                 ("ContentItem", "Scripture", {"reference": "gen 4"}, 2),
                 ("ContentItem", "Text", {"text": "here here"}, 3),
                 ("ContentItem", "Scripture", {"reference": "1 John 3:16-18"}, 4),
+                (
+                    "ContentItem",
+                    "Button",
+                    {
+                        "url": "https://google.com",
+                        "title": "Check out Google!",
+                        "action": "OPEN_AUTHENTICATED_URL",
+                    },
+                    5,
+                ),
+                (
+                    "ContentItem",
+                    "Button",
+                    {"title": "I completed this!", "action": "COMPLETE_NODE"},
+                    6,
+                ),
             ]
             i = 0
             for ftr in deleted_features:
