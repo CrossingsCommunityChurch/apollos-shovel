@@ -124,6 +124,9 @@ class ContentItemConnection:
             map(lambda id: f"'{id}'", rock_config["SERIES_CATEGORY_ORIGIN_IDS"])
         )
 
+        if not series_parent_category_ids:
+            return
+
         add_apollos_parents = f"""
         WITH rows_to_update AS
           (SELECT content_item_connection.parent_id,
