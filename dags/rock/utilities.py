@@ -76,9 +76,9 @@ def find_supported_fields(pg_hook, insert_data, table_name):
         col_names_to_insert = sorted_insert_data[0].keys()
 
     # Identify what set of keys we should use for constraints.
-    use_church_slug = any("church_slug" in idx for idx in unique_indexes)
+    use_church_slug = any("church_id" in idx for idx in unique_indexes)
     constraint = (
-        ("church_slug", "origin_id", "origin_type")
+        ("origin_id", "church_slug", "origin_type")
         if use_church_slug
         else ("origin_id", "origin_type")
     )
