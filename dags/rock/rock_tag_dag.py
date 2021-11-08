@@ -2,6 +2,8 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import timedelta
 from rock.rock_tags import (
+    fetch_and_save_tagged_items,
+    fetch_and_save_rock_tags,
     fetch_and_save_persona_tags,
     attach_persona_tags_to_people,
     attach_persona_tags_to_content,
@@ -53,6 +55,18 @@ def create_rock_tag_dag(church, start_date, schedule_interval, do_backfill):
             op_kwargs={"client": church, "do_backfill": do_backfill},
         )
 
+        rock_tags = PythonOperator(
+            task_id="fetch_and_save_rock_tags",
+            python_callable=fetch_and_save_rock_tags,  # make sure you don't include the () of the function
+            op_kwargs={"client": church, "do_backfill": do_backfill},
+        )
+
+        tagged_items = PythonOperator(
+            task_id="fetch_and_save_tagged_items",
+            python_callable=fetch_and_save_tagged_items,  # make sure you don't include the () of the function
+            op_kwargs={"client": church, "do_backfill": do_backfill},
+        )
+
         tags = PythonOperator(
             task_id="fetch_and_save_persona_tags",
             python_callable=fetch_and_save_persona_tags,  # make sure you don't include the () of the function
@@ -68,5 +82,7 @@ def create_rock_tag_dag(church, start_date, schedule_interval, do_backfill):
         tags >> [persona_tags, content_tags]
 
         tags >> deleted_tags
+
+        rock_tags >> tagged_items >> deleted_tags
 
     return dag, name
