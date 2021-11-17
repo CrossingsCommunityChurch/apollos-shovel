@@ -7,14 +7,17 @@ import requests
 import pytz
 
 
-def get_delta_offset(kwargs):
+def get_delta_offset(kwargs, type):
     local_zone = pytz.timezone(
         Variable.get(kwargs["client"] + "_rock_tz", default_var="EST")
     )
     execution_date_string = (
         kwargs["execution_date"].astimezone(local_zone).strftime("%Y-%m-%dT%H:%M:%S")
     )
-    return f"ModifiedDateTime ge datetime'{execution_date_string}' or ModifiedDateTime eq null or PersistedLastRefreshDateTime ge datetime'{execution_date_string}'"
+    if type == "persona":
+        return f"ModifiedDateTime ge datetime'{execution_date_string}' or ModifiedDateTime eq null or PersistedLastRefreshDateTime ge datetime'{execution_date_string}'"
+    if type == "tag":
+        return f"ModifiedDateTime ge datetime'{execution_date_string}' or ModifiedDateTime eq null"
 
 
 class Tag:
@@ -97,7 +100,9 @@ class Tag:
             }
 
             if not self.kwargs["do_backfill"]:
-                params["$filter"] += f" and ({get_delta_offset(self.kwargs)})"
+                params[
+                    "$filter"
+                ] += f' and ({get_delta_offset(self.kwargs, "persona")})'
 
             print(params)
 
@@ -158,6 +163,9 @@ class Tag:
                 "$skip": skip,
                 "$filter": f"EntityTypeId eq {self.content_item_entity_id}",
             }
+
+            if not self.kwargs["do_backfill"]:
+                params["$filter"] += f' and ({get_delta_offset(self.kwargs, "tag")})'
 
             r = requests.get(
                 f"{Variable.get(self.kwargs['client'] + '_rock_api')}/Tags",
@@ -250,7 +258,7 @@ class Tag:
             }
 
             if not self.kwargs["do_backfill"]:
-                params["$filter"] += f" and ({get_delta_offset(self.kwargs)})"
+                params["$filter"] += f' and ({get_delta_offset(self.kwargs, "tag")})'
             r = requests.get(
                 f"{Variable.get(self.kwargs['client'] + '_rock_api')}/TaggedItems",
                 params=params,
@@ -312,7 +320,9 @@ class Tag:
         }
 
         if not self.kwargs["do_backfill"]:
-            persona_params["$filter"] += f" and ({get_delta_offset(self.kwargs)})"
+            persona_params[
+                "$filter"
+            ] += f' and ({get_delta_offset(self.kwargs, "persona")})'
 
         personas = requests.get(
             f"{Variable.get(self.kwargs['client'] + '_rock_api')}/DataViews",
