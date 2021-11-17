@@ -159,8 +159,6 @@ class Tag:
                 "$filter": f"EntityTypeId eq {self.content_item_entity_id}",
             }
 
-            if not self.kwargs["do_backfill"]:
-                params["$filter"] += f" and ({get_delta_offset(self.kwargs)})"
             r = requests.get(
                 f"{Variable.get(self.kwargs['client'] + '_rock_api')}/Tags",
                 params=params,
