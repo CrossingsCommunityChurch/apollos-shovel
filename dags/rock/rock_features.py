@@ -206,7 +206,7 @@ class Feature:
                 headers=self.headers,
             ).json()
 
-            if isinstance(location_obj, list):
+            if isinstance(location_obj, list) and len(location_obj) > 0:
                 location_obj = location_obj[0]
 
                 features.append(
