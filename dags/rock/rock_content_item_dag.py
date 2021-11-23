@@ -2,7 +2,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import timedelta
 from rock.rock_content_items import fetch_and_save_content_items
-from rock.rock_media import fetch_and_save_media
+from rock.rock_media import fetch_and_save_media, fetch_and_save_channel_image
 from rock.rock_content_items_connections import (
     fetch_and_save_content_items_connections,
     set_content_item_parent_id,
@@ -96,6 +96,12 @@ def create_rock_content_item_dag(church, start_date, schedule_interval, do_backf
             op_kwargs={"client": church, "do_backfill": do_backfill},
         )
 
+        channel_image = PythonOperator(
+            task_id="fetch_and_save_channel_image",
+            python_callable=fetch_and_save_channel_image,  # make sure you don't include the () of the function
+            op_kwargs={"client": church, "do_backfill": do_backfill},
+        )
+
         features = PythonOperator(
             task_id="fetch_and_save_features",
             python_callable=fetch_and_save_features,  # make sure you don't include the () of the function
@@ -109,9 +115,11 @@ def create_rock_content_item_dag(church, start_date, schedule_interval, do_backf
         )
 
         # Adding and syncing categories depends on having content items
-        base_items >> add_categories >> attach_categories
+        base_items >> add_categories >> attach_categories >> channel_image
 
         media >> set_cover_image
+
+        channel_image >> set_cover_image
 
         connections >> [delete_connections, set_parent_id] >> features
 
