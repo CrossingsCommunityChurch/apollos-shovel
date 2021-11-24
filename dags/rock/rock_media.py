@@ -67,6 +67,12 @@ def is_media_video(content_item, attribute):
         or "video" in attribute_key.lower()
         and isinstance(attribute_value, str)
         and attribute_value.startswith("http")
+        # Protect ourselves from youtube links, for example.
+        and (
+            ".mp4" in attribute_value
+            or ".m3u8" in attribute_value
+            or ".hls" in attribute_value
+        )
     )
 
 
