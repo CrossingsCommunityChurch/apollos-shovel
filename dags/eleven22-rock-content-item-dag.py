@@ -29,6 +29,6 @@ vimeo_backfill_dag, vimeo_backfill_name = create_rock_vimeo_dag(
 globals()[vimeo_backfill_name] = vimeo_backfill_dag
 
 vimeo_dag, vimeo_name = create_rock_vimeo_dag(
-    "eleven22", start_date, timedelta(minutes=30), "@once", False
+    "eleven22", start_date, timedelta(minutes=30), False
 )
 globals()[vimeo_name] = vimeo_dag
