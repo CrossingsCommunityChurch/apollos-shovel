@@ -179,6 +179,10 @@ class Media:
                     print(image_dimensions)
                     print(attribute)
                     print(media_value)
+        if media_type == "VIDEO" and media_value:
+            metadata["name"] = safeget(attribute, "AbbreviatedName") or safeget(
+                attribute, "Description"
+            )
 
         if media_value:
             return {
