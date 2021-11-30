@@ -139,15 +139,16 @@ class People:
 
             self.pg_hook.run(add_apollos_ids)
 
-        if len(deleted_people) > 0:
-            self.pg_hook.run(
-                """
-                    DELETE FROM people
-                    WHERE people.origin_id = ANY(%s)
-                """,
-                True,
-                (deleted_people,),
-            )
+            if len(deleted_people) > 0:
+                self.pg_hook.run(
+                    """
+                        DELETE FROM people
+                        WHERE people.origin_id = ANY(%s)
+                    """,
+                    True,
+                    (deleted_people,),
+                )
+                deleted_people = []
 
 
 def fetch_and_save_people(ds, *args, **kwargs):
