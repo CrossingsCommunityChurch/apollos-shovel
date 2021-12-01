@@ -15,6 +15,7 @@ from rock.rock_content_item_categories import (
 from rock.rock_features import fetch_and_save_features
 from rock.rock_deleted_content_items_dag import remove_deleted_content_items
 from algolia_multitenant.algolia_content_dag import create_algolia_dag
+from vimeo.rock_vimeo import create_rock_vimeo_dag
 
 
 start_date = datetime(2021, 11, 2)
@@ -144,3 +145,13 @@ algolia_dag_name, algolia_dag = create_algolia_dag(
 )
 
 globals()[algolia_dag_name] = algolia_dag
+
+vimeo_backfill_dag, vimeo_backfill_name = create_rock_vimeo_dag(
+    "woodmenvalley", start_date, "@once", True
+)
+globals()[vimeo_backfill_name] = vimeo_backfill_dag
+
+vimeo_dag, vimeo_name = create_rock_vimeo_dag(
+    "woodmenvalley", start_date, timedelta(minutes=30), False
+)
+globals()[vimeo_name] = vimeo_dag
