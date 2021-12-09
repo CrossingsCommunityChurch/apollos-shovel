@@ -1,56 +1,70 @@
+import requests
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from datetime import datetime, date, timedelta
+from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
-from datetime import datetime
 
 
-def copy_latest_challenge():
-    pg_hook = PostgresHook(
-        postgres_conn_id="vineyard_apollos_postgres",
-        keepalives=1,
-        keepalives_idle=30,
-        keepalives_interval=10,
-        keepalives_count=5,
-    )
+def recycle_challenge():
+    # check if there's an item that starts today
+    headers = {"Authorization-Token": Variable.get("vineyard_rock_token")}
+    items = requests.get(
+        f"{Variable.get('vineyard_rock_api')}/ContentChannelItems?$filter=ContentChannelId eq 2056 and StartDateTime lt datetime'{(date.today() + timedelta(days = 1)).isoformat()}' and StartDateTime gt datetime'{date.today().isoformat()}'",
+        headers=headers,
+    ).json()
 
-    # find the oldest challenge
-    oldest_challenge_id = pg_hook.get_first(
-        """
-        SELECT id
-        FROM content_item
-        WHERE content_item_category_id = '1acff1cb-805b-4561-b5f7-ee136b0b39b4'
-        ORDER BY publish_at ASC
-        """
-    )[0]
+    # if not
+    if not len(items):
+        # get oldest item
+        item_id = requests.get(
+            f"{Variable.get('vineyard_rock_api')}/ContentChannelItems?$filter=ContentChannelId eq 2056&$orderby=StartDateTime",
+            headers=headers,
+        ).json()[0]["Id"]
 
-    # delete the completed interactions
-    pg_hook.run(
-        f"""
-        DELETE FROM interaction
-        WHERE node_id = '{oldest_challenge_id}' AND action = 'COMPLETE'
-        """
-    )
+        # and patch it with todays date
+        requests.patch(
+            f"{Variable.get('vineyard_rock_api')}/ContentChannelItems/{item_id}",
+            json={"StartDateTime": date.today().isoformat()},
+            headers=headers,
+        )
 
-    # update the publish date
-    pg_hook.run(
-        f"""
-        UPDATE content_item
-        SET publish_at = NOW()
-        WHERE id = '{oldest_challenge_id}'
-        """
-    )
+        pg_hook = PostgresHook(
+            postgres_conn_id="vineyard_apollos_postgres",
+            keepalives=1,
+            keepalives_idle=30,
+            keepalives_interval=10,
+            keepalives_count=5,
+        )
+
+        # find the item in the DB
+        node_id = pg_hook.get_first(
+            """
+            SELECT id
+            FROM content_item
+            WHERE origin_id = '{item_id}'
+            """
+        )[0]
+
+        # delete the completed interactions
+        pg_hook.run(
+            f"""
+            DELETE FROM interaction
+            WHERE node_id = '{node_id}' AND action = 'COMPLETE'
+            """
+        )
 
 
 with DAG(
-    "vineyard_copy_latest_challenge",
+    "vineyard_recycle_challenge",
     default_args={"owner": "airflow"},
-    description="Copies the next challenge over to the DB as a new content item so it is not completed by anyone",
+    description="moves oldest challenge to today",
     schedule_interval="@daily",
     start_date=datetime(2021, 1, 1),
     catchup=False,
 ) as dag:
 
     copy = PythonOperator(
-        task_id="copy_latest_challenge",
-        python_callable=copy_latest_challenge,
+        task_id="recycle_challenge",
+        python_callable=recycle_challenge,
     )
