@@ -39,7 +39,7 @@ def recycle_challenge():
 
         # find the item in the DB
         node_id = pg_hook.get_first(
-            """
+            f"""
             SELECT id
             FROM content_item
             WHERE origin_id = '{item_id}'
