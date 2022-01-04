@@ -142,10 +142,10 @@ class Media:
         media_type = self.get_media_type(content_item, attribute)
         attribute_key = attribute["Key"]
 
-        attribute_value = content_item["AttributeValues"][attribute_key]["Value"]
+        attribute_value = content_item["AttributeValues"][attribute_key]["Value"] or ""
         formatted_value = content_item["AttributeValues"][attribute_key][
             "ValueFormatted"
-        ]
+        ] or ""
 
         # This is true for images stored in assets stored in rock.
         if formatted_value.startswith("http") and not attribute_value.startswith(
