@@ -148,7 +148,7 @@ class Media:
         ] or ""
 
         # This is true for images stored in assets stored in rock.
-        if formatted_value.startswith("http") and not attribute_value.startswith(
+        if formatted_value and formatted_value.startswith("http") and attribute_value and not attribute_value.startswith(
             "http"
         ):
             attribute_value = formatted_value
