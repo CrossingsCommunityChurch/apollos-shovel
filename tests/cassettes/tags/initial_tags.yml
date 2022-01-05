@@ -1,0 +1,38 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization-Token:
+      - ASZjZWdf3IqrbZX9sedtB4wb
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.26.0
+    method: GET
+    uri: https://rock.apollos.app/api/Tags?%24top=10000&%24skip=0&%24filter=EntityTypeId+eq+208
+  response:
+    body:
+      string: '[{"IsSystem":false,"EntityTypeId":208,"EntityTypeQualifierColumn":"","EntityTypeQualifierValue":"","Name":"Test
+        Tag","Description":null,"Order":0,"OwnerPersonAliasId":10,"IsActive":true,"CategoryId":null,"IconCssClass":null,"BackgroundColor":"#e0e0e0","EntityType":null,"Category":null,"CreatedDateTime":"2021-11-05T09:09:43.37","ModifiedDateTime":"2021-11-05T09:09:43.37","CreatedByPersonAliasId":10,"ModifiedByPersonAliasId":10,"ModifiedAuditValuesAlreadyUpdated":false,"Attributes":null,"AttributeValues":null,"Id":2,"Guid":"72164b55-b442-44e9-b0d4-bfa84b34c685","ForeignId":null,"ForeignGuid":null,"ForeignKey":null},{"IsSystem":false,"EntityTypeId":208,"EntityTypeQualifierColumn":"","EntityTypeQualifierValue":"","Name":"Another
+        Test Tag","Description":null,"Order":0,"OwnerPersonAliasId":10,"IsActive":true,"CategoryId":null,"IconCssClass":null,"BackgroundColor":"#e0e0e0","EntityType":null,"Category":null,"CreatedDateTime":"2021-11-05T09:10:02.547","ModifiedDateTime":"2021-11-05T09:10:02.547","CreatedByPersonAliasId":10,"ModifiedByPersonAliasId":10,"ModifiedAuditValuesAlreadyUpdated":false,"Attributes":null,"AttributeValues":null,"Id":3,"Guid":"9f3c23e1-260d-4a41-9906-07172cdabb00","ForeignId":null,"ForeignGuid":null,"ForeignKey":null}]'
+    headers:
+      Cache-Control:
+      - no-cache
+      Content-Length:
+      - '1251'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 05 Nov 2021 13:44:15 GMT
+      Expires:
+      - '-1'
+      Pragma:
+      - no-cache
+    status:
+      code: 200
+      message: OK
+version: 1

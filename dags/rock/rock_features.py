@@ -99,6 +99,7 @@ class Feature:
             {
                 "Id": item["Id"],
                 "AttributeValues": item["AttributeValues"],
+                "Attributes": item["Attributes"],
                 **postgres_data.get(str(item["Id"])),
             }
             for item in rock_content
@@ -206,7 +207,7 @@ class Feature:
                 headers=self.headers,
             ).json()
 
-            if isinstance(location_obj, list):
+            if isinstance(location_obj, list) and len(location_obj) > 0:
                 location_obj = location_obj[0]
 
                 features.append(
@@ -393,6 +394,65 @@ class Feature:
                     }
                 )
 
+        # Struggling with your action table?
+        # Make  sure the display Lava is this
+        # {%- capture attributeValuesObject %}{% if AttributeMatrixItems != empty -%}{
+        #     "Attributes": [{%- for attributeMatrixItem in AttributeMatrixItems -%}{
+        #         {%- for itemAttribute in ItemAttributes -%}
+        #             {% assign av = attributeMatrixItem | Attribute:itemAttribute.Key | Trim %}
+        #             "{{ itemAttribute.Key }}": "{{ av }}"{% if forloop.last != true %},{% endif %}
+        #         {%- endfor -%}
+        #     }{% if forloop.last != true %},{% endif %}{%- endfor -%}]
+        # }{% endif %}{%- endcapture -%}{{ attributeValuesObject | Trim }}
+
+        action_table = safeget_no_case(
+            content, "AttributeValues", "ActionTable", "Value"
+        )
+
+        if (
+            action_table
+            # If the attribute is a matrix.
+            and safeget_no_case(content, "Attributes", "ActionTable", "FieldTypeId")
+            == self.get_attribute_matrix_field_type_id()
+        ):
+            # Get the formated vaule field (JSON string of the matrix)
+            formatted_value = safeget(
+                content, "AttributeValues", "ActionTable", "ValueFormatted"
+            )
+            # If there is indeed a matrix
+            if formatted_value:
+                try:
+                    # Parse the formatted value
+                    parsed_matrix = json.loads(formatted_value)
+                    actions = []
+                    if "Attributes" in parsed_matrix:
+                        # And then for each row, create a feature.
+                        for ref in parsed_matrix["Attributes"]:
+                            # something
+                            actions.append(
+                                {
+                                    "title": ref["Title"],
+                                    "action": "OPEN_AUTHENTICATED_URL",
+                                    "relatedNode": {
+                                        "__typename": "Url",
+                                        "url": ref["Link"],
+                                    },
+                                }
+                            )
+
+                        features.append(
+                            {
+                                "type": "ActionTable",
+                                "data": {"title": "", "actions": actions},
+                                "parent_id": content["node_id"],
+                            }
+                        )
+
+                except ValueError:
+                    print("Error parsing")
+                    print(formatted_value)
+                    print(content)
+
         features_with_priority = list(
             map(self.map_feature_priority, enumerate(features))
         )
@@ -492,7 +552,7 @@ class Feature:
                 "$skip": skip,
                 "loadAttributes": "expanded",
                 "$orderby": "ModifiedDateTime desc",
-                "attributeKeys": "features, comments, initialPrompt, buttontext, buttonlink, completeButtonText, scriptures, location, eventdate",
+                "attributeKeys": "features, comments, initialPrompt, buttontext, buttonlink, completeButtonText, scriptures, location, eventdate, actiontable",
             }
 
             if not self.kwargs["do_backfill"]:

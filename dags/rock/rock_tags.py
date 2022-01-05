@@ -7,14 +7,17 @@ import requests
 import pytz
 
 
-def get_delta_offset(kwargs):
+def get_delta_offset(kwargs, type):
     local_zone = pytz.timezone(
         Variable.get(kwargs["client"] + "_rock_tz", default_var="EST")
     )
     execution_date_string = (
         kwargs["execution_date"].astimezone(local_zone).strftime("%Y-%m-%dT%H:%M:%S")
     )
-    return f"ModifiedDateTime ge datetime'{execution_date_string}' or ModifiedDateTime eq null or PersistedLastRefreshDateTime ge datetime'{execution_date_string}'"
+    if type == "persona":
+        return f"ModifiedDateTime ge datetime'{execution_date_string}' or ModifiedDateTime eq null or PersistedLastRefreshDateTime ge datetime'{execution_date_string}'"
+    if type == "tag":
+        return f"ModifiedDateTime ge datetime'{execution_date_string}' or ModifiedDateTime eq null"
 
 
 class Tag:
@@ -39,7 +42,14 @@ class Tag:
             headers=self.headers,
         ).json()[0]["Id"]
 
+        self.content_item_entity_id = requests.get(
+            f"{Variable.get(kwargs['client'] + '_rock_api')}/EntityTypes",
+            params={"$filter": "Name eq 'Rock.Model.ContentChannelItem'"},
+            headers=self.headers,
+        ).json()[0]["Id"]
+
     def map_dataview_to_tag(self, obj):
+
         return {
             "created_at": self.kwargs["execution_date"],
             "updated_at": self.kwargs["execution_date"],
@@ -48,8 +58,27 @@ class Tag:
             "apollos_type": "Tag",
             "name": obj["Name"],
             "data": Json({"guid": obj["Guid"]}),
-            "type": "Persona",
+            "type": self.get_tag_type(obj),
         }
+
+    def map_rock_tag_to_tag(self, obj):
+        return {
+            "created_at": self.kwargs["execution_date"],
+            "updated_at": self.kwargs["execution_date"],
+            "origin_id": obj["Id"],
+            "origin_type": "rock",
+            "apollos_type": "Tag",
+            "name": obj["Name"],
+            "data": None,
+            "type": "ContentItem",
+        }
+
+    def get_tag_type(self, obj):
+        if obj["EntityTypeId"] == self.person_entity_id:
+            return "Persona"
+        elif obj["EntityTypeId"] == self.content_item_entity_id:
+            return "ContentItem"
+        return None
 
     def run_fetch_and_save_persona_tags(self):
         fetched_all = False
@@ -65,13 +94,15 @@ class Tag:
             params = {
                 "$top": top,
                 "$skip": skip,
-                "$filter": f"EntityTypeId eq {self.person_entity_id} and CategoryId eq {rock_config['PERSONA_CATEGORY_ID']}",
-                "$select": "Id,Name,Guid",
+                "$filter": f"(EntityTypeId eq {self.person_entity_id} and CategoryId eq {rock_config['PERSONA_CATEGORY_ID']}) or EntityTypeId eq {self.content_item_entity_id}",
+                "$select": "Id,Name,Guid,EntityTypeId",
                 "$orderby": "ModifiedDateTime desc",
             }
 
             if not self.kwargs["do_backfill"]:
-                params["$filter"] += f" and ({get_delta_offset(self.kwargs)})"
+                params[
+                    "$filter"
+                ] += f' and ({get_delta_offset(self.kwargs, "persona")})'
 
             print(params)
 
@@ -105,7 +136,7 @@ class Tag:
 
             self.pg_hook.insert_rows(
                 "tag",
-                tags_to_insert,
+                data_to_insert,
                 columns,
                 0,
                 True,
@@ -119,6 +150,149 @@ class Tag:
             """
 
             self.pg_hook.run(add_apollos_ids)
+
+    def run_fetch_and_save_rock_tags(self):
+        fetched_all = False
+        skip = 0
+        top = 10000
+
+        while not fetched_all:
+
+            params = {
+                "$top": top,
+                "$skip": skip,
+                "$filter": f"EntityTypeId eq {self.content_item_entity_id}",
+            }
+
+            if not self.kwargs["do_backfill"]:
+                params["$filter"] += f' and ({get_delta_offset(self.kwargs, "tag")})'
+
+            r = requests.get(
+                f"{Variable.get(self.kwargs['client'] + '_rock_api')}/Tags",
+                params=params,
+                headers=self.headers,
+            )
+            rock_objects = r.json()
+
+            if not isinstance(rock_objects, list):
+                print(rock_objects)
+                print("oh uh, we might have made a bad request")
+                print(f"top: {top}")
+                print(f"skip: {skip}")
+                skip += top
+                continue
+
+            skip += top
+            fetched_all = len(rock_objects) < top
+
+            tags_to_insert = list(map(self.map_rock_tag_to_tag, rock_objects))
+
+            data_to_insert, columns, constraints = find_supported_fields(
+                pg_hook=self.pg_hook,
+                table_name="tag",
+                insert_data=tags_to_insert,
+            )
+
+            self.pg_hook.insert_rows(
+                "tag",
+                data_to_insert,
+                columns,
+                0,
+                True,
+                replace_index=constraints,
+            )
+
+            add_apollos_ids = """
+            UPDATE tag
+            SET apollos_id = apollos_type || ':' || id::varchar
+            WHERE origin_type = 'rock' and apollos_id IS NULL
+            """
+
+            self.pg_hook.run(add_apollos_ids)
+
+    def map_tagged_item(self, obj):
+        # Get postgres Id from origin ID
+        postgres_tag_id = self.pg_hook.get_first(
+            """
+                SELECT id from tag WHERE tag.origin_id = %s
+            """,
+            (str(obj["TagId"]),),
+        )[0]
+
+        # Get rock content item id from rock guid
+        params = {"$filter": f"Guid eq guid'{obj['EntityGuid']}'", "$select": "Id"}
+
+        rock_content_item_id = requests.get(
+            f"{Variable.get(self.kwargs['client'] + '_rock_api')}/ContentChannelItems",
+            params=params,
+            headers=self.headers,
+        ).json()[0]["Id"]
+
+        # Get postgred content item id from rock content item id
+        postgres_content_item_id = self.pg_hook.get_first(
+            """
+                SELECT id from content_item WHERE content_item.origin_id = %s
+            """,
+            (str(rock_content_item_id),),
+        )[0]
+
+        return {
+            "created_at": self.kwargs["execution_date"],
+            "updated_at": self.kwargs["execution_date"],
+            "tag_id": postgres_tag_id,
+            "content_item_id": postgres_content_item_id,
+        }
+
+    def run_fetch_and_save_tagged_items(self):
+        fetched_all = False
+        skip = 0
+        top = 10000
+
+        while not fetched_all:
+
+            params = {
+                "$top": top,
+                "$skip": skip,
+                "$filter": f"EntityTypeId eq {self.content_item_entity_id}",
+                "$select": "TagId,EntityTypeId,EntityGuid",
+            }
+
+            if not self.kwargs["do_backfill"]:
+                params["$filter"] += f' and ({get_delta_offset(self.kwargs, "tag")})'
+            r = requests.get(
+                f"{Variable.get(self.kwargs['client'] + '_rock_api')}/TaggedItems",
+                params=params,
+                headers=self.headers,
+            )
+            rock_objects = r.json()
+
+            if not isinstance(rock_objects, list):
+                print(rock_objects)
+                print("oh uh, we might have made a bad request")
+                print(f"top: {top}")
+                print(f"skip: {skip}")
+                skip += top
+                continue
+
+            tags_to_insert = list(map(self.map_tagged_item, rock_objects))
+
+            data_to_insert, columns, constraints = find_supported_fields(
+                pg_hook=self.pg_hook,
+                table_name="content_tag",
+                insert_data=tags_to_insert,
+            )
+
+            self.pg_hook.insert_rows(
+                "content_tag",
+                data_to_insert,
+                columns,
+                0,
+                True,
+                replace_index=("tag_id", "content_item_id"),
+            )
+
+            skip += top
+            fetched_all = len(rock_objects) < top
 
     def generate_person_tag_import_sql(self, tag_id, person_id):
         return f"""
@@ -141,12 +315,14 @@ class Tag:
 
         persona_params = {
             "$filter": f"EntityTypeId eq {self.person_entity_id} and CategoryId eq {rock_config['PERSONA_CATEGORY_ID']}",
-            "$select": "Id,Name,Guid",
+            "$select": "Id,Name,Guid,EntityTypeId",
             "$orderby": "ModifiedDateTime desc",
         }
 
         if not self.kwargs["do_backfill"]:
-            persona_params["$filter"] += f" and ({get_delta_offset(self.kwargs)})"
+            persona_params[
+                "$filter"
+            ] += f' and ({get_delta_offset(self.kwargs, "persona")})'
 
         personas = requests.get(
             f"{Variable.get(self.kwargs['client'] + '_rock_api')}/DataViews",
@@ -270,6 +446,26 @@ def fetch_and_save_persona_tags(ds, *args, **kwargs):
     tag_task = Klass(kwargs)
 
     tag_task.run_fetch_and_save_persona_tags()
+
+
+def fetch_and_save_rock_tags(ds, *args, **kwargs):
+    if "client" not in kwargs or kwargs["client"] is None:
+        raise Exception("You must configure a client for this operator")
+
+    Klass = Tag if "klass" not in kwargs else kwargs["klass"]  # noqa: N806
+    tag_task = Klass(kwargs)
+
+    tag_task.run_fetch_and_save_rock_tags()
+
+
+def fetch_and_save_tagged_items(ds, *args, **kwargs):
+    if "client" not in kwargs or kwargs["client"] is None:
+        raise Exception("You must configure a client for this operator")
+
+    Klass = Tag if "klass" not in kwargs else kwargs["klass"]  # noqa: N806
+    tag_task = Klass(kwargs)
+
+    tag_task.run_fetch_and_save_tagged_items()
 
 
 def attach_persona_tags_to_people(ds, *args, **kwargs):

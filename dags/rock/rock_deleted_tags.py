@@ -26,26 +26,56 @@ def remove_deleted_tags(ds, *args, **kwargs):
         headers=headers,
     ).json()[0]["Id"]
 
+    content_item_entity_id = requests.get(
+        f"{Variable.get(kwargs['client'] + '_rock_api')}/EntityTypes",
+        params={"$filter": "Name eq 'Rock.Model.ContentChannelItem'"},
+        headers=headers,
+    ).json()[0]["Id"]
+
     rock_config = Variable.get(kwargs["client"] + "_rock_config", deserialize_json=True)
 
     params = {
-        "$filter": f"EntityTypeId eq {person_entity_id} and CategoryId eq {rock_config['PERSONA_CATEGORY_ID']}",
+        "$filter": f"(EntityTypeId eq {person_entity_id} and CategoryId eq {rock_config['PERSONA_CATEGORY_ID']}) or EntityTypeId eq {content_item_entity_id}",
         "$select": "Id",
         "$orderby": "ModifiedDateTime desc",
     }
 
-    r = requests.get(
-        f"{Variable.get(kwargs['client'] + '_rock_api')}/DataViews",
-        params=params,
-        headers=headers,
+    data_view_tags = list(
+        map(
+            lambda tag: tag["Id"],
+            requests.get(
+                f"{Variable.get(kwargs['client'] + '_rock_api')}/DataViews",
+                params=params,
+                headers=headers,
+            ).json(),
+        )
     )
 
-    rock_tags = list(map(lambda tag: tag["Id"], r.json()))
+    params = {
+        "$select": "Id",
+        "$filter": f"EntityTypeId eq {content_item_entity_id}",
+    }
+
+    rock_tags = list(
+        map(
+            lambda tag: tag["Id"],
+            requests.get(
+                f"{Variable.get(kwargs['client'] + '_rock_api')}/Tags",
+                params=params,
+                headers=headers,
+            ).json(),
+        )
+    )
+
+    all_tags = data_view_tags + rock_tags
+
+    print("ALL TAGS")
+    print(all_tags)
 
     deleted_tags = list(
         map(
             lambda tag: tag[0],
-            filter(lambda tag: int(tag[1]) not in rock_tags, postgres_tags),
+            filter(lambda tag: int(tag[1]) not in all_tags, postgres_tags),
         )
     )
 

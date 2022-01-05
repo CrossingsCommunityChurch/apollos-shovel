@@ -1,0 +1,104 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization-Token:
+      - ASZjZWdf3IqrbZX9sedtB4wb
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.26.0
+    method: GET
+    uri: https://rock.apollos.app/api/TaggedItems?%24top=10000&%24skip=0&%24filter=EntityTypeId+eq+208&%24select=TagId%2CEntityTypeId%2CEntityGuid
+  response:
+    body:
+      string: '[{"EntityGuid":"cfe6edd1-417b-4af3-a9ed-95e01fdbc7cf","EntityTypeId":208,"TagId":2},{"EntityGuid":"cfe6edd1-417b-4af3-a9ed-95e01fdbc7cf","EntityTypeId":208,"TagId":3}]'
+    headers:
+      Cache-Control:
+      - no-cache
+      Content-Length:
+      - '167'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 05 Nov 2021 14:10:28 GMT
+      Expires:
+      - '-1'
+      Pragma:
+      - no-cache
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization-Token:
+      - ASZjZWdf3IqrbZX9sedtB4wb
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.26.0
+    method: GET
+    uri: https://rock.apollos.app/api/ContentChannelItems?%24filter=Guid+eq+guid%27cfe6edd1-417b-4af3-a9ed-95e01fdbc7cf%27&%24select=Id
+  response:
+    body:
+      string: '[{"Id":63}]'
+    headers:
+      Cache-Control:
+      - no-cache
+      Content-Length:
+      - '11'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 05 Nov 2021 14:10:29 GMT
+      Expires:
+      - '-1'
+      Pragma:
+      - no-cache
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization-Token:
+      - ASZjZWdf3IqrbZX9sedtB4wb
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.26.0
+    method: GET
+    uri: https://rock.apollos.app/api/ContentChannelItems?%24filter=Guid+eq+guid%27cfe6edd1-417b-4af3-a9ed-95e01fdbc7cf%27&%24select=Id
+  response:
+    body:
+      string: '[{"Id":63}]'
+    headers:
+      Cache-Control:
+      - no-cache
+      Content-Length:
+      - '11'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 05 Nov 2021 14:10:29 GMT
+      Expires:
+      - '-1'
+      Pragma:
+      - no-cache
+    status:
+      code: 200
+      message: OK
+version: 1

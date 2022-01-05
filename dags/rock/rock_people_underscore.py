@@ -43,22 +43,6 @@ class People:
             return string.replace("\x00", "")
         return string
 
-    def map_people_to_columns(self, obj):
-        return {
-            "created_at": self.kwargs["execution_date"],
-            "updated_at": self.kwargs["execution_date"],
-            "origin_id": obj["Id"],
-            "origin_type": "rock",
-            "apollos_type": "Person",
-            "first_name": self.clean_string(obj["NickName"]),
-            "last_name": self.clean_string(obj["LastName"]),
-            "gender": self.gender_map[obj["Gender"]],
-            "birth_date": obj["BirthDate"],
-            "campus_id": self.campus_map[str(obj["PrimaryCampusId"])],
-            "email": self.clean_string(obj["Email"]),
-            "profile_image_url": self.photo_url(safeget(obj, "Photo", "Path")),
-        }
-
     def photo_url(self, path):
         if path is None:
             return None
@@ -98,6 +82,23 @@ class People:
                 headers=self.headers,
             )
             rock_objects = r.json()
+            insert_data = [
+                {
+                    "created_at": self.kwargs["execution_date"],
+                    "updated_at": self.kwargs["execution_date"],
+                    "origin_id": obj["Id"],
+                    "origin_type": "rock",
+                    "apollos_type": "Person",
+                    "first_name": self.clean_string(obj["NickName"]),
+                    "last_name": self.clean_string(obj["LastName"]),
+                    "gender": self.gender_map[obj["Gender"]],
+                    "birth_date": obj["BirthDate"],
+                    "campus_id": self.campus_map[str(obj["PrimaryCampusId"])],
+                    "email": self.clean_string(obj["Email"]),
+                    "profile_image_url": self.photo_url(safeget(obj, "Photo", "Path")),
+                }
+                for obj in rock_objects
+            ]
 
             if not isinstance(rock_objects, list):
                 print(rock_objects)
@@ -111,13 +112,14 @@ class People:
             fetched_all = len(rock_objects) < top
 
             for person in rock_objects:
-                if person["RecordStatusValue"]["Value"] == "Inactive":
+                if (
+                    person["RecordStatusValue"]
+                    and person["RecordStatusValue"]["Value"] == "Inactive"
+                ):
                     deleted_people.append(str(person["Id"]))
 
             data_to_insert, columns, constraints = find_supported_fields(
-                pg_hook=self.pg_hook,
-                table_name="people",
-                insert_data=list(map(self.map_people_to_columns, rock_objects)),
+                pg_hook=self.pg_hook, table_name="people", insert_data=insert_data
             )
 
             self.pg_hook.insert_rows(
@@ -137,15 +139,16 @@ class People:
 
             self.pg_hook.run(add_apollos_ids)
 
-        if len(deleted_people) > 0:
-            self.pg_hook.run(
-                """
-                    DELETE FROM people
-                    WHERE people.origin_id = ANY(%s)
-                """,
-                True,
-                (deleted_people,),
-            )
+            if len(deleted_people) > 0:
+                self.pg_hook.run(
+                    """
+                        DELETE FROM people
+                        WHERE people.origin_id = ANY(%s)
+                    """,
+                    True,
+                    (deleted_people,),
+                )
+                deleted_people = []
 
 
 def fetch_and_save_people(ds, *args, **kwargs):

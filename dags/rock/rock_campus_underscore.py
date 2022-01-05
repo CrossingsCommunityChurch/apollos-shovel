@@ -36,7 +36,6 @@ class Campus:
             table_name="campus",
             insert_data=[
                 {
-                    "current_date": self.kwargs["execution_date"],
                     "origin_id": obj["Id"],
                     "origin_type": "rock",
                     "apollos_type": "Campus",

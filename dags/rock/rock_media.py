@@ -42,10 +42,20 @@ def getsizes(uri):
 def is_media_image(content_item, attribute):
     attribute_key = attribute["Key"]
     attribute_value = content_item["AttributeValues"][attribute_key]["Value"]
-    return attribute["FieldTypeId"] == 10 or (
-        "image" in attribute_key.lower()
-        and isinstance(attribute_value, str)
-        and attribute_value.startswith("http")
+    formatted_value = content_item["AttributeValues"][attribute_key]["ValueFormatted"]
+    return (
+        attribute["FieldTypeId"] == 10
+        or (
+            "image" in attribute_key.lower()
+            and isinstance(attribute_value, str)
+            and attribute_value.startswith("http")
+        )
+        or (
+            attribute["FieldTypeId"] == 140
+            and isinstance(formatted_value, str)
+            and formatted_value.startswith("http")
+            and "image" in attribute_key.lower()
+        )
     )
 
 
@@ -57,6 +67,12 @@ def is_media_video(content_item, attribute):
         or "video" in attribute_key.lower()
         and isinstance(attribute_value, str)
         and attribute_value.startswith("http")
+        # Protect ourselves from youtube links, for example.
+        and (
+            ".mp4" in attribute_value
+            or ".m3u8" in attribute_value
+            or ".hls" in attribute_value
+        )
     )
 
 
@@ -88,7 +104,7 @@ class Media:
         )
 
     def parse_asset_url(self, value, media_type):
-        if value and media_type == "IMAGE":
+        if value and media_type == "IMAGE" and not value.startswith("http"):
             rock_host = (Variable.get(self.kwargs["client"] + "_rock_api")).split(
                 "/api"
             )[0]
@@ -125,7 +141,18 @@ class Media:
     def get_media_value(self, content_item, attribute):
         media_type = self.get_media_type(content_item, attribute)
         attribute_key = attribute["Key"]
-        attribute_value = content_item["AttributeValues"][attribute_key]["Value"]
+
+        attribute_value = content_item["AttributeValues"][attribute_key]["Value"] or ""
+        formatted_value = content_item["AttributeValues"][attribute_key][
+            "ValueFormatted"
+        ] or ""
+
+        # This is true for images stored in assets stored in rock.
+        if formatted_value and formatted_value.startswith("http") and attribute_value and not attribute_value.startswith(
+            "http"
+        ):
+            attribute_value = formatted_value
+
         asset_url = self.parse_asset_url(attribute_value, media_type)
         return asset_url
 
@@ -152,6 +179,10 @@ class Media:
                     print(image_dimensions)
                     print(attribute)
                     print(media_value)
+        if media_type == "VIDEO" and media_value:
+            metadata["name"] = safeget(attribute, "AbbreviatedName") or safeget(
+                attribute, "Description"
+            )
 
         if media_value:
             return {

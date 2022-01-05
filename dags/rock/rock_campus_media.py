@@ -2,6 +2,7 @@ from airflow.models import Variable
 from airflow.hooks.postgres_hook import PostgresHook
 import requests
 from rock.rock_media import getsizes
+from rock.utilities import find_supported_fields
 import json
 
 
@@ -21,16 +22,11 @@ class CampusMedia:
             keepalives_count=5,
         )
 
-    def parse_asset_url(self, value):
-        if value:
-            rock_host = (Variable.get(self.kwargs["client"] + "_rock_api")).split(
-                "/api"
-            )[0]
-            return rock_host + "/GetImage.ashx?guid=" + value
-        else:
-            return value
+    def parse_asset_url(self, guid):
+        rock_host = (Variable.get(self.kwargs["client"] + "_rock_api")).split("/api")[0]
+        return f"{rock_host}/GetImage.ashx?guid={guid}" if guid else None
 
-    def add_postgres_data_to_rock_media(self, campuses):
+    def add_node_id_to_rock_campus(self, campuses):
         if len(campuses) == 0:
             return []
 
@@ -52,49 +48,12 @@ class CampusMedia:
         ]
         return campuses_with_postgres_data
 
-    def map_campuses_to_images(self, campuses):
-        campuses_with_images = []
-        for campus in campuses:
-            if (
-                "Location" in campus
-                and "Image" in campus["Location"]
-                and campus["Location"]["Image"]
-            ):
-                url = self.parse_asset_url(campus["Location"]["Image"]["Guid"])
-                metadata = {}
-                image_dimensions = getsizes(url)
-                if image_dimensions:
-                    try:
-                        metadata["width"] = image_dimensions[0]
-                        metadata["height"] = image_dimensions[1]
-                    except:  # noqa E722
-                        print("Error getting media sizes")
-                        print(image_dimensions)
-                        print(url)
-
-                campuses_with_images.append(
-                    {
-                        "campus_id": campus["node_id"],
-                        "url": url,
-                        "origin_id": campus["Location"]["Image"]["Id"],
-                        "metadata": json.dumps(metadata),
-                    }
-                )
-
-        return map(
-            lambda c: [
-                "IMAGE",
-                self.kwargs["execution_date"],
-                self.kwargs["execution_date"],
-                c["campus_id"],
-                "Campus",
-                "IMAGE",
-                c["url"],
-                c["origin_id"],
-                "rock",
-                c["metadata"],
-            ],
-            campuses_with_images,
+    def get_image_metadata(self, url):
+        image_dimensions = getsizes(url)
+        return (
+            json.dumps({"width": image_dimensions[0], "height": image_dimensions[1]})
+            if image_dimensions and len(image_dimensions) == 2
+            else None
         )
 
     def run_fetch_and_save_campus_media(self):
@@ -107,45 +66,49 @@ class CampusMedia:
             headers=self.headers,
         ).json()
 
-        media_with_postgres_id = self.add_postgres_data_to_rock_media(rock_objects)
+        rock_campuses_with_node_id = self.add_node_id_to_rock_campus(rock_objects)
 
-        campuses_with_images = self.map_campuses_to_images(media_with_postgres_id)
+        media = [
+            {
+                "apollos_type": "IMAGE",
+                "created_at": self.kwargs["execution_date"],
+                "updated_at": self.kwargs["execution_date"],
+                "node_id": campus["node_id"],
+                "node_type": "Campus",
+                "type": "IMAGE",
+                "url": self.parse_asset_url(campus["Location"]["Image"].get("Guid")),
+                "origin_id": campus["Location"]["Image"].get("Id"),
+                "origin_type": "rock",
+                "metadata": self.get_image_metadata(
+                    self.parse_asset_url(campus["Location"]["Image"].get("Guid"))
+                ),
+            }
+            for campus in rock_campuses_with_node_id
+            if campus.get("Location", {"Image": None}).get("Image")
+        ]
 
-        columns = (
-            "apollos_type",
-            "created_at",
-            "updated_at",
-            "node_id",
-            "node_type",
-            "type",
-            "url",
-            "origin_id",
-            "origin_type",
-            "metadata",
+        data_to_insert, columns, constraints = find_supported_fields(
+            pg_hook=self.pg_hook, table_name="media", insert_data=media
         )
-
-        insert_list = list(campuses_with_images)
 
         self.pg_hook.insert_rows(
             "media",
-            insert_list,
+            data_to_insert,
             columns,
             0,
             True,
-            replace_index=("origin_id", "origin_type"),
+            replace_index=constraints,
         )
 
-        for campus_image in insert_list:
-            apollos_id_update = """
+        for image in media:
+
+            self.pg_hook.run(
+                f"""
                 UPDATE campus
                 SET image_id = media.id
                 FROM media
-                WHERE campus.id = %s::uuid AND media.origin_id = %s
+                WHERE campus.id = '{image['node_id']}'::uuid AND media.origin_id = '{image['origin_id']}'
                 """
-
-            self.pg_hook.run(
-                apollos_id_update,
-                parameters=(str(campus_image[3]), str(campus_image[7])),
             )
 
 
