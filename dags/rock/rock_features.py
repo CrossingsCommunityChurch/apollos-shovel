@@ -394,6 +394,25 @@ class Feature:
                     }
                 )
 
+        webview_feature = safeget_no_case(
+            content, "AttributeValues", "Webview", "Value"
+        )
+        if webview_feature:
+            features.append(
+                {
+                    "type": "Webview",
+                    "data": {
+                        "title": safeget_no_case(
+                            content, "AttributeValues", "Webview", "Value"
+                        ),
+                        "url": safeget_no_case(
+                            content, "AttributeValues", "Webview", "Value"
+                        ),
+                    },
+                    "parent_id": content["node_id"],
+                }
+            )
+
         # Struggling with your action table?
         # Make  sure the display Lava is this
         # {%- capture attributeValuesObject %}{% if AttributeMatrixItems != empty -%}{
@@ -552,7 +571,7 @@ class Feature:
                 "$skip": skip,
                 "loadAttributes": "expanded",
                 "$orderby": "ModifiedDateTime desc",
-                "attributeKeys": "features, comments, initialPrompt, buttontext, buttonlink, completeButtonText, scriptures, location, eventdate, actiontable",
+                "attributeKeys": "features, comments, initialPrompt, buttontext, buttonlink, completeButtonText, scriptures, location, eventdate, actiontable, webview",
             }
 
             if not self.kwargs["do_backfill"]:
