@@ -143,13 +143,16 @@ class Media:
         attribute_key = attribute["Key"]
 
         attribute_value = content_item["AttributeValues"][attribute_key]["Value"] or ""
-        formatted_value = content_item["AttributeValues"][attribute_key][
-            "ValueFormatted"
-        ] or ""
+        formatted_value = (
+            content_item["AttributeValues"][attribute_key]["ValueFormatted"] or ""
+        )
 
         # This is true for images stored in assets stored in rock.
-        if formatted_value and formatted_value.startswith("http") and attribute_value and not attribute_value.startswith(
-            "http"
+        if (
+            formatted_value
+            and formatted_value.startswith("http")
+            and attribute_value
+            and not attribute_value.startswith("http")
         ):
             attribute_value = formatted_value
 
