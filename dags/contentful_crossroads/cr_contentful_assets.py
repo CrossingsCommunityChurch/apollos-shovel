@@ -63,6 +63,31 @@ class Asset:
             """
         self.pg_hook.run(delete_unused_assets)
 
+    def save_assets_to_postgres(self, assets):
+        insert_data = list(map(self.map_content_to_columns, assets))
+        content_to_insert, columns, constraint = find_supported_fields(
+            pg_hook=self.pg_hook,
+            table_name="media",
+            insert_data=insert_data,
+        )
+
+        self.pg_hook.insert_rows(
+            "media",
+            content_to_insert,
+            columns,
+            0,
+            True,
+            replace_index=constraint,
+        )
+
+        add_apollos_ids = """
+        UPDATE media
+        SET apollos_id = apollos_type || ':' || id::varchar
+        WHERE origin_type = 'contentful' and apollos_id IS NULL
+        """
+
+        self.pg_hook.run(add_apollos_ids)
+
     def run_fetch_and_save_assets(self):
         fetched_all = False
         skip = 0
@@ -80,30 +105,6 @@ class Asset:
                     "type": "Asset",
                 }
                 sync = ContentfulClient.sync(opts)
-
-            insert_data = list(map(self.map_content_to_columns, sync.items))
-            content_to_insert, columns, constraint = find_supported_fields(
-                pg_hook=self.pg_hook,
-                table_name="media",
-                insert_data=insert_data,
-            )
-
-            self.pg_hook.insert_rows(
-                "media",
-                content_to_insert,
-                columns,
-                0,
-                True,
-                replace_index=constraint,
-            )
-
-            add_apollos_ids = """
-            UPDATE media
-            SET apollos_id = apollos_type || ':' || id::varchar
-            WHERE origin_type = 'contentful' and apollos_id IS NULL
-            """
-
-            self.pg_hook.run(add_apollos_ids)
 
             next_sync_token = sync.next_sync_token
             skip += limit

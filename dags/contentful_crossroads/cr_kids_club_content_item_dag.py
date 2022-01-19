@@ -10,6 +10,7 @@ from contentful_crossroads.cr_contentful_assets import (
     remove_unused_assets,
 )
 from contentful_crossroads.cr_kids_club_categories import create_kids_club_categories
+from contentful_crossroads.cr_redis import redis_client, kc_redis_token
 
 
 # Default settings applied to all tasks
@@ -45,52 +46,80 @@ def create_cr_kids_club_content_item_dag(
         ),
     )
 
-    with dag:
-        assets = PythonOperator(
-            task_id="fetch_and_save_assets",
-            # make sure you don't include the () of the function
-            python_callable=fetch_and_save_assets,
-            op_kwargs={
-                "client": church,
-                "do_backfill": do_backfill,
-                "localization": "en-US",
-            },
-        )
+    sync_token = redis_client.get(kc_redis_token)
 
-        base_items = PythonOperator(
-            task_id="fetch_and_save_content_items",
-            # make sure you don't include the () of the function
-            python_callable=fetch_and_save_content_items,
-            op_kwargs={
-                "client": church,
-                "do_backfill": do_backfill,
-                "contentful_filters": {"type": "Entry", "content_type": "video"},
-                "localization": "en-US",
-            },
-        )
+    if do_backfill or (not do_backfill and not sync_token):
+        with dag:
+            assets = PythonOperator(
+                task_id="fetch_and_save_assets",
+                # make sure you don't include the () of the function
+                python_callable=fetch_and_save_assets,
+                op_kwargs={
+                    "client": church,
+                    "do_backfill": True,
+                    "localization": "en-US",
+                },
+            )
 
-        delete_unused_assets = PythonOperator(
-            task_id="remove_unused_assets",
-            # make sure you don't include the () of the function
-            python_callable=remove_unused_assets,
-            op_kwargs={
-                "client": church,
-                "do_backfill": do_backfill,
-                "localization": "en-US",
-            },
-        )
+            base_items = PythonOperator(
+                task_id="fetch_and_save_content_items",
+                # make sure you don't include the () of the function
+                python_callable=fetch_and_save_content_items,
+                op_kwargs={
+                    "client": church,
+                    "do_backfill": True,
+                    "contentful_filters": {},
+                    "localization": "en-US",
+                    "sync_token": False,
+                },
+            )
 
-        categories = PythonOperator(
-            task_id="create_categories",
-            python_callable=create_kids_club_categories,
-            op_kwargs={
-                "client": church,
-                "do_backfill": do_backfill,
-            },
-        )
+            delete_unused_assets = PythonOperator(
+                task_id="remove_unused_assets",
+                # make sure you don't include the () of the function
+                python_callable=remove_unused_assets,
+                op_kwargs={
+                    "client": church,
+                    "do_backfill": True,
+                    "localization": "en-US",
+                },
+            )
 
-        assets >> base_items >> delete_unused_assets
+            categories = PythonOperator(
+                task_id="create_categories",
+                python_callable=create_kids_club_categories,
+                op_kwargs={
+                    "client": church,
+                    "do_backfill": True,
+                },
+            )
 
-        categories >> base_items
+            assets >> base_items >> delete_unused_assets
+            categories >> base_items
+    else:
+        with dag:
+            base_items = PythonOperator(
+                task_id="fetch_and_save_content_items",
+                # make sure you don't include the () of the function
+                python_callable=fetch_and_save_content_items,
+                op_kwargs={
+                    "client": church,
+                    "do_backfill": False,
+                    "localization": "en-US",
+                    "sync_token": sync_token,
+                },
+            )
+            delete_unused_assets = PythonOperator(
+                task_id="remove_unused_assets",
+                # make sure you don't include the () of the function
+                python_callable=remove_unused_assets,
+                op_kwargs={
+                    "client": church,
+                    "do_backfill": True,
+                    "localization": "en-US",
+                },
+            )
+
+            base_items >> delete_unused_assets
 
     return dag, name

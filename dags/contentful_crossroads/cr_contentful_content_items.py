@@ -3,6 +3,8 @@ import markdown
 import json
 import re
 from contentful_crossroads.cr_contentful_client import ContentfulClient
+from contentful_crossroads.cr_redis import redis_client, kc_redis_token
+from contentful_crossroads.cr_contentful_assets import Asset
 
 from rock.utilities import (
     find_supported_fields,
@@ -83,7 +85,7 @@ class ContentItem:
             category = fields["category"]
             category_id = vars(category)["sys"]["id"]
             return category_id == kids_club_category_id
-        except KeyError:
+        except (KeyError, TypeError):
             return False
 
     def get_entry_fields(self, entry):
@@ -197,7 +199,70 @@ class ContentItem:
             """
             self.pg_hook.run(delete_not_synced_content_items)
 
+    def save_items_to_postgres(self, items):
+        insert_data = list(map(self.map_content_to_columns, items))
+        content_to_insert, columns, constraint = find_supported_fields(
+            pg_hook=self.pg_hook,
+            table_name="content_item",
+            insert_data=insert_data,
+        )
+        self.pg_hook.insert_rows(
+            "content_item",
+            content_to_insert,
+            columns,
+            0,
+            True,
+            replace_index=constraint,
+        )
+        add_apollos_ids = """
+        UPDATE content_item
+        SET apollos_id = apollos_type || ':' || id::varchar
+        WHERE origin_type = 'contentful' and apollos_id IS NULL
+        """
+        self.pg_hook.run(add_apollos_ids)
+
+    def save_assets_to_postgres(self, assets):
+        asset_class = Asset(self.kwargs)
+        asset_class.save_assets_to_postgres(assets)
+
+    def remove_deleted_entries(self, entries):
+        deleted_origin_ids = list(map(lambda entry: entry.sys["id"], entries))
+        deleted_ids_string = "', '".join(deleted_origin_ids)
+        delete_entries = f"""
+        DELETE FROM content_item
+        WHERE origin_id IN ('${deleted_ids_string}')
+        """
+        self.pg_hook.run(delete_entries)
+
+    def save_sync_token(self, next_sync_token):
+        redis_client.set(kc_redis_token, next_sync_token)
+
+    def run_sync(self):
+        sync = ContentfulClient.sync({"sync_token": self.kwargs["sync_token"]})
+        new_entries = list(filter(lambda item: item.sys["type"] == "Entry", sync.items))
+        new_assets = list(filter(lambda item: item.sys["type"] == "Asset", sync.items))
+        deleted_entries = list(
+            filter(lambda item: item.sys["type"] == "DeletedEntry", sync.items)
+        )
+        deleted_assets = list(
+            filter(lambda item: item.sys["type"] == "DeletedAsset", sync.items)
+        )
+        print("New Entries: ", len(new_entries))
+        print("New Assets: ", len(new_assets))
+        print("Deleted Entries: ", len(deleted_entries))
+        print("Deleted Assets: ", len(deleted_assets))
+
+        entries_to_save = self.get_kids_club_items_only(new_entries)
+        self.save_items_to_postgres(entries_to_save)
+        self.save_assets_to_postgres(new_assets)
+        self.remove_deleted_entries(deleted_entries)
+        self.update_assets_with_ids(entries_to_save)
+        self.save_video_url_as_media(entries_to_save)
+        self.save_categories(entries_to_save)
+        self.save_sync_token(sync.next_sync_token)
+
     def run_fetch_and_save_content_items(self):
+        # for a backfill, only
         fetched_all = False
         skip = 0
         limit = 100
@@ -219,36 +284,14 @@ class ContentItem:
             items_to_save_ids = list(map(lambda item: item.sys["id"], items_to_save))
             all_contentful_ids += items_to_save_ids
 
-            insert_data = list(map(self.map_content_to_columns, items_to_save))
-
-            content_to_insert, columns, constraint = find_supported_fields(
-                pg_hook=self.pg_hook,
-                table_name="content_item",
-                insert_data=insert_data,
-            )
-
-            self.pg_hook.insert_rows(
-                "content_item",
-                content_to_insert,
-                columns,
-                0,
-                True,
-                replace_index=constraint,
-            )
-
-            add_apollos_ids = """
-            UPDATE content_item
-            SET apollos_id = apollos_type || ':' || id::varchar
-            WHERE origin_type = 'contentful' and apollos_id IS NULL
-            """
-
-            self.pg_hook.run(add_apollos_ids)
+            self.save_items_to_postgres(items_to_save)
 
             next_sync_token = sync.next_sync_token
             skip += limit
             self.update_assets_with_ids(items_to_save)
             self.save_video_url_as_media(items_to_save)
             self.save_categories(items_to_save)
+            self.save_sync_token(next_sync_token)
             fetched_all = len(sync.items) < limit
 
         self.delete_items_not_synced(all_contentful_ids)
@@ -262,4 +305,10 @@ def fetch_and_save_content_items(ds, *args, **kwargs):
 
     content_item_task = Klass(kwargs)
 
-    content_item_task.run_fetch_and_save_content_items()
+    sync_token = kwargs["sync_token"]
+    if sync_token:
+        print("Running Contentful delta sync...")
+        content_item_task.run_sync()
+    else:
+        print("Running Contentful full sync...")
+        content_item_task.run_fetch_and_save_content_items()
