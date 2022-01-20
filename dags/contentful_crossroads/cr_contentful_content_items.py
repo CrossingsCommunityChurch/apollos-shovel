@@ -230,7 +230,7 @@ class ContentItem:
         deleted_ids_string = "', '".join(deleted_origin_ids)
         delete_entries = f"""
         DELETE FROM content_item
-        WHERE origin_id IN ('${deleted_ids_string}')
+        WHERE origin_id IN ('{deleted_ids_string}')
         """
         self.pg_hook.run(delete_entries)
 
