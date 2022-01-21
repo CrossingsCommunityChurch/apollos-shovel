@@ -19,24 +19,20 @@ class PrayerRequest:
             keepalives_count=5,
         )
 
-    def get_postgres_person_id(self, rock_person_origin_id):
-        postgres_person_id = self.pg_hook.get_first(
-            "SELECT id FROM people WHERE people.origin_id = %s",
-            (str(rock_person_origin_id),),
-        )
-
-        return postgres_person_id[0]
-
     # "created_at", "updated_at", "text", "person_id", "origin_id", "origin_type", "apollos_type"
     def map_prayer_requests(self, prayer_request):
-        postgres_person_id = self.get_postgres_person_id(
-            safeget(prayer_request, "RequestedByPersonAlias", "PersonId")
+        rock_id = prayer_request["RequestedByPersonAlias"]["PersonId"]
+        postgres_person = self.pg_hook.get_first(
+            f"SELECT id FROM people WHERE people.origin_id = '{rock_id}'"
         )
+        # skip prayers that are from people not in the DB
+        if not postgres_person:
+            return None
         return {
             "created_at": safeget(prayer_request, "CreatedDateTime"),
             "updated_at": safeget(prayer_request, "ModifiedDateTime"),
             "text": safeget(prayer_request, "Text"),
-            "person_id": postgres_person_id,
+            "person_id": postgres_person[0],
             "origin_id": str(safeget(prayer_request, "Id")),
             "origin_type": "rock",
             "apollos_type": "PrayerRequest",
@@ -78,7 +74,18 @@ class PrayerRequest:
             skip += top
             fetched_all = len(rock_objects) < top
 
-            prayer_requests = list(map(self.map_prayer_requests, rock_objects))
+            # skip prayers with no requestor or that are private
+            rock_prayers = [
+                prayer
+                for prayer in rock_objects
+                if prayer["RequestedByPersonAlias"].get("PersonId")
+                and prayer["IsPublic"]
+            ]
+            prayer_requests = [
+                self.map_prayer_requests(prayer) for prayer in rock_prayers
+            ]
+            # filter out skipped prayers
+            prayer_requests = [prayer for prayer in prayer_requests if prayer]
 
             data_to_insert, columns, constraints = find_supported_fields(
                 pg_hook=self.pg_hook,
