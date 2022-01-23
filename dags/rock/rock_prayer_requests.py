@@ -52,6 +52,7 @@ class PrayerRequest:
                 "$top": top,
                 "$skip": skip,
                 "$expand": "RequestedByPersonAlias",
+                "$filter": "RequestedByPersonAlias ne null and CreatedByPersonAliasId ne null"
             }
 
             if not self.kwargs["do_backfill"]:
@@ -90,7 +91,7 @@ class PrayerRequest:
             data_to_insert, columns, constraints = find_supported_fields(
                 pg_hook=self.pg_hook,
                 table_name="prayer_request",
-                insert_data=prayer_requests,
+                insert_data=prayer_requests_filtered,
             )
 
             self.pg_hook.insert_rows(

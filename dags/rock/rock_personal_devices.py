@@ -64,8 +64,8 @@ def fetch_and_save_personal_devices_to_apollos_user(ds, *args, **kwargs):
 
         dts_insert = f"""
         UPDATE people
-        SET \"apollosUser\" = True
-        WHERE \"originType\" = 'rock' AND \"originId\" IN({update_statements_joined})
+        SET \"apollos_user\" = True
+        WHERE \"origin_type\" = 'rock' AND \"origin_id\" IN({update_statements_joined})
         """
 
         print(dts_insert)

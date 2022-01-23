@@ -212,13 +212,14 @@ class Tag:
 
     def map_tagged_item(self, obj):
         # Get postgres Id from origin ID
+        print(f"Mapping Items ")
         postgres_tag_id = self.pg_hook.get_first(
             """
                 SELECT id from tag WHERE tag.origin_id = %s
             """,
             (str(obj["TagId"]),),
         )[0]
-
+        print(f"PG ID: {postgres_tag_id}")
         # Get rock content item id from rock guid
         params = {"$filter": f"Guid eq guid'{obj['EntityGuid']}'", "$select": "Id"}
 
@@ -227,7 +228,7 @@ class Tag:
             params=params,
             headers=self.headers,
         ).json()[0]["Id"]
-
+        print(f"Rock Content ID: {rock_content_item_id}")
         # Get postgred content item id from rock content item id
         postgres_content_item_id = self.pg_hook.get_first(
             """
@@ -235,7 +236,7 @@ class Tag:
             """,
             (str(rock_content_item_id),),
         )[0]
-
+        print(f"PG content ID: {postgres_content_item_id}")
         return {
             "created_at": self.kwargs["execution_date"],
             "updated_at": self.kwargs["execution_date"],

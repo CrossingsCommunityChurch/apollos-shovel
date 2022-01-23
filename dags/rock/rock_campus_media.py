@@ -23,6 +23,7 @@ class CampusMedia:
         )
 
     def parse_asset_url(self, guid):
+        print("Image GUID is: ", guid)
         rock_host = (Variable.get(self.kwargs["client"] + "_rock_api")).split("/api")[0]
         return f"{rock_host}/GetImage.ashx?guid={guid}" if guid else None
 

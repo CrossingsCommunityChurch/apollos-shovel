@@ -53,13 +53,16 @@ class crossingsMedia(Media):
     def parse_asset_url(self, value, media_type):
         if media_type == "IMAGE" or media_type == "AUDIO" and bool(value):
             try:
-                parsed_value = json.loads(value)
-                if "path" in parsed_value:
-                    return parsed_value["path"]
-                if "Key" in parsed_value and "AssetStorageProviderId" in parsed_value:
-                    safeurl = urllib.parse.quote(parsed_value['Key'])
-                    return f"https://images.crossings.church/fit-in/700x700/{safeurl}"
+                # parsed_value = json.loads(value)
+                # if "path" in parsed_value:
+                #     return parsed_value["path"]
+                # if "Key" in parsed_value and "AssetStorageProviderId" in parsed_value:
+                    # safeurl = urllib.parse.quote(parsed_value['Key'])
+                safeurl = value.replace('https://cccrockweb.s3.amazonaws.com/', '',1)
+                print("Safeurel is: ", safeurl)
+                return f"https://images.crossings.church/fit-in/700x700/{safeurl}"
             except Exception as err:
+                print("Error in parse_Asset_URL")
                 print(err)
                 print(value)
                 return ""

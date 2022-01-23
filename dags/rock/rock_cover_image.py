@@ -137,7 +137,6 @@ class CoverImage:
                 skip += top
                 continue
 
-            content_items = list(map(self.map_content_items, rock_objects))
 
             # Sets all content items without a cover image to their parent's cover image
             for content_item in rock_objects:
