@@ -226,7 +226,12 @@ class Tag:
             f"{Variable.get(self.kwargs['client'] + '_rock_api')}/ContentChannelItems",
             params=params,
             headers=self.headers,
-        ).json()[0]["Id"]
+        ).json()
+
+        if not len(rock_content_item_id):
+            return None
+
+        rock_content_item_id = rock_content_item_id[0]["Id"]
 
         # Get postgred content item id from rock content item id
         postgres_content_item_id = self.pg_hook.get_first(
@@ -274,7 +279,9 @@ class Tag:
                 skip += top
                 continue
 
-            tags_to_insert = list(map(self.map_tagged_item, rock_objects))
+            tags_to_insert = list(
+                filter(lambda item: bool(item), map(self.map_tagged_item, rock_objects))
+            )
 
             data_to_insert, columns, constraints = find_supported_fields(
                 pg_hook=self.pg_hook,
