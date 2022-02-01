@@ -91,7 +91,7 @@ class PrayerRequest:
             data_to_insert, columns, constraints = find_supported_fields(
                 pg_hook=self.pg_hook,
                 table_name="prayer_request",
-                insert_data=prayer_requests_filtered,
+                insert_data=prayer_requests,
             )
 
             self.pg_hook.insert_rows(
