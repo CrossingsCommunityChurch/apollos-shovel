@@ -2,15 +2,15 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import timedelta
 
-from contentful_crossroads.cr_contentful_content_items import (
-    fetch_and_save_content_items,
+from contentful_crossroads.kids_club.cr_kids_club_content_items import (
+    KidsClubContentItem,
 )
-from contentful_crossroads.cr_contentful_assets import (
-    fetch_and_save_assets,
-    remove_unused_assets,
+from contentful_crossroads.cr_contentful_content_items import fetch_and_save_entries
+
+from contentful_crossroads.cr_contentful_deletion import fetch_and_delete_items
+from contentful_crossroads.kids_club.cr_kids_club_categories import (
+    create_kids_club_categories,
 )
-from contentful_crossroads.cr_kids_club_categories import create_kids_club_categories
-from contentful_crossroads.cr_redis import redis_client, kc_redis_token
 
 
 # Default settings applied to all tasks
@@ -46,45 +46,8 @@ def create_cr_kids_club_content_item_dag(
         ),
     )
 
-    sync_token = redis_client.get(kc_redis_token)
-
-    if do_backfill or (not do_backfill and not sync_token):
+    if do_backfill:
         with dag:
-            assets = PythonOperator(
-                task_id="fetch_and_save_assets",
-                # make sure you don't include the () of the function
-                python_callable=fetch_and_save_assets,
-                op_kwargs={
-                    "client": church,
-                    "do_backfill": True,
-                    "localization": "en-US",
-                },
-            )
-
-            base_items = PythonOperator(
-                task_id="fetch_and_save_content_items",
-                # make sure you don't include the () of the function
-                python_callable=fetch_and_save_content_items,
-                op_kwargs={
-                    "client": church,
-                    "do_backfill": True,
-                    "contentful_filters": {},
-                    "localization": "en-US",
-                    "sync_token": False,
-                },
-            )
-
-            delete_unused_assets = PythonOperator(
-                task_id="remove_unused_assets",
-                # make sure you don't include the () of the function
-                python_callable=remove_unused_assets,
-                op_kwargs={
-                    "client": church,
-                    "do_backfill": True,
-                    "localization": "en-US",
-                },
-            )
-
             categories = PythonOperator(
                 task_id="create_categories",
                 python_callable=create_kids_club_categories,
@@ -93,33 +56,51 @@ def create_cr_kids_club_content_item_dag(
                     "do_backfill": True,
                 },
             )
-
-            assets >> base_items >> delete_unused_assets
-            categories >> base_items
-    else:
-        with dag:
             base_items = PythonOperator(
-                task_id="fetch_and_save_content_items",
+                task_id="fetch_and_save_entries",
                 # make sure you don't include the () of the function
-                python_callable=fetch_and_save_content_items,
-                op_kwargs={
-                    "client": church,
-                    "do_backfill": False,
-                    "localization": "en-US",
-                    "sync_token": sync_token,
-                },
-            )
-            delete_unused_assets = PythonOperator(
-                task_id="remove_unused_assets",
-                # make sure you don't include the () of the function
-                python_callable=remove_unused_assets,
+                python_callable=fetch_and_save_entries,
                 op_kwargs={
                     "client": church,
                     "do_backfill": True,
-                    "localization": "en-US",
+                    "contentful_filters": {"content_type": "video"},
+                    "klass": KidsClubContentItem,
+                },
+            )
+            deletion = PythonOperator(
+                task_id="fetch_and_delete_items",
+                # make sure you don't include the () of the function
+                python_callable=fetch_and_delete_items,
+                op_kwargs={
+                    "client": church,
+                    "do_backfill": True,
                 },
             )
 
-            base_items >> delete_unused_assets
+            categories >> base_items >> deletion
+    else:
+        with dag:
+
+            base_items = PythonOperator(
+                task_id="fetch_and_save_entries",
+                # make sure you don't include the () of the function
+                python_callable=fetch_and_save_entries,
+                op_kwargs={
+                    "client": church,
+                    "do_backfill": False,
+                    "klass": KidsClubContentItem,
+                },
+            )
+            deletion = PythonOperator(
+                task_id="fetch_and_delete_items",
+                # make sure you don't include the () of the function
+                python_callable=fetch_and_delete_items,
+                op_kwargs={
+                    "client": church,
+                    "do_backfill": False,
+                },
+            )
+
+            base_items >> deletion
 
     return dag, name
