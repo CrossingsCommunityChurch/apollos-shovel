@@ -9,5 +9,5 @@ pytest==6.2.4
 pytest-mock==3.6.1
 pytest-vcr==1.0.2
 contentful==1.13.1
-markdown==3.3.6
+markdown==3.3.4
 redis==4.1.0
